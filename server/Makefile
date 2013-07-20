@@ -15,6 +15,13 @@ OBJECTS_DIR   = ./
 
 ####### Files
 SOURCES       = main.c \
+		network/keep_connect.c \
+		network/start_connect.c \
+		network/init_network.c \
+		user/chat_with.c \
+		user/user_logout.c \
+		user/user_login.c \
+		db_ctl/linkc_db.c
 
 NETWORK	      = network/keep_connect.o \
 		network/start_connect.o \
@@ -26,7 +33,7 @@ USER_CTL      = user/chat_with.o \
 
 DB_CTL	      = db_ctl/linkc_db.o
 
-OBJECTS       = main.o
+OBJECT       = main.o
 
 TARGET	      = LinkC_Server
 
@@ -44,7 +51,10 @@ $(DB_CTL) : db_ctl/Makefile
 	$(MAKE) -C db_ctl
 
 clean:
-	$(MAKE) clean -C network && $(MAKE) clean -C user && $(MAKE) clean -C db_ctl && $(DEL_FILE) $(OBJECTS)
+	$(MAKE) clean -C network && $(MAKE) clean -C user && $(MAKE) clean -C db_ctl && $(DEL_FILE) $(OBJECT)
+
+clean_all:
+	$(MAKE) clean -C network && $(MAKE) clean -C user && $(MAKE) clean -C db_ctl && $(DEL_FILE) $(OBJECT) $(TARGET)
 
 rebuild:
 	$(MAKE) clean && $(MAKE)
@@ -59,5 +69,5 @@ distclean: clean
 main.o: main.c
 	$(CC) -c main.c
 
-$(TARGET): $(OBJECTS) $(NETWORK) $(USER_CTL) $(DB_CTL)
-	$(CC) -o $(TARGET) $(OBJECTS) $(NETWORK) $(USER_CTL) $(DB_CTL)  $(LIBS)
+$(TARGET): $(OBJECT) $(NETWORK) $(USER_CTL) $(DB_CTL)
+	$(CC) -o $(TARGET) $(OBJECT) $(NETWORK) $(USER_CTL) $(DB_CTL)  $(LIBS)
