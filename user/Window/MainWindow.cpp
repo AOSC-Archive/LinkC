@@ -81,6 +81,10 @@ MainWindow::~MainWindow(){
 	printf ("Debug >> Done!\n");
 }
 
+void MainWindow::test_slot(int i){
+    printf("%d\n",i);
+}
+
 int MainWindow::NetworkInit(void){
 	int i;
 	server.Set_IP("127.0.0.1");
@@ -158,3 +162,11 @@ int MainWindow::InitFriendList(){
 void MainWindow::check(){
     printf ("ALl Right!\n");
 }
+
+//#####################################################33
+/*ChatDialog::ChatDialog(QWidget *parent)
+    :QDialog(parent){
+    resize(200,200);
+    show();
+}
+*/

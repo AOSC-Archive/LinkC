@@ -20,6 +20,7 @@
 namespace Ui {
 class MainWindow;
 class LoginWindow;
+class ChatDialog;
 }
 
 class MainWindow : public QMainWindow{
@@ -35,16 +36,19 @@ public:
     FriendArea *friendArea;
 private slots:
     void check(void);
+    void test_slot(int i);
+signals:
+    void test_signal(int i);
 private:
 	csocket server;
 	int Connection_state;
-    FriendArea *area;
-    QTabWidget *tab;
+    FriendArea * area;
+    QTabWidget * tab;
     QGridLayout* TopLayout;
     QVBoxLayout* MainLayout;
     QGridLayout* layout;
-    QWidget *Top;
-    QWidget *MainWidget;
+    QWidget    * Top;
+    QWidget    * MainWidget;
 };
 
 
@@ -58,23 +62,33 @@ class LoginWindow : public QDialog{
 	Q_OBJECT
 
 public:
-	LoginWindow(QWidget* = 0);	   //构造函数
+    explicit LoginWindow(QWidget* = 0);	   //构造函数
 	~LoginWindow();	  // 析构函数
 	int GetLoginData(login_data &s);
 	QPushButton* LoginButton;
 	QPushButton* CancelButton;
-
 public slots:		   // 槽函数
 	void QuitClick(void);		 // 退出按钮被按下
 	void LoginClick(void);		// 登录按钮被按下
 private:
 	const char* UserName;
 	const char* PassWord;
-	QLineEdit*  UsernameInput;
-	QLineEdit*  PasswordInput;
+    QLineEdit * UsernameInput;
+    QLineEdit * PasswordInput;
 
 
 	struct login_data st;
 };
 
+
+/*class ChatDialog : public QDialog{
+    Q_OBJECT
+
+public:
+    explicit ChatDialog(QWidget *parent = 0);
+    ~ChatDialog();
+public slots:
+    void chatwith(const friend_data data);
+};
+*/
 #endif

@@ -9,6 +9,7 @@
 #include <qt4/QtGui/QListView>
 #include <qt4/QtGui/QFrame>
 #include <QScrollArea>
+#include <Qt/qmap.h>
 
 //#########################################
 FriendGroup::FriendGroup(QWidget *parent)
@@ -41,15 +42,17 @@ void LinkcFriendItem::mousePressEvent(QMouseEvent *event){
 FriendArea::FriendArea(QWidget *parent)
     :QWidget(parent){
 //    s               = new QScrollArea(this);
-    list            = new QListWidget(this);
+    list              = new QListWidget(this);
 //    FriendLayout    = new QVBoxLayout;
 //    FriendWidget    = new QWidget;
+    list->connect(list,SIGNAL(itemClicked(QListWidgetItem*)),this,SLOT(chatTo(QListWidgetItem*)));
 }
 
 void FriendArea::AddFriendToLayout(friend_data Myfriend){
-    QListWidgetItem *f = new QListWidgetItem;
-    f->setText(Myfriend.name);
-    list->addItem(f);
+     QListWidgetItem *f = new QListWidgetItem;
+     f->setText(Myfriend.name);
+     list->addItem(f);
+     FriendMap[f]=Myfriend.UID;
 }
 
 void FriendArea::resizeEvent(QResizeEvent *){
@@ -63,4 +66,9 @@ void FriendArea::setFriendCount(const char s[]){
 
 int FriendArea::FriendCount(){
     return friendcount;
+}
+
+int FriendArea::chatTo(QListWidgetItem *){
+
+    return 0;
 }

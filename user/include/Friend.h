@@ -42,13 +42,17 @@ public:
     void resizeEvent(QResizeEvent *);
     void setFriendCount(const char s[]);
     int FriendCount(void);
+public slots:
+    int chatTo(QListWidgetItem*);
 protected:
     int friendcount;
-    typedef QMap<int,LinkcFriendItem>FriendMap;
+    typedef QMap<QListWidgetItem *,int>_Map;
+    _Map::const_iterator Value;
     QScrollArea *s;
     QListWidget *list;
     QWidget     *FriendWidget;
-    QVBoxLayout * FriendLayout;
+    QVBoxLayout *FriendLayout;
+    _Map         FriendMap;
 };
 
 #endif
