@@ -1,15 +1,16 @@
 #include "../include/Friend.h"
-#include <stdio.h>
-#include <qt4/Qt/qtoolbox.h>
-#include <qt4/Qt/qlistwidget.h>
-#include <qt4/Qt/qlabel.h>
 #include "../include/LinkC_Label.h"
-#include <QObject>
+#include <stdio.h>
+#include <qt4/QtGui/QToolBox>
+#include <qt4/QtGui/QListWidget>
+#include <qt4/QtGui/QLabel>
 #include <qt4/QtGui/QtGui>
 #include <qt4/QtGui/QListView>
 #include <qt4/QtGui/QFrame>
-#include <QScrollArea>
-#include <Qt/qmap.h>
+#include <qt4/QtGui/QScrollArea>
+#include <qt4/QtCore/QMap>
+#include <qt4/QtCore/QDebug>
+#include <qt4/QtCore/QObject>
 
 //#########################################
 FriendGroup::FriendGroup(QWidget *parent)
@@ -45,7 +46,7 @@ FriendArea::FriendArea(QWidget *parent)
     list              = new QListWidget(this);
 //    FriendLayout    = new QVBoxLayout;
 //    FriendWidget    = new QWidget;
-    list->connect(list,SIGNAL(itemClicked(QListWidgetItem*)),this,SLOT(chatTo(QListWidgetItem*)));
+    connect(list,SIGNAL(itemClicked(QListWidgetItem*)),this,SLOT(ItemClicked(QListWidgetItem*)));
 }
 
 void FriendArea::AddFriendToLayout(friend_data Myfriend){
@@ -68,7 +69,8 @@ int FriendArea::FriendCount(){
     return friendcount;
 }
 
-int FriendArea::chatTo(QListWidgetItem *){
-
-    return 0;
+void FriendArea::ItemClicked(QListWidgetItem *item){
+    result = FriendMap.find(item);
+    printf("%d\n",result.value());
+    emit ChatTo(result.value());
 }

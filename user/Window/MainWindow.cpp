@@ -1,5 +1,4 @@
 #include "MainWindow.h"
-#include <qt4/QtGui/QMainWindow>
 #include "../NetWork/csocket.h"
 #include <unistd.h>
 #include <stdlib.h>
@@ -13,6 +12,7 @@
 #include <qt4/Qt/qpushbutton.h>
 #include <qt4/QtGui/QtGui>
 #include <qt4/QtGui/QListView>
+#include <qt4/QtGui/QMainWindow>
 
 #include "../include/data_type.h"
 #include "../include/LinkC_Label.h"
@@ -60,6 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
         head->setPixmap(pic);
         head->setGeometry(0,0,50,50);
         this->connect(head, SIGNAL(clicked()), this, SLOT(check()));
+        this->connect(area, SIGNAL(ChatTo(int)),this, SLOT(ChatWith(int)));
         head->show();
 //############顶部初始化完毕############
 
@@ -161,6 +162,18 @@ int MainWindow::InitFriendList(){
 
 void MainWindow::check(){
     printf ("ALl Right!\n");
+}
+
+void MainWindow::ChatWith(int UID){
+    QDialog *log;
+    if(!ChatDialogMap.contains(UID)){
+        log = new QDialog;
+        log->show();
+        ChatDialogMap.insert(UID, log);
+    }else{
+        log = ChatDialogMap[UID];
+        log->show();
+    }
 }
 
 //#####################################################33

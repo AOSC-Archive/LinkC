@@ -1,14 +1,14 @@
 #include "MainWindow.h"
-#include <QtGui>
-#include "../NetWork/csocket.h"
-#include <unistd.h>
-#include <qt4/Qt/qmessagebox.h>
-#include <qt4/Qt/qstring.h>
-#include <qt4/QtGui/QLineEdit>
-#include <QDialog>
 #include "../include/data_type.h"
-
+#include <unistd.h>
 #include <string.h>
+#include <qt4/QtGui/QtGui>
+#include <qt4/QtGui/QMessageBox>
+#include <qt4/QtCore/QString>
+#include <qt4/QtGui/QLineEdit>
+#include <qt4/QtGui/QDialog>
+
+
 
 
 

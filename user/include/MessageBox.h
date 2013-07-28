@@ -13,11 +13,13 @@
 #ifndef MESSAGEBOX_H
 #define MESSAGEBOX_H
 
-#include <QWidget>
-#include <QTimeLine>
-#include <QLabel>
-#include <QLayout>
-#include <QEventLoop>
+
+#include <qt4/QtCore/QTimeLine>
+#include <qt4/QtCore/QEventLoop>
+#include <qt4/QtGui/QLabel>
+#include <qt4/QtGui/QWidget>
+#include <qt4/QtGui/QLayout>
+
 
 
 class MessageBox : public QWidget

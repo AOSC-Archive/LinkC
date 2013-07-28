@@ -1,15 +1,13 @@
 #ifndef FRIEND_H
 #define FRIEND_H
-#include <qt4/Qt/qlistwidget.h>
 #include "../include/LinkC_Label.h"
 #include "../include/data_type.h"
-#include <qt4/Qt/qlistwidget.h>
+#include <qt4/QtCore/QObject>
+#include <qt4/QtCore/QMap>
+#include <qt4/QtGui/QLabel>
+#include <qt4/QtGui/QScrollArea>
 #include <qt4/QtGui/QtGui>
-#include <QObject>
-#include <QLabel>
-#include <qt4/Qt/qlistwidget.h>
-#include <QScrollArea>
-#include <QMap>
+#include <qt4/QtGui/QListWidget>
 
 class FriendGroup : public QListWidget{
     Q_OBJECT
@@ -43,7 +41,9 @@ public:
     void setFriendCount(const char s[]);
     int FriendCount(void);
 public slots:
-    int chatTo(QListWidgetItem*);
+    void ItemClicked(QListWidgetItem *item);
+signals:
+    void ChatTo(int);
 protected:
     int friendcount;
     typedef QMap<QListWidgetItem *,int>_Map;
@@ -53,6 +53,7 @@ protected:
     QWidget     *FriendWidget;
     QVBoxLayout *FriendLayout;
     _Map         FriendMap;
+    _Map::iterator result;
 };
 
 #endif

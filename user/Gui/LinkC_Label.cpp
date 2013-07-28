@@ -1,5 +1,5 @@
 #include "../include/LinkC_Label.h"
-#include <qt4/Qt/qwidget.h>
+#include <qt4/QtGui/QWidget>
 #include <qt4/QtGui/QtGui>
 
 LinkC_Label::LinkC_Label(QWidget *parent)

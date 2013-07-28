@@ -1,21 +1,21 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <qt4/QtGui/QMainWindow>
-#include <qt4/QtGui/QInputDialog>
-#include <qt4/QtNetwork/QTcpSocket>
+
 #include "../NetWork/csocket.h"
 #include "../include/Friend.h"
-#include <qt4/Qt/qtoolbox.h>
-#include <qt4/Qt/qgroupbox.h>
-#include <qt4/Qt/qlayout.h>
-#include <qt4/QtGui/QVBoxLayout>
-#include <qt4/Qt/qtoolbutton.h>
-#include <QLabel>
-#include <QWidget>
 #include "../include/data_type.h"
-#include <QListWidget>
-#include <QScrollArea>
+#include <qt4/QtGui/QToolBox>
+#include <qt4/QtGui/QGroupBox>
+#include <qt4/QtGui/QLayout>
+#include <qt4/QtGui/QVBoxLayout>
+#include <qt4/QtGui/QMainWindow>
+#include <qt4/QtGui/QInputDialog>
+#include <qt4/QtGui/QToolButton>
+#include <qt4/QtGui/QLabel>
+#include <qt4/QtGui/QWidget>
+#include <qt4/QtGui/QListWidget>
+#include <qt4/QtGui/QScrollArea>
 
 namespace Ui {
 class MainWindow;
@@ -37,9 +37,11 @@ public:
 private slots:
     void check(void);
     void test_slot(int i);
+    void ChatWith(int UID);
 signals:
     void test_signal(int i);
 private:
+    typedef QMap<int,QDialog *> _Map;
 	csocket server;
 	int Connection_state;
     FriendArea * area;
@@ -49,6 +51,7 @@ private:
     QGridLayout* layout;
     QWidget    * Top;
     QWidget    * MainWidget;
+    _Map         ChatDialogMap;
 };
 
 
