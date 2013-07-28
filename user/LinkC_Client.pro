@@ -13,11 +13,12 @@ HEADERS += include/data_type.h \
            include/MessageBox.h \
            Window/MainWindow.h \
            NetWork/csocket.h \
-    include/Friend.h
+    include/LinkC_GUI.h
 SOURCES += main.cpp \
            Window/LoginWindow.cpp \
            Window/MainWindow.cpp \
            Gui/MessageBox.cpp \
            NetWork/csocket.cpp \
     Gui/Friend.cpp \
-    Gui/LinkC_Label.cpp
+    Gui/LinkC_Label.cpp \
+    Gui/ChatDialog.cpp

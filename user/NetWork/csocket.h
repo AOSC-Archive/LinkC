@@ -5,7 +5,7 @@
 
 class csocket{
 public:
-    void coscket()
+    csocket()
     {
         IP = NULL;
         Port = 0;

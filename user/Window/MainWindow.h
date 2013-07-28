@@ -3,7 +3,7 @@
 
 
 #include "../NetWork/csocket.h"
-#include "../include/Friend.h"
+#include "../include/LinkC_GUI.h"
 #include "../include/data_type.h"
 #include <qt4/QtGui/QToolBox>
 #include <qt4/QtGui/QGroupBox>
@@ -52,6 +52,7 @@ private:
     QWidget    * Top;
     QWidget    * MainWidget;
     _Map         ChatDialogMap;
+    _Map::iterator tmp;
 };
 
 
@@ -84,14 +85,4 @@ private:
 };
 
 
-/*class ChatDialog : public QDialog{
-    Q_OBJECT
-
-public:
-    explicit ChatDialog(QWidget *parent = 0);
-    ~ChatDialog();
-public slots:
-    void chatwith(const friend_data data);
-};
-*/
 #endif

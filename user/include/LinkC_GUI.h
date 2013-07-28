@@ -1,5 +1,5 @@
-#ifndef FRIEND_H
-#define FRIEND_H
+#ifndef LINKC_GUI_H
+#define LINKC_GUI_H
 #include "../include/LinkC_Label.h"
 #include "../include/data_type.h"
 #include <qt4/QtCore/QObject>
@@ -54,6 +54,16 @@ protected:
     QVBoxLayout *FriendLayout;
     _Map         FriendMap;
     _Map::iterator result;
+};
+
+class ChatDialog : public QWidget{
+    Q_OBJECT
+public:
+    explicit ChatDialog(QWidget *parent = 0);
+protected:
+    QPushButton *Send;
+    QPushButton *Quit;
+
 };
 
 #endif

@@ -22,9 +22,15 @@ void csocket::Set_IP(const char *Address)
 {
     struct hostent *hp;
     hp=gethostbyname(Address);
+    if(hp==NULL){
+        printf("Get Host By Name Error\n");
+    }
     memcpy (&server.sin_addr.s_addr,hp->h_addr,4);
-    IP = new char[strlen(inet_ntoa(server.sin_addr))];
+    //server.sin_addr=*((struct in_addr *)hp->h_addr);
+    //IP = new char[strlen(inet_ntoa(server.sin_addr))];
+    IP = new char[strlen(inet_ntoa(server.sin_addr))+1];
     memcpy (IP,inet_ntoa(server.sin_addr),strlen(inet_ntoa(server.sin_addr)));
+    memset (&IP[strlen(inet_ntoa(server.sin_addr))],'\0',1);
 }
 
 int csocket::ConnectToServer(void){
@@ -41,10 +47,10 @@ int csocket::ConnectToServer(void){
             exit (EXIT_FAILURE);
     }
     server.sin_family=AF_INET;
-    if (inet_aton(IP,(struct in_addr *)&server.sin_addr.s_addr) == 0){
+/*    if (inet_aton(IP,(struct in_addr *)&server.sin_addr.s_addr) == 0){
         printf ("Wrong\n");
         return 0;
-    }
+    }*/
     if (connect(Sockfd,(struct sockaddr *)&server,sizeof(server)) == -1){
         perror("Connect");
         Debug_Csocket_Sockfd();

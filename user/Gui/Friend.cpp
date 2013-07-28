@@ -1,4 +1,4 @@
-#include "../include/Friend.h"
+#include "../include/LinkC_GUI.h"
 #include "../include/LinkC_Label.h"
 #include <stdio.h>
 #include <qt4/QtGui/QToolBox>

@@ -18,7 +18,7 @@ int init_network(void)
 	local_addr.sin_port = htons (PORT);
 	local_addr.sin_family = AF_INET;
 
-	local_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	local_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	len = sizeof(local_addr);
 

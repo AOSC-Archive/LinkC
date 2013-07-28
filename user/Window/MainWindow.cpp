@@ -16,7 +16,7 @@
 
 #include "../include/data_type.h"
 #include "../include/LinkC_Label.h"
-#include "../include/Friend.h"
+#include "../include/LinkC_GUI.h"
 
 #define MAXBUF 1024
 char buffer[MAXBUF];
@@ -88,8 +88,8 @@ void MainWindow::test_slot(int i){
 
 int MainWindow::NetworkInit(void){
 	int i;
-	server.Set_IP("127.0.0.1");
-	server.Debug_Csocket_IP();
+    server.Set_IP("192.168.1.110");
+    server.Debug_Csocket_IP();
 	server.Set_Port(2341);
 	server.Debug_Csocket_Port();
 	i = server.ConnectToServer();
@@ -171,7 +171,8 @@ void MainWindow::ChatWith(int UID){
         log->show();
         ChatDialogMap.insert(UID, log);
     }else{
-        log = ChatDialogMap[UID];
+        tmp = ChatDialogMap.find(UID);
+        log = tmp.value();
         log->show();
     }
 }
