@@ -12,7 +12,7 @@ typedef struct msg_type{
 	int DEST_UID;		// 目标UID
 	char msg_text[MAXBUF];	// 信息
 	
-}msg_tyoe;
+}msg_type;
 
 typedef struct login_data{
         char user_name[12];

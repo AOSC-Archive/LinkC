@@ -69,5 +69,5 @@ distclean: clean
 main.o: main.c
 	$(CC) -c main.c
 
-$(TARGET): $(OBJECT) $(NETWORK) $(USER_CTL) $(DB_CTL)
+$(TARGET): $(OBJECT) $(NETWORK) $(USER_CTL) $(DB_CTL) $(SOURCES)
 	$(CC) -o $(TARGET) $(OBJECT) $(NETWORK) $(USER_CTL) $(DB_CTL)  $(LIBS)

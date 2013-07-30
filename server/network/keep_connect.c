@@ -141,7 +141,7 @@ int keep_connect (struct user_data* _user)
 				}
 				if (!strncasecmp (buffer,LINKC_GET_FRIEND,MAXBUF))	// 如果接受数据为 请求好友数据
 				{
-					friend_count = get_friend_data (user.UID,&My_friend);
+					friend_count = get_friends_data (user.UID,&My_friend);
 					if (friend_count == 0)		// 如果好友个数为 0
 					{
 						byte = send (sockfd,LINKC_NO_FRIEND,MAXBUF,MSG_WAITALL);	// 发送 没有好友

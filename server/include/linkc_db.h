@@ -14,11 +14,18 @@ extern int check_pass (struct login_data user);
  * 参数：1	Login_data 结构类型
  */
 
-extern int get_friend_data (int UID,struct friend_data ** ffb);
+extern int get_friends_data (int UID,struct friend_data ** ffb);
 /*
  * 构建好友的资料，返回值为执行状态，［>0］为成功，［－1］为失败，正常返回值为好友个数
  * 参数：1	int UID		谁的好友，这里的UID为用户唯一的标识
  * 参数：2	struct friend_data * 的地址	运行完成后构建一个指针数组
+ */
+
+extern friend_data* get_friend_data (int UID, int DestUID, int *STATE);
+/*
+ * 获得单个好友的资料，返回值为得到的资料
+ * 参数：1	int UID		UID为用户唯一标识
+ * 参数：2	int &STATE	作为返回的状态
  */
 
 

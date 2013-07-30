@@ -21,7 +21,8 @@ int init_sqlite3_db (void)
 {
 	extern sqlite3* user_db;
 	extern sqlite3* friend_db;
-        int result = sqlite3_open (USER_DB_PATH,&user_db);	//打开数据库
+	int result;
+	result = sqlite3_open (USER_DB_PATH,&user_db);	//打开数据库
 #if DEBUG
         if (result != SQLITE_OK)				//如果失败
         {
@@ -84,8 +85,38 @@ printf ("The password check\t= %s\n",exec);
 	}
 }
 
+friend_data* get_friend_data (int UID, int DestUID, int *STATE)
+{
+	char exec[MAXBUF];
+	char * errmsg = NULL;
+	char **dbResult;
+	int nRow, nColumn;
+	int row,column;
+	int result;
+	int i;
+	sprintf (exec,"SELECT * FROM id%d where id=%d",UID,DestUID);
+	result = sqlite3_get_table( friend_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
+	if( result == SQLITE_OK )
+	{
+		if (nRow == 0)
+		{
+			STATE=0;
+			return NULL;
+		}
+		friend_data *_friend = (friend_data *) malloc (sizeof (friend_data));
+		sscanf (dbResult[db_column],"%d",&_friend[i].UID);
+		printf ("_friend -> ID = %d\n",_friend->UID);
+		strcpy (_friend->nickname,dbResult[db_column * (i+1) + 1]);
 
-int get_friend_data (int UID,struct friend_data ** ffb)
+		result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
+		strcpy (_friend->name,dbResult[user_c + 4 -1]);
+		strcpy (_friend->telephone,dbResult[user_c + 5 -1]);
+		strcpy (_friend->company,dbResult[user_c + 6 -1]);
+		strcpy (_friend->address,dbResult[user_c + 7 -1]);
+		return _friend;
+	}
+}
+int get_friends_data (int UID,struct friend_data ** ffb)
 {
 	char exec[MAXBUF];
 	char * errmsg = NULL;
@@ -105,7 +136,7 @@ int get_friend_data (int UID,struct friend_data ** ffb)
 		{
 			sscanf (dbResult[db_column * i + db_column],"%d",&_friend[i].UID);
 			printf ("_friend[i] -> ID = %d\n",_friend[i].UID);
-			strcpy (_friend[i].nickname,dbResult[db_column + 1 - 1 + db_column * i]);
+			strcpy (_friend[i].nickname,dbResult[db_column * (i+1) + 1]);
 		}
 		printf ("nRow = %d\n",nRow);
 		row = nRow;

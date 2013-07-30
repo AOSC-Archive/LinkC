@@ -5,6 +5,7 @@
 #include <qt4/QtCore/QObject>
 #include <qt4/QtCore/QMap>
 #include <qt4/QtGui/QLabel>
+#include <qt4/QtGui/QGridLayout>
 #include <qt4/QtGui/QScrollArea>
 #include <qt4/QtGui/QtGui>
 #include <qt4/QtGui/QListWidget>
@@ -63,6 +64,10 @@ public:
 protected:
     QPushButton *Send;
     QPushButton *Quit;
+    QVBoxLayout *Layout;
+    QVBoxLayout *InputLayout;
+    QDockWidget *Input;
+
 
 };
 

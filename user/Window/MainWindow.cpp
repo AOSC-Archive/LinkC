@@ -165,9 +165,9 @@ void MainWindow::check(){
 }
 
 void MainWindow::ChatWith(int UID){
-    QDialog *log;
+    ChatDialog *log;
     if(!ChatDialogMap.contains(UID)){
-        log = new QDialog;
+        log = new ChatDialog;
         log->show();
         ChatDialogMap.insert(UID, log);
     }else{

@@ -41,7 +41,7 @@ private slots:
 signals:
     void test_signal(int i);
 private:
-    typedef QMap<int,QDialog *> _Map;
+    typedef QMap<int,ChatDialog *> _Map;
 	csocket server;
 	int Connection_state;
     FriendArea * area;

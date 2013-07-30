@@ -16,8 +16,8 @@
 
 LoginWindow::LoginWindow(QWidget *parent) :
     QDialog(parent){
-    QLabel* usrLabel = new QLabel(tr("User Name:"));
-    QLabel* pwdLabel = new QLabel(tr("Password:"));
+    QLabel* usrLabel = new QLabel(tr("UserName:"));
+    QLabel* pwdLabel = new QLabel(tr("PassWord:"));
     UsernameInput = new QLineEdit;
     PasswordInput = new QLineEdit;
     PasswordInput->setEchoMode(QLineEdit::Password);

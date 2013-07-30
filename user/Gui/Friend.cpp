@@ -71,6 +71,5 @@ int FriendArea::FriendCount(){
 
 void FriendArea::ItemClicked(QListWidgetItem *item){
     result = FriendMap.find(item);
-    printf("%d\n",result.value());
     emit ChatTo(result.value());
 }

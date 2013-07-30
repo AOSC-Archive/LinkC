@@ -25,4 +25,5 @@ distclean: clean
 ####### Compile
 $(TARGET) : $(SERVE) $(CLIENT)
 	$(MAKE) -C server
+	qmake-qt4 LinkC_Cilent.pro
 	$(MAKE) -C user
