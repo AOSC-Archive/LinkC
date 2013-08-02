@@ -139,7 +139,10 @@ int keep_connect (struct user_data* _user)
 					user_logout(user.UID);	// 执行注销
 					break;
 				}
-				if (!strncasecmp (buffer,LINKC_GET_FRIEND,MAXBUF))	// 如果接受数据为 请求好友数据
+				if (!strncasecmp (buffer,LINKC_GET_FRIEND,MAXBUF))	//如果接受数据为 请求单个好友数据
+				{
+				}
+				if (!strncasecmp (buffer,LINKC_GET_FRIENDS,MAXBUF))	// 如果接受数据为 请求好友数据
 				{
 					friend_count = get_friends_data (user.UID,&My_friend);
 					if (friend_count == 0)		// 如果好友个数为 0

@@ -32,6 +32,7 @@ public:
 	int Login();
 	int NetworkInit(void);
     void resizeEvent(QResizeEvent *);
+    void closeEvent(QCloseEvent *);
     int InitFriendList();
     FriendArea *friendArea;
 private slots:

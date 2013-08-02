@@ -85,7 +85,7 @@ printf ("The password check\t= %s\n",exec);
 	}
 }
 
-friend_data* get_friend_data (int UID, int DestUID, int *STATE)
+friend_data* get_friend_data (int UID, int DestUID ,int *STATE)
 {
 	char exec[MAXBUF];
 	char * errmsg = NULL;
@@ -94,25 +94,35 @@ friend_data* get_friend_data (int UID, int DestUID, int *STATE)
 	int row,column;
 	int result;
 	int i;
-	sprintf (exec,"SELECT * FROM id%d where id=%d",UID,DestUID);
-	result = sqlite3_get_table( friend_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
+	sprintf (exec,"SELECT * FROM user WHERE id='%d'",UID);
+	result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
 	if( result == SQLITE_OK )
 	{
 		if (nRow == 0)
-		{
-			STATE=0;
-			return NULL;
-		}
+			return NULL;	
 		friend_data *_friend = (friend_data *) malloc (sizeof (friend_data));
-		sscanf (dbResult[db_column],"%d",&_friend[i].UID);
-		printf ("_friend -> ID = %d\n",_friend->UID);
-		strcpy (_friend->nickname,dbResult[db_column * (i+1) + 1]);
-
-		result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
 		strcpy (_friend->name,dbResult[user_c + 4 -1]);
 		strcpy (_friend->telephone,dbResult[user_c + 5 -1]);
 		strcpy (_friend->company,dbResult[user_c + 6 -1]);
-		strcpy (_friend->address,dbResult[user_c + 7 -1]);
+		strcpy (_friend->address,dbResult[user_c + 7 -1]);	
+		sscanf (dbResult[user_c +12 -1],"%d",i);
+		if (i =! STATE_ONLINE){
+			STATE = 0;
+			sprintf (exec,"SELECT * FROM id%d WHERE id='%d'",UID,DestUID);
+			result = sqlite3_get_table( friend_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
+			if (nRow == 0)
+				return _friend;
+			strcpy (_friend->nickname,dbResult[db_column + 2 - 1]);
+			return _friend;
+		}
+		strcpy (_friend->ip,dbResult[user_c + 10 -1]);	
+
+		STATE = 1;
+		sprintf (exec,"SELECT * FROM id%d WHERE id='%d'",UID,DestUID);
+		result = sqlite3_get_table( friend_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
+		if (nRow == 0)
+			return _friend;
+		strcpy (_friend->nickname,dbResult[db_column + 2 - 1]);
 		return _friend;
 	}
 }

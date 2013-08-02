@@ -48,6 +48,7 @@ typedef struct friend_data
 #define LINKC_LOGIN             "Action_Login"
 #define LINKC_LOGOUT            "Action_Logout"
 #define LINKC_GET_FRIEND        "Get_Friend_Data"
+#define LINKC_GET_FRIENDS       "Get_Friends_Data"
 #define LINKC_NO_FRIEND         "No_Friend"
 #define LINKC_CHAT_WANT         "Chat_Want"
 #define LINKC_MESSAGE           "YOUR_MESSAGE"

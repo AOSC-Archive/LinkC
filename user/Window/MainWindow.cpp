@@ -144,8 +144,13 @@ void MainWindow::resizeEvent(QResizeEvent *){
     Top->setGeometry(0,0,this->width(),50);
 }
 
+void MainWindow::closeEvent(QCloseEvent *){
+    for ( tmp = ChatDialogMap.begin(); tmp != ChatDialogMap.end(); ++tmp )
+                tmp.value()->~ChatDialog();
+}
+
 int MainWindow::InitFriendList(){
-    server.Send_msg(LINKC_GET_FRIEND,MSG_WAITALL);      //Send Get Friend Message
+    server.Send_msg(LINKC_GET_FRIENDS,MSG_WAITALL);     // Send for Getting Friend Data
     server.Recv_msg(buffer,MSG_WAITALL);                // recv state
     printf("State = %s\n",buffer);                      // debug
     server.Recv_msg(buffer,MSG_WAITALL);                // recv Friend count
