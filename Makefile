@@ -1,4 +1,5 @@
 MAKE		= make
+QMAKE		= qmake-qt4
 
 ####### Output directory
 
@@ -10,9 +11,9 @@ first: all
 
 all : $(TARGET)
 
-$(SERVE) : server/Makefile
+$(SERVER) : server/Makefile
 
-$(CLIENT) : user/Makefile
+$(CLIENT) : user/LinkC_Client.pro
 
 clean:
 	$(MAKE) clean -C user && $(MAKE) clean -C server
@@ -23,7 +24,7 @@ distclean: clean
 	-$(DEL_FILE) $(TARGET)
 
 ####### Compile
-$(TARGET) : $(SERVE) $(CLIENT)
+$(TARGET) : $(SERVER) $(CLIENT)
 	$(MAKE) -C server
-	qmake-qt4 LinkC_Cilent.pro
+	cd  user && $(QMAKE)
 	$(MAKE) -C user

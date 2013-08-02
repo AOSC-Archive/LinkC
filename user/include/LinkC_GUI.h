@@ -61,9 +61,12 @@ class ChatDialog : public QWidget{
     Q_OBJECT
 public:
     explicit ChatDialog(QWidget *parent = 0);
+    void resizeEvent(QResizeEvent *);
 protected:
     QPushButton *Send;
     QPushButton *Quit;
+    QRect        SendButton;
+    QRect        QuitButton;
     QVBoxLayout *Layout;
     QVBoxLayout *InputLayout;
     QDockWidget *Input;
