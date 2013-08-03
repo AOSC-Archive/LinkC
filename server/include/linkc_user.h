@@ -7,11 +7,10 @@ extern int user_login(struct user_data* data);
  * 参数：1	strcut user_data 的地址
  */
 
-extern int user_logout(int UID);
+extern int user_logout(struct user_data user);
 /*
  * 用户注销，成功返回0,失败返回-1.
- * 参数：1	int UID		用户的UID
- * 参数：2	int sockfd	用户的Sockfd
+ * 参数：1	struct user_data 	用户数据合集
  */
 extern int chat_with  (int SRC_UID,int DEST_UID,int sockfd);
 

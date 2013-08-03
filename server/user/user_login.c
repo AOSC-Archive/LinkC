@@ -16,7 +16,7 @@ int user_login(struct user_data* user)
 	user -> UID = check_pass (user -> login);
 	if (user -> UID > 0)
 	{
-		if ((state_set(user -> UID,user -> sockfd,STATE_ONLINE)) == STATE_ERROR)	return (-1);
+		if ((state_set(*user,STATE_ONLINE)) == STATE_ERROR)	return (-1);
 		return (1);
 	}
 	else if(user -> UID == 0)

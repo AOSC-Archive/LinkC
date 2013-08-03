@@ -1,58 +1,68 @@
-#ifndef _DATA_TYPE_H_
-#define _DATA_TYPE_H_
+#ifndef __DATA_TYPE_H_
+#define __DATA_TYPE_H_
+#define MAXBUF		1024
 
-struct user_data{
-	char name [30];		//帐户的名称
-	char telephone [20];
-    char company [50];
-    char address [80];
-    char join_time [25];
-    char last_login [25];
-    char last_ip [10];
-};
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/types.h>
 
-struct login_data{
-    char user_name[12];
-    char pass_word[20];
-};
+typedef struct msg_type{
+	int SCR_UID;		// 原始UID
+	int DEST_UID;		// 目标UID
+	char msg_text[MAXBUF];	// 信息
+	
+}msg_type;
+
+typedef struct login_data{
+        char user_name[12];
+        char pass_word[20];
+}login_data;
+
+typedef struct user_data
+{
+	int UID;
+	int sockfd;
+	struct sockaddr_in addr;
+	struct login_data login;
+}user_data;
 
 typedef struct friend_data
 {
-        int UID;
-        char name [20];
-        char nickname [20];             //可以为空，空为“NULL”
-        int group;
+	int UID;
+	char name [20];
+	char nickname [20];		//可以为空，空为“NULL”
+	int group;
 //-------来自客户端的User_data---------//
-        char telephone [20];
-        char company [50];
-        char address [80];
-        char join_time [25];
-        char last_login [25];
-        char last_ip [10];
+	char telephone [20];
+	char company [50];
+	char address [80];
+	char join_time [25];
+	char last_login [25];
+	char ip [10];
+    int state;
 
 }friend_data;
-
 
 
 #endif
 
 #ifndef _LINKC_
-#define _LINKC_
 
-#define LINKC_OK                "OK"
-#define LINKC_FAILURE           "Failure"
-#define LINKC_ERROR             "Error"
-#define LINKC_FULL              "Full"
-#define LINKC_TRY_SO_MANY       "Tried_So_Many"
-#define LINKC_TIMED_OUT         "Timed_Out"
-#define LINKC_LOGIN             "Action_Login"
-#define LINKC_LOGOUT            "Action_Logout"
-#define LINKC_GET_FRIEND        "Get_Friend_Data"
-#define LINKC_GET_FRIENDS       "Get_Friends_Data"
-#define LINKC_NO_FRIEND         "No_Friend"
-#define LINKC_CHAT_WANT         "Chat_Want"
-#define LINKC_MESSAGE           "YOUR_MESSAGE"
-#define LINKC_QUIT              "QUIT"
-
+#define LINKC_OK		"OK"
+#define LINKC_FAILURE		"Failure"
+#define LINKC_ERROR		"Error"
+#define LINKC_FULL		"Full"
+#define LINKC_TRY_SO_MANY	"Tried_So_Many"
+#define LINKC_TIMED_OUT		"Timed_Out"
+#define LINKC_LOGIN		"Action_Login"
+#define LINKC_LOGOUT		"Action_Logout"
+#define LINKC_GET_FRIENDS	"Get_Friends_Data"	//这个是获得所有好友数据
+#define LINKC_GET_FRIEND	"Get_Friend_Data"	//这是对指定好友数据获取
+#define LINKC_NO_FRIEND		"No_Friend"
+#define LINKC_CHAT_WANT		"Chat_Want" 
+#define LINKC_MESSAGE		"YOUR_MESSAGE"
+#define LINKC_QUIT		"QUIT"
 
 #endif
+
+

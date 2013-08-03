@@ -7,20 +7,20 @@
 #include "../include/linkc_db.h"
 #include "../include/linkc_user.h"
 #define DEBUG 1
-int user_logout(int UID)
+int user_logout(struct user_data user)
 {
 	int i,byte;
-	i = state_set (UID,0,STATE_OFFLINE);	// 设置下线
+	i = state_set (user,STATE_OFFLINE);	// 设置下线
 	if (i == STATE_ERROR)
 	{
-/*		byte = send (sockfd,LINKC_ERROR,MAXBUF,MSG_WAITALL);
+/*		byte = send (user.sockfd,LINKC_ERROR,MAXBUF,MSG_WAITALL);
 		if (byte < 0)
 		{
 #if DEBUG
 			printf ("Send Error!\n");
 #endif
 		}
-		byte = send (sockfd,LINKC_OK,MAXBUF,MSG_WAITALL);
+		byte = send (user.sockfd,LINKC_OK,MAXBUF,MSG_WAITALL);
 		if (byte < 0)		// 如果失败
 		{
 #if DEBUG

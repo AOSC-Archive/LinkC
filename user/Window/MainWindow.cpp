@@ -153,6 +153,8 @@ int MainWindow::InitFriendList(){
     server.Send_msg(LINKC_GET_FRIENDS,MSG_WAITALL);     // Send for Getting Friend Data
     server.Recv_msg(buffer,MSG_WAITALL);                // recv state
     printf("State = %s\n",buffer);                      // debug
+    if (!strncasecmp(buffer,LINKC_NO_FRIEND,MAXBUF))    // if This Has no friend
+            return 0;
     server.Recv_msg(buffer,MSG_WAITALL);                // recv Friend count
     printf("I Have %s Friend(s)\n",buffer);             // debug
     area->setFriendCount(buffer);                       // save Friend count

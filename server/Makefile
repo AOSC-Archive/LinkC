@@ -14,6 +14,7 @@ MAKE		= make
 OBJECTS_DIR   = ./
 
 ####### Files
+DEPEND	      = /usr/include/sqlite3.h
 SOURCES       = main.c \
 		network/keep_connect.c \
 		network/start_connect.c \
@@ -69,5 +70,5 @@ distclean: clean
 main.o: main.c
 	$(CC) -c main.c
 
-$(TARGET): $(OBJECT) $(NETWORK) $(USER_CTL) $(DB_CTL) $(SOURCES)
+$(TARGET): $(OBJECT) $(NETWORK) $(USER_CTL) $(DB_CTL) $(SOURCES) $(DEPEND)
 	$(CC) -o $(TARGET) $(OBJECT) $(NETWORK) $(USER_CTL) $(DB_CTL)  $(LIBS)

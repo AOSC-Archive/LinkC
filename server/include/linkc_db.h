@@ -21,7 +21,7 @@ extern int get_friends_data (int UID,struct friend_data ** ffb);
  * 参数：2	struct friend_data * 的地址	运行完成后构建一个指针数组
  */
 
-extern friend_data* get_friend_data (int UID, int DestUID, int *STATE);
+extern int get_friend_data (int UID, int DestUID,struct friend_data *_friend);
 /*
  * 获得单个好友的资料，返回值为得到的资料
  * 参数：1	int UID		UID为用户唯一标识
@@ -36,7 +36,7 @@ extern void linkc_free_data (struct friend_data ** ffb, int _count);
  * 参数：2	Get_friend_data 的返回值 （好友个数）
  */
 
-extern int state_set (int UID,int _sockfd,int _Flag);
+extern int state_set (struct user_data user,int _Flag);
 /*
  * 设置用户的状态
  * 参数：1	int UID		用户的UID

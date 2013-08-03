@@ -40,6 +40,7 @@ typedef struct friend_data
 	char join_time [25];
 	char last_login [25];
 	char ip [10];
+	int state;
 
 }friend_data;
 

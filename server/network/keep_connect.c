@@ -119,8 +119,6 @@ int keep_connect (struct user_data* _user)
 #if DEBUG
 					printf ("UID = %d cause so much error!\n",user.UID);
 #endif
-//					user_logout(user.UID);
-//					byte = send (sockfd,LINKC_ERROR,MAXBUF,MSG_DONTWAIT);		// 发送 ERROR 信息
 					goto end;
 				}
 				byte = recv (user.sockfd,buffer,MAXBUF,MSG_WAITALL);
@@ -135,10 +133,7 @@ int keep_connect (struct user_data* _user)
 				printf ("RECV %s\n",buffer);				// 输出接受信息
 #endif
 				if (!strncasecmp (buffer,LINKC_LOGOUT,MAXBUF))	//如果接受数据为 注销
-				{
-					user_logout(user.UID);	// 执行注销
 					break;
-				}
 				if (!strncasecmp (buffer,LINKC_GET_FRIEND,MAXBUF))	//如果接受数据为 请求单个好友数据
 				{
 				}
@@ -182,7 +177,7 @@ int keep_connect (struct user_data* _user)
 					byte = send(user.sockfd,buffer,MAXBUF,MSG_WAITALL);
 					memcpy(buffer,My_friend,friend_count * sizeof(friend_data));
 					buffer[sizeof(friend_data)*friend_count]='\0';
-					byte = send (sockfd,buffer,1024,MSG_WAITALL);	// 可能有错误
+					byte = send (sockfd,buffer,1024,MSG_WAITALL);	// 发送好友信息
 					free(My_friend);
 					My_friend = NULL;
 					if (byte < 0)
@@ -214,6 +209,7 @@ end:
 #if DEBUG
 	printf ("the IP\t=%s closed conncetion!\n",inet_ntoa(user.addr.sin_addr));
 #endif
+	user_logout(user);
 	return 0;
 }
 void cls_buf(char *buffer,int size){
