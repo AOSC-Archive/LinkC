@@ -1,5 +1,6 @@
 CC		= gcc
 DEL_FILE	= rm -f
+INCLUDE		= -I./../include
 
 ####### Output directory
 
@@ -26,4 +27,4 @@ distclean: clean
 ####### Compile
 
 linkc_db.o : linkc_db.c
-	$(CC) -c linkc_db.c
+	$(CC) -c linkc_db.c $(INCLUDE)

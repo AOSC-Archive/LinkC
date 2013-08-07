@@ -1,5 +1,6 @@
 CC		= gcc
 DEL_FILE	= rm -f
+INCLUDE		= -I./../include
 
 ####### Output directory
 
@@ -35,15 +36,15 @@ chat_with.o :   chat_with.c \
 		../include/linkc_db.h \
 		../include/server_data_type.h \
 		../include/linkc_user.h
-	$(CC) -c chat_with.c
+	$(CC) -c chat_with.c $(INCLUDE)
 
 user_login.o :  user_login.c \
 		../include/linkc_db.h \
 		../include/server_data_type.h \
 		../include/linkc_user.h
-	$(CC) -c user_login.c
+	$(CC) -c user_login.c $(INCLUDE)
 
 user_logout.o : user_logout.c \
 		../include/linkc_db.h \
 		../include/linkc_user.h
-	$(CC) -c user_logout.c
+	$(CC) -c user_logout.c $(INCLUDE)

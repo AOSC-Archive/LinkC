@@ -2,9 +2,9 @@
  * 连接模块[仍在开发中]
    #################### */
 
-#include "../include/server_data_type.h"
-#include "../include/linkc_db.h"
-#include "../include/linkc_user.h"
+#include "server_data_type.h"
+#include "linkc_db.h"
+#include "linkc_user.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -19,7 +19,6 @@
 #define DEBUG		1		// 是否为DEBUG模式
 #define QMSG		0		// 是否启用消息队列
 #define MAX_ERROR	5		// 最大错误次数
-#define STRSEP		0		// 是否启用STRSEP
 
 #define LOGINCOUNT	2		// 最大登录尝试次数
 extern void cls_buf(char * buffer,int size);
@@ -38,53 +37,25 @@ int keep_connect (struct user_data* _user)
 	user.addr = _user -> addr;			// 保存addr
 	struct friend_data* My_friend = NULL;		// 暂定
 
-
-#if STRSEP
-	char *value = NULL;
-	char *ch = NULL;
-#else
 	char * body = NULL;
-#endif
-
-#if QMSG
-	struct msg_type Send_msg;
-#else
 	int DEST_UID;
-#endif
-
-	
 
 	char  buffer[MAXBUF + 1];			//缓存
 
 	byte = send (sockfd,LINKC_OK,MAXBUF,MSG_WAITALL);	//发送连接成功
 #if DEBUG
-	printf ("Socket\t= %d\nMsgid\t= %d\n",sockfd,msgid);
+	printf ("Socket\t= %d\n",sockfd);
 	printf ("Connected!\n\tIP\t= %s\n\tPort\t= %d\n",inet_ntoa(user.addr.sin_addr),user.addr.sin_port);	/* 输出连接信息 */
 #endif
 	while(1)
 	{
 		byte = recv (sockfd,buffer,MAXBUF,MSG_WAITALL);
 		if (byte <= 0)	goto end;
-#if STRSEP
-		ch = buffer;
-		value = strsep(&ch,"&");
-
-		if (!strncasecmp(value,LINKC_QUIT,MAXBUF))
-#else
 		if (!strncasecmp(buffer,LINKC_QUIT,MAXBUF))
-#endif
 		{
 			printf ("Recv:QUIT\n");
 			goto end;
 		}
-#if STRSEP
-		if (!strncasecmp(value,LINKC_LOGIN,MAXBUF))	/* 如果是登录请求 */
-		{
-			value=strsep(&ch,"&");			// 拆分字符串
-			strncpy(user.login.user_name,value,sizeof(user.login.user_name));	// 得到帐号
-			value=strsep(&ch,"&");			// 拆分字符串
-			strncpy(user.login.pass_word,value,sizeof(user.login.pass_word));	// 得到密码
-#else
 		if (!strncasecmp(buffer,LINKC_LOGIN,MAXBUF))	/* 如果是登录请求 */
 		{
 			cls_buf (buffer,MAXBUF);
@@ -92,7 +63,6 @@ int keep_connect (struct user_data* _user)
 			memcpy((void *)&user.login,buffer,sizeof(struct login_data));
 			if (byte <= 0)	goto end;
 			
-#endif
 			result = user_login (&user);		/* 进行登录 , 获得username,password和UID*/
 			if (result < 0)		goto end;		// 如果出现错误，则退出
 			else if(result == 0)			// 如果登陆失败，则增加错误计数，然后continue

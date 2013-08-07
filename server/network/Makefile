@@ -1,5 +1,6 @@
 CC		= gcc
 DEL_FILE	= rm -f
+INCLUDE		= -I./../include/
 
 ####### Output directory
 
@@ -35,16 +36,16 @@ start_connect.o:start_connect.c \
 		../include/server_data_type.h \
 		../include/linkc_network.h \
 		../include/linkc_qmsg.h
-	$(CC) -c start_connect.c
+	$(CC) -c start_connect.c $(INCLUDE)
 
 keep_connect.o : keep_connect.c \
 		../include/linkc_network.h \
 		../include/server_data_type.h \
 		../include/linkc_user.h \
 		../include/linkc_db.h
-	$(CC) -c keep_connect.c
+	$(CC) -c keep_connect.c $(INCLUDE)
 
 init_network.o: init_network.c \
 		../include/linkc_network.h \
 		../include/linkc_qmsg.h
-	$(CC) -c init_network.c
+	$(CC) -c init_network.c $(INCLUDE)

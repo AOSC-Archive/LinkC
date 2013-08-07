@@ -3,31 +3,13 @@
  * ###################################################*/
 
 
-#include "../include/server_data_type.h"
-#include "../include/linkc_db.h"
-#include "../include/linkc_user.h"
-#define DEBUG 1
+#include "server_data_type.h"
+#include "linkc_db.h"
+#include "linkc_user.h"
+#include "def.h"
+
 int user_logout(struct user_data user)
 {
-	int i,byte;
-	i = state_set (user,STATE_OFFLINE);	// 设置下线
-	if (i == STATE_ERROR)
-	{
-/*		byte = send (user.sockfd,LINKC_ERROR,MAXBUF,MSG_WAITALL);
-		if (byte < 0)
-		{
-#if DEBUG
-			printf ("Send Error!\n");
-#endif
-		}
-		byte = send (user.sockfd,LINKC_OK,MAXBUF,MSG_WAITALL);
-		if (byte < 0)		// 如果失败
-		{
-#if DEBUG
-			printf ("Send Error!\n");
-#endif
-		}*/
-		return -1;
-	}
-	return 0;
+	CHECK_FAILED(state_set (user,STATE_OFFLINE),ERROR_SET_STATE);	// 设置下线
+	return SUCCESS;
 }

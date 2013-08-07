@@ -2,6 +2,7 @@ CC		= gcc
 CXX		= g++
 LIBS		= -lsqlite3 -lpthread
 DEL_FILE	= rm -f
+INCLUDE		= -I./include
 SYMLINK		= ln -f -s
 DEL_DIR		= rmdir
 MOVE		= mv -f
@@ -68,7 +69,7 @@ distclean: clean
 ####### Compile
 
 main.o: main.c
-	$(CC) -c main.c
+	$(CC) -c main.c $(INCLUDE)
 
 $(TARGET): $(OBJECT) $(NETWORK) $(USER_CTL) $(DB_CTL) $(SOURCES) $(DEPEND)
-	$(CC) -o $(TARGET) $(OBJECT) $(NETWORK) $(USER_CTL) $(DB_CTL)  $(LIBS)
+	$(CC) -o $(TARGET) $(OBJECT) $(NETWORK) $(USER_CTL) $(DB_CTL)  $(LIBS) $(INCLUDE)
