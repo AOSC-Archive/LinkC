@@ -10,10 +10,6 @@ It is used for chating online
 Start Time : 2013 03 06
 
 Build-Depend libsqlite3-dev	qt4-core   
---End
+Build-Dep for :Next sqlite qt-4
 
-Expected:   
-This is an IM app under heavy development, with CSocket and WebQQ protocol support.   
-Project Established on March 06, 2013.
-
-Build-dep: SQLite3 (May vary between distros).
+IMPORTANT UPDATE: LinkC is now a project under Junde Studio, Anthon Open Source Community.
