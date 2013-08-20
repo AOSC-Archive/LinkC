@@ -17,7 +17,6 @@
 #include <arpa/inet.h>
 
 #define DEBUG		1		// 是否为DEBUG模式
-#define QMSG		0		// 是否启用消息队列
 #define MAX_ERROR	5		// 最大错误次数
 
 #define LOGINCOUNT	2		// 最大登录尝试次数
@@ -106,6 +105,21 @@ int keep_connect (struct user_data* _user)
 					break;
 				if (!strncasecmp (buffer,LINKC_GET_FRIEND,MAXBUF))	//如果接受数据为 请求单个好友数据
 				{
+					cls_buf (buffer,MAXBUF);
+					tmp = recv(user.sockfd,buffer,MAXBUF,MSG_WAITALL);
+					if (tmp < 0)
+					{
+						error_count++;	
+						continue;
+					}
+					result = atoi(buffer);
+					printf("%d\n",result);
+					tmp = get_friend_data (user.UID,result,&My_friend);
+					printf("%d\n",tmp);
+					memcpy(buffer,My_friend,friend_count * sizeof(friend_data));
+					buffer[sizeof(friend_data)]='\0';
+					byte = send (sockfd,buffer,1024,MSG_WAITALL);	// 发送好友信息
+					free (My_friend);
 				}
 				if (!strncasecmp (buffer,LINKC_GET_FRIENDS,MAXBUF))	// 如果接受数据为 请求好友数据
 				{

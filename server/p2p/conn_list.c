@@ -41,10 +41,10 @@ errorcode conn_list_find(conn_list *list,ip_t SrcIp,conn_list_item **found)
 	CHECK_NOT_NULL(list,ERROR_NULL_ARG);
 	CHECK_FAILED(pthread_mutex_lock(&(list->mutex)),ERROR_MUTEX_LOCK);
 	int i = list_find(&(list->list),SrcIp,(void *)&info,FLAG_ITEM);
-	if (i == -14)
+	if (i == -14)		// If Not Found
 	{
 		found=NULL;
-		return NOT_OK;
+		return -14;	// Return Not Found
 	}
 	CHECK_FAILED(pthread_mutex_unlock(&(list->mutex)),ERROR_MUTEX_UNLOCK);	//解锁
 	found[0]->info = *info;

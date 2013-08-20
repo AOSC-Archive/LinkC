@@ -146,4 +146,16 @@ typedef struct conn_info_t conn_info;
 #define ERROR_SET_STATE ((fprintf(stderr,"ERROR Set State Failed!\n")==1) ? -26 : -26)
 #endif
 
+#ifndef ERROR_TEACE
+#define ERROR_RECV_MSG -27
+#else
+#define ERROR_RECV_MSG ((fprintf(stderr,"ERROR Recv Message Failed!\n")==1) ? -27 : -27)
+#endif
+
+#ifndef ERROR_TEACE
+#define ERROR_SEND_MSG -28
+#else
+#define ERROR_SEND_MSG ((fprintf(stderr,"ERROR Send Message Failed!\n")==1) ? -28 : -28)
+#endif
+
 #endif

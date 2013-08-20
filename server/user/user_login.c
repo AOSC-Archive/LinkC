@@ -10,7 +10,7 @@
 int user_login(struct user_data* user)
 {
 	int result;
-	CHECK_FAILED(user->UID = check_pass(user->login),ERROR_LOGIN);
-	CHECK_FAILED(state_set(*user,STATE_ONLINE),ERROR_SET_STATE);
-	return (SUCCESS);
+	user->UID = check_pass(user->login);
+	state_set(*user,STATE_ONLINE);
+	return 1;
 }

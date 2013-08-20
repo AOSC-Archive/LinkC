@@ -22,4 +22,5 @@ SOURCES += main.cpp \
            Gui/MessageBox.cpp \
            NetWork/csocket.cpp \
            Window/LoginWindow.cpp \
-           Window/MainWindow.cpp
+           Window/MainWindow.cpp \
+    NetWork/p2p_client.cpp

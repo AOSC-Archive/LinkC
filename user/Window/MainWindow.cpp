@@ -88,7 +88,7 @@ void MainWindow::test_slot(int i){
 
 int MainWindow::NetworkInit(void){
 	int i;
-    server.Set_IP("117.59.12.19");
+    server.Set_IP("127.0.0.1");
     server.Debug_Csocket_IP();
 	server.Set_Port(2341);
 	server.Debug_Csocket_Port();
@@ -162,6 +162,13 @@ int MainWindow::InitFriendList(){
     server.Recv_msg(buffer,MSG_WAITALL);                // recv Friend Data
     memcpy(ffb,buffer,area->FriendCount() * sizeof(friend_data));  // Save Friend Data
     printf("Name = %s\n",ffb[0].name);                  // Debug
+    server.Send_msg(LINKC_GET_FRIEND,MSG_WAITALL);
+    sprintf(buffer,"%d",ffb[0].UID);
+    server.Send_msg(buffer,MSG_WAITALL);
+    friend_data *data = new friend_data;
+    server.Recv_msg(buffer,MSG_WAITALL);                // recv Friend Data
+    memcpy(data,buffer,sizeof(friend_data));  // Save Friend Data
+    printf("%s\n",data->ip);
     area->AddFriendToLayout(ffb[0]);
 
     return 1;
@@ -174,7 +181,7 @@ void MainWindow::check(){
 void MainWindow::ChatWith(int UID){
     ChatDialog *log;
     if(!ChatDialogMap.contains(UID)){
-        log = new ChatDialog;
+        log = new ChatDialog(UID);
         log->show();
         ChatDialogMap.insert(UID, log);
     }else{

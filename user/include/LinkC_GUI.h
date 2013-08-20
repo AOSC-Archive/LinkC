@@ -60,9 +60,10 @@ protected:
 class ChatDialog : public QWidget{
     Q_OBJECT
 public:
-    explicit ChatDialog(QWidget *parent = 0);
+    explicit ChatDialog(int _UID, QWidget *parent = 0);
     ~ChatDialog();
     void resizeEvent(QResizeEvent *);
+    int UID;
 public slots:
     int Send(void);
 protected:

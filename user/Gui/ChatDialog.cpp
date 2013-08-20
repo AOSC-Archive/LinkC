@@ -1,8 +1,10 @@
 #include "../include/LinkC_GUI.h"
 
-ChatDialog::ChatDialog(QWidget *parent)
+ChatDialog::ChatDialog(int _UID,QWidget *parent)
     :QWidget(parent){
+    UID=_UID;
     SendButton  = new QPushButton(this);
+    connect(SendButton,SIGNAL(clicked()),this,SLOT(Send()));
     QuitButton  = new QPushButton(this);
     Layout      = new QVBoxLayout(this);
     Input       = new QTextEdit;

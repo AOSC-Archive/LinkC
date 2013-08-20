@@ -3,6 +3,8 @@
 #include <arpa/inet.h>
 #include <string.h>
 
+typedef unsigned long ip_t;
+
 class csocket{
 public:
     csocket()
@@ -35,4 +37,9 @@ protected:
     int Port;
     int Sockfd;
 };
+
+class p2p_connection{
+    p2p_connection();
+};
+
 #endif // CSOCKET_H

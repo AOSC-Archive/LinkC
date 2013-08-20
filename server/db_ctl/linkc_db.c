@@ -2,6 +2,7 @@
 #include "server_data_type.h"
 #include <sqlite3.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
 
@@ -85,7 +86,7 @@ printf ("The password check\t= %s\n",exec);
 	}
 }
 
-int get_friend_data (int UID, int DestUID ,struct friend_data *_friend)
+int get_friend_data (int UID, int DestUID ,struct friend_data **_ffb)
 {
 	char exec[MAXBUF];
 	char * errmsg = NULL;
@@ -94,6 +95,8 @@ int get_friend_data (int UID, int DestUID ,struct friend_data *_friend)
 	int row,column;
 	int result;
 	int i;
+	struct friend_data* _friend;
+	_friend = (struct friend_data *) malloc (sizeof (struct friend_data));
 	sprintf (exec,"SELECT * FROM user WHERE id='%d'",UID);
 	result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
 	if( result == SQLITE_OK )
@@ -104,17 +107,18 @@ int get_friend_data (int UID, int DestUID ,struct friend_data *_friend)
 			errmsg = NULL;
 			return 0;
 		}
-		strcpy (_friend->name,dbResult[user_c + 4 -1]);		// 获得名字
-		strcpy (_friend->telephone,dbResult[user_c + 5 -1]);	// 获得电话
-		strcpy (_friend->company,dbResult[user_c + 6 -1]);	// 获得公司
-		strcpy (_friend->address,dbResult[user_c + 7 -1]);	// 获得地址
-		sscanf (dbResult[user_c +11 -1],"%d",_friend->state);	// 获得状态
-		if (_friend->state == STATE_ONLINE)	// 如果在线
+		strcpy (_friend[0].name,dbResult[user_c + 4 -1]);		// 获得名字
+		strcpy (_friend[0].telephone,dbResult[user_c + 5 -1]);	// 获得电话
+		strcpy (_friend[0].company,dbResult[user_c + 6 -1]);	// 获得公司
+		strcpy (_friend[0].address,dbResult[user_c + 7 -1]);	// 获得地址
+		_friend[0].state = atoi(dbResult[user_c +11 -1]);
+			strcpy (_friend[0].ip,dbResult[user_c + 10 -1]);	// 获得IP
+		printf("OK\n");
+		if (_friend[0].state == STATE_ONLINE)	// 如果在线
 		{
-			_friend->state = STATE_ONLINE;			// 设置成在线
-			strcpy (_friend->ip,dbResult[user_c + 10 -1]);	// 获得IP
+			_friend[0].state = STATE_ONLINE;			// 设置成在线
 		}
-		else	_friend->state = STATE_OFFLINE;	// 否者设置为不在线
+		else	_friend[0].state = STATE_OFFLINE;	// 否者设置为不在线
 		sprintf (exec,"SELECT * FROM id%d WHERE id='%d'",UID,DestUID);
 		result = sqlite3_get_table( friend_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
 		if (nRow == 0)						// 如果不是好友
@@ -124,8 +128,9 @@ int get_friend_data (int UID, int DestUID ,struct friend_data *_friend)
 			errmsg = NULL;
 			return 1;
 		}
-		strcpy (_friend->nickname,dbResult[db_column + 2 - 1]);	// 如果是好友，得到nickname
+		strcpy (_friend[0].nickname,dbResult[db_column + 2 - 1]);	// 如果是好友，得到nickname
 		sqlite3_free_table (dbResult);
+		*_ffb = _friend;
 		errmsg = NULL;
 		return 1;
 	}
@@ -150,7 +155,7 @@ int get_friends_data (int UID,struct friend_data ** ffb)
 		for (i=0;i<nRow;i++)		// 取得信息
 		{
 			sscanf (dbResult[db_column * i + db_column],"%d",&_friend[i].UID);
-			printf ("_friend[i] -> ID = %d\n",_friend[i].UID);
+			printf ("_friend[i].ID = %d\n",_friend[i].UID);
 			strcpy (_friend[i].nickname,dbResult[db_column * (i+1) + 1]);
 		}
 		printf ("nRow = %d\n",nRow);

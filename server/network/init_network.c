@@ -1,10 +1,9 @@
-#include "../include/linkc_network.h"
-#include "../include/linkc_qmsg.h"
+#include "linkc_network.h"
+#include "linkc_qmsg.h"
 #include <string.h>
 #include <stdlib.h>
-#define _LINkC_NETWORK_	// 定义IP地址和PORT
 
-int init_network(void)
+int init_network(int port)
 {
 	int sockfd;					//网络句柄
 	socklen_t len;					//长度
@@ -15,10 +14,11 @@ int init_network(void)
 		perror ("Socket");
 		exit (EXIT_FAILURE);
 	}
-	local_addr.sin_port = htons (PORT);
+	local_addr.sin_port = htons (port);
 	local_addr.sin_family = AF_INET;
 
 	local_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
 
 	len = sizeof(local_addr);
 

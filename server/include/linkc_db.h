@@ -21,7 +21,7 @@ extern int get_friends_data (int UID,struct friend_data ** ffb);
  * 参数：2	struct friend_data * 的地址	运行完成后构建一个指针数组
  */
 
-extern int get_friend_data (int UID, int DestUID,struct friend_data *_friend);
+extern int get_friend_data (int UID, int DestUID,struct friend_data **_friend);
 /*
  * 获得单个好友的资料，返回值为得到的资料
  * 参数：1	int UID		UID为用户唯一标识
