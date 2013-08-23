@@ -20,25 +20,25 @@ SOURCES       = main.c			\
 		network/keep_connect.c 	\
 		network/start_connect.c \
 		network/init_network.c 	\
-		p2p/conn_list.c			\
-		p2p/list.c				\
-		p2p/p2p_helper.c		\
-		user/chat_with.c 		\
-		user/user_logout.c 		\
-		user/user_login.c 		\
+		p2p/conn_list.c		\
+		p2p/list.c		\
+		p2p/p2p_helper.c	\
+		user/chat_with.c 	\
+		user/user_logout.c 	\
+		user/user_login.c 	\
 		db_ctl/linkc_db.c
 
-NETWORK	      = network/keep_connect.o \
-		network/start_connect.o 		\
+NETWORK	      = network/keep_connect.o	\
+		network/start_connect.o	\
 		network/init_network.o
 
-USER_CTL      = user/chat_with.o \
-		user/user_logout.o 		\
+USER_CTL      = user/chat_with.o	\
+		user/user_logout.o	\
 		user/user_login.o
 		
-P2P			  = p2p/p2p_helper.o	\
-				p2p/conn_list.o	\
-				p2p/list.o
+P2P	      = p2p/p2p_helper.o	\
+		p2p/conn_list.o		\
+		p2p/list.o
 
 DB_CTL	      = db_ctl/linkc_db.o
 
@@ -81,5 +81,5 @@ distclean: clean
 main.o: main.c
 	$(CC) -c main.c $(INCLUDE)
 
-$(TARGET): $(OBJECT) $(NETWORK) $(USER_CTL) $(DB_CTL) $(P2P) $(SOURCES) $(DEPEND)
-	$(CC) -o $(TARGET) $(OBJECT) $(NETWORK) $(USER_CTL) $(DB_CTL)  $(LIBS) $(INCLUDE)
+$(TARGET): $(OBJECT) $(NETWORK) $(USER_CTL) $(DB_CTL) $(P2P) $(SOURCES) $(P2P) $(DEPEND)
+	$(CC) -o $(TARGET) $(OBJECT) $(NETWORK) $(USER_CTL) $(P2P) $(DB_CTL)  $(LIBS) $(INCLUDE)

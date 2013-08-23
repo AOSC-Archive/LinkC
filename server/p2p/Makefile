@@ -30,20 +30,20 @@ distclean: clean
 
 ####### Compile
 
-p2p_helper.o : p2p_helper.c	\
-				../include/conn_list.h	\
-				../include/list.h	\
-				conn_list.c	\
-				list.c
+p2p_helper.o : p2p_helper.c		\
+		../include/conn_list.h	\
+		../include/list.h	\
+		conn_list.c		\
+		list.c
 	$(CC) -c p2p_helper.c $(INCLUDE)
 	
-conn_list.o : conn_list.c	\
-				../include/conn_list.h	\
-				../include/list.h	\
-				list.c
+conn_list.o : conn_list.c		\
+		../include/conn_list.h	\
+		../include/list.h	\
+		list.c
 	$(CC) -c conn_list.c $(INCLUDE)
 	
-list.o	:	list.c	\
-				../include/list.h
+list.o	: list.c	\
+		../include/list.h
 	$(CC) -c list.c $(INCLUDE)
 	

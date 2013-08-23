@@ -33,27 +33,33 @@ errorcode p2p_helper_start(void)
 
 errorcode p2p_helper(peer_data *data)
 {
-	conn_list_item item;
-	struct sockaddr_in addr = data->addr;
-	int sockfd = data->sockfd;
-	char buffer[512];
+	conn_list_item item;		// item
+	socklen_t size;			// size
+	char buffer[512];		// buffer
+	struct timeval tv;		// timeval
+	struct sockaddr_in addr = data->addr;	// save addr
+	int sockfd = data->sockfd;		// save sockfd
+
 	CHECK_FAILED(recv(sockfd,buffer,512,MSG_WAITALL),ERROR_RECV_MSG);
 	memcpy((void *)&item,buffer,sizeof(conn_list_item));
+
 	
 	conn_list_item *find;
 	if (conn_list_find(&(data->list),item.info.DestIP,&find) == -14);	//If Not Found
 	{
 		item.info.SrcIP = addr.sin_addr.s_addr;
 		item.info.SrcPort = addr.sin_port;
-		CHECK_FAILED(conn_list_add(&(data->list),item),NOT_OK);
-		sprintf(buffer,"%s","Now Add to pool\n\0");
-		CHECK_FAILED(send(sockfd,buffer,512,MSG_WAITALL),ERROR_SEND_MSG);
-		return SUCCESS;
+		conn_list_add(&(data->list),item);		// Add item
+		sleep(25);					// Sleep 25 seconds
+		conn_list_remove(&(data->list),item.info.DestIP);	// remove item
+		close(sockfd);		// close connection
+		return SUCCESS;		// return
 	}
 	find->info.DestPort = addr.sin_port;
-	
-	memcoy((void *)&buffer,find,sizeof(conn_list_item));
-	CHECK_FAILED(send(sockfd,buffer,512,MSG_WAITALL),ERROR_SEND_MSG);
 
+	memcoy((void *)&buffer,find,sizeof(conn_list_item));
+	send(sockfd,buffer,512,MSG_WAITALL);
+	sleep(10);
+	close(sockfd);
 	return SUCCESS;
 }
