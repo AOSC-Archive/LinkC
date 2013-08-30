@@ -16,7 +16,6 @@ struct peer_data_t
 
 typedef struct peer_data_t peer_data;
 
-errorcode p2p_helper_start(void); 
-errorcode p2p_helper(peer_data *data);
+errorcode p2p_helper(void);
 
 #endif

@@ -2,6 +2,7 @@
 #include "list.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 errorcode list_init(list_t *list)
 {
@@ -30,7 +31,7 @@ errorcode list_destroy(list_t *list)
 	return SUCCESS;
 }
 
-errorcode list_find(list_t *list, ip_t SrcIp, void **found,flag_t FLAG)
+errorcode list_connection_find(list_t *list, conn_info info, port_t *DestPort,flag_t FLAG)
 {
 	CHECK_NOT_NULL(list,ERROR_NULL_ARG);
 	list_node *node;
@@ -38,18 +39,53 @@ errorcode list_find(list_t *list, ip_t SrcIp, void **found,flag_t FLAG)
 
 	while(1)
 	{
-		if(node->info->SrcIP==SrcIp)
+		if (node == NULL)
+			break;
+
+		if(node->info->SrcIP==info.DestIP)
 		{
-			if (FLAG==FLAG_ITEM)
-				*found = node->info;
-			else if(FLAG==FLAG_NODE)
-				*found = node;
-			return SUCCESS;
+			if(node->info->DestIP==info.SrcIP)
+			{
+				if (FLAG==FLAG_ITEM)
+					*DestPort=node->info->DestPort;
+				else if(FLAG==FLAG_NODE)
+				{
+				}
+				return SUCCESS;
+			}
 		}
 		node=node->next;
-		if (node==NULL)	break;
 	}
 	return ERROR_NOT_FOUND;
+}
+
+errorcode list_find(list_t *list, conn_info info, port_t *DestPort,flag_t FLAG)
+{
+	CHECK_NOT_NULL(list,ERROR_NULL_ARG);
+	list_node *node;
+	node = list->head;
+
+	while(1)
+	{
+		if (node == NULL)
+			break;
+
+		if(node->info->SrcIP==info.SrcIP)
+		{
+			if(node->info->DestIP==info.DestIP)
+			{
+				printf("Now Find\n");
+				if (FLAG==FLAG_ITEM)
+					*DestPort=node->info->DestPort;
+				else if(FLAG==FLAG_NODE)
+				{
+				}
+				return SUCCESS;
+			}
+		}
+		node=node->next;
+	}
+	return -14;
 }
 
 errorcode list_item_add(list_t *list,conn_info item)
@@ -59,34 +95,52 @@ errorcode list_item_add(list_t *list,conn_info item)
 	list_node *node = (list_node *)malloc(sizeof(list_node));
 	conn_info *info = (conn_info *)malloc(sizeof(conn_info));
 
-	*info = item;
+	memcpy(info,(void*)&item,sizeof(conn_info));
+	node->info = info;
 
-	node->info=info;
 	node->next=list->head;
 	list->head=node;
 	list->size++;
 	return SUCCESS;
 }
 
-errorcode list_node_remove(list_t *list,list_node *node)
+errorcode list_node_remove(list_t *list,conn_info info)
 {
 	CHECK_NOT_NULL(list,ERROR_NULL_ARG);
-	CHECK_NOT_NULL(node,ERROR_NULL_ARG);
+	list_node *node,*tmp;
+	node = list->head;
 
-	list_node *tmp;
-	tmp = list->head;
+	if (list->size == 1)
+	{
+		if(node->info->SrcIP==info.SrcIP)
+			if(node->info->DestIP==info.DestIP)
+			{
+				free(node);
+				list->head = NULL;
+				list->size=0;
+				return SUCCESS;
+			}
+		return ERROR_NOT_FOUND;
+	}
 
 	while(1)
 	{
-		if(tmp == NULL)	break;
-		else if(tmp->next == node)
+		if (node == NULL)
 		{
-			tmp->next = node->next;
-			free(node->info);
-			free(node);
-			return SUCCESS;
+			break;
 		}
-		tmp = tmp->next;
+		if(node->next->info->SrcIP==info.SrcIP)
+		{
+			if(node->next->info->DestIP==info.DestIP)
+			{
+				tmp = node->next;
+				node->next=node->next->next;
+				free (tmp);
+				list->size--;
+				return SUCCESS;
+			}
+		}
+		node=node->next;
 	}
 	return ERROR_NOT_FOUND;
 }

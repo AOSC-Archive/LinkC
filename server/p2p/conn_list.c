@@ -1,5 +1,5 @@
-#include "conn_list.h"
 #include "list.h"
+#include "conn_list.h"
 #include "def.h"
 #include <string.h>
 #include <stdio.h>
@@ -35,36 +35,32 @@ errorcode conn_list_add(conn_list *list,conn_list_item item)
 	return SUCCESS;
 }
 
-errorcode conn_list_find(conn_list *list,ip_t SrcIp,conn_list_item **found)
+errorcode conn_list_find(conn_list *list,conn_info info,port_t *DestPort)
 {
-	conn_info *info;
+	port_t k;
 	CHECK_NOT_NULL(list,ERROR_NULL_ARG);
 	CHECK_FAILED(pthread_mutex_lock(&(list->mutex)),ERROR_MUTEX_LOCK);
-	int i = list_find(&(list->list),SrcIp,(void *)&info,FLAG_ITEM);
+	int i = list_connection_find(&(list->list),info,&k,FLAG_ITEM);
 	if (i == -14)		// If Not Found
 	{
-		found=NULL;
+		CHECK_FAILED(pthread_mutex_unlock(&(list->mutex)),ERROR_MUTEX_UNLOCK);	//解锁
 		return -14;	// Return Not Found
 	}
 	CHECK_FAILED(pthread_mutex_unlock(&(list->mutex)),ERROR_MUTEX_UNLOCK);	//解锁
-	found[0]->info = *info;
+	*DestPort = k;
 
 	return SUCCESS;
 }
 
-errorcode conn_list_remove(conn_list *list,ip_t SrcIp)
+errorcode conn_list_remove(conn_list *list, conn_info info)
 {
-	list_node *node;
 	CHECK_NOT_NULL(list,ERROR_NULL_ARG);
 	CHECK_FAILED(pthread_mutex_lock(&(list->mutex)),ERROR_MUTEX_LOCK);
-	int i = list_find(&(list->list),SrcIp,(void *)&node,FLAG_NODE);
-	if (i == ERROR_NOT_FOUND)
+	int i = list_node_remove(&(list->list),info);
+	if (i == -14)
 	{
-		node == NULL;
 		return NOT_OK;
 	}
-	list_node_remove(&(list->list),node);
-	
 	CHECK_FAILED(pthread_mutex_unlock(&(list->mutex)),ERROR_MUTEX_UNLOCK);	//解锁
 	return SUCCESS;
 }
