@@ -1,5 +1,5 @@
-#ifndef __DATA_TYPE_H_
-#define __DATA_TYPE_H_
+#ifndef _DATA_TYPE_H
+#define _DATA_TYPE_H
 #define MAXBUF		1024
 
 #include <sys/socket.h>

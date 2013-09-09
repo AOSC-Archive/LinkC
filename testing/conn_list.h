@@ -20,7 +20,7 @@ typedef struct conn_list_item_t conn_list_item;
 errorcode conn_list_init(conn_list *list);
 errorcode conn_list_destroy(conn_list *list);
 errorcode conn_list_add(conn_list *list,conn_list_item item);
-errorcode conn_list_find(conn_list *list,conn_info info,struct sockaddr_in *addr);
-errorcode conn_list_remove(conn_list *list,conn_info info);
+errorcode conn_list_find(conn_list *list,ip_t SrcIp,conn_list_item **found);
+errorcode conn_list_remove(conn_list *list,ip_t SrcIp);
 
 #endif

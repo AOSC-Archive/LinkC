@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/types.h>
+#include "def.h"
 
 typedef struct msg_type{
 	int SCR_UID;		// 原始UID
@@ -39,7 +40,7 @@ typedef struct friend_data
 	char address [80];
 	char join_time [25];
 	char last_login [25];
-	char ip [10];
+	ip_t ip;
 	int state;
 
 }friend_data;

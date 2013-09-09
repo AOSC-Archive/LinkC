@@ -35,9 +35,9 @@ errorcode conn_list_add(conn_list *list,conn_list_item item)
 	return SUCCESS;
 }
 
-errorcode conn_list_find(conn_list *list,conn_info info,port_t *DestPort)
+errorcode conn_list_find(conn_list *list,conn_info info,struct sockaddr_in *Dest)
 {
-	port_t k;
+	struct sockaddr_in k;
 	CHECK_NOT_NULL(list,ERROR_NULL_ARG);
 	CHECK_FAILED(pthread_mutex_lock(&(list->mutex)),ERROR_MUTEX_LOCK);
 	int i = list_connection_find(&(list->list),info,&k,FLAG_ITEM);
@@ -47,7 +47,7 @@ errorcode conn_list_find(conn_list *list,conn_info info,port_t *DestPort)
 		return -14;	// Return Not Found
 	}
 	CHECK_FAILED(pthread_mutex_unlock(&(list->mutex)),ERROR_MUTEX_UNLOCK);	//解锁
-	*DestPort = k;
+	*Dest = k;
 
 	return SUCCESS;
 }

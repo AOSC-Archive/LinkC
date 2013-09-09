@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
 
 errorcode list_init(list_t *list)
 {
@@ -31,7 +32,7 @@ errorcode list_destroy(list_t *list)
 	return SUCCESS;
 }
 
-errorcode list_connection_find(list_t *list, conn_info info, port_t *DestPort,flag_t FLAG)
+errorcode list_connection_find(list_t *list, conn_info info,struct sockaddr_in *Dest,flag_t FLAG)
 {
 	CHECK_NOT_NULL(list,ERROR_NULL_ARG);
 	list_node *node;
@@ -42,12 +43,12 @@ errorcode list_connection_find(list_t *list, conn_info info, port_t *DestPort,fl
 		if (node == NULL)
 			break;
 
-		if(node->info->SrcIP==info.DestIP)
+		if(node->info->Src.sin_addr.s_addr==info.Dest.sin_addr.s_addr)
 		{
-			if(node->info->DestIP==info.SrcIP)
+			if(node->info->Dest.sin_addr.s_addr==info.Src.sin_addr.s_addr)
 			{
 				if (FLAG==FLAG_ITEM)
-					*DestPort=node->info->DestPort;
+					*Dest=node->info->Src;
 				else if(FLAG==FLAG_NODE)
 				{
 				}
@@ -59,7 +60,7 @@ errorcode list_connection_find(list_t *list, conn_info info, port_t *DestPort,fl
 	return ERROR_NOT_FOUND;
 }
 
-errorcode list_find(list_t *list, conn_info info, port_t *DestPort,flag_t FLAG)
+errorcode list_find(list_t *list, conn_info info, struct sockaddr_in *Dest, flag_t FLAG)
 {
 	CHECK_NOT_NULL(list,ERROR_NULL_ARG);
 	list_node *node;
@@ -70,13 +71,12 @@ errorcode list_find(list_t *list, conn_info info, port_t *DestPort,flag_t FLAG)
 		if (node == NULL)
 			break;
 
-		if(node->info->SrcIP==info.SrcIP)
+		if(node->info->Src.sin_addr.s_addr==info.Src.sin_addr.s_addr)
 		{
-			if(node->info->DestIP==info.DestIP)
+			if(node->info->Dest.sin_addr.s_addr==info.Dest.sin_addr.s_addr)
 			{
-				printf("Now Find\n");
 				if (FLAG==FLAG_ITEM)
-					*DestPort=node->info->DestPort;
+					*Dest=node->info->Dest;
 				else if(FLAG==FLAG_NODE)
 				{
 				}
@@ -112,8 +112,8 @@ errorcode list_node_remove(list_t *list,conn_info info)
 
 	if (list->size == 1)
 	{
-		if(node->info->SrcIP==info.SrcIP)
-			if(node->info->DestIP==info.DestIP)
+		if(node->info->Src.sin_addr.s_addr==info.Src.sin_addr.s_addr)
+			if(node->info->Dest.sin_addr.s_addr==info.Dest.sin_addr.s_addr)
 			{
 				free(node);
 				list->head = NULL;
@@ -129,9 +129,9 @@ errorcode list_node_remove(list_t *list,conn_info info)
 		{
 			break;
 		}
-		if(node->next->info->SrcIP==info.SrcIP)
+		if(node->next->info->Src.sin_addr.s_addr==info.Src.sin_addr.s_addr)
 		{
-			if(node->next->info->DestIP==info.DestIP)
+			if(node->next->info->Dest.sin_addr.s_addr==info.Dest.sin_addr.s_addr)
 			{
 				tmp = node->next;
 				node->next=node->next->next;

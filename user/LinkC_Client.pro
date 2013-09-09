@@ -14,7 +14,8 @@ HEADERS += include/data_type.h \
            include/ListWidget.h \
            include/MessageBox.h \
            NetWork/csocket.h \
-           Window/MainWindow.h
+           Window/MainWindow.h \
+    NetWork/p2p_client.h
 SOURCES += main.cpp \
            Gui/ChatDialog.cpp \
            Gui/Friend.cpp \

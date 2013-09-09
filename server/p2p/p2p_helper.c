@@ -11,7 +11,7 @@ extern int init_network(int port);
 
 int p2p_helper(void)
 {
-	int sockfd = init_network(2342);
+	int sockfd = Network_init(2342);
 	if (sockfd < 0)
 		return ERROR_NETWORK_INIT;
 	conn_list list;
@@ -30,15 +30,12 @@ int p2p_helper(void)
 	while(1)
 	{
 		recvfrom(sockfd,buffer,512,0,(struct sockaddr *)&addr,&len);
-		memcpy((void *)&item,buffer,sizeof(conn_list_item));
-		printf("DestIP\t=%s\n",inet_ntoa(item.info.DestIP));
+		memcpy ((void*)&item,buffer,sizeof(conn_list_item));
+		printf("DestIP=%s\n",inet_ntoa(item.info.Dest.sin_addr));
+		item.info.Src=addr;
 
-		item.info.SrcIP = addr.sin_addr.s_addr;
-		item.info.SrcPort = addr.sin_port;
-
-
-		int i = conn_list_find(&list,item.info,&(item.info.DestPort));
-		printf("SrcIP\t=%s\nDestIP\t=%s\n",inet_ntoa(item.info.SrcIP),inet_ntoa(item.info.DestIP));
+		int i = conn_list_find(&list,item.info,&(item.info.Dest));
+		printf("SrcIP\t=%s\nSrcPort\t=%d\n",inet_ntoa(item.info.Src.sin_addr.s_addr),addr.sin_port);
 		if (i == -14)
 		{
 			conn_list_add(&list,item);		// Add item
@@ -46,32 +43,21 @@ int p2p_helper(void)
 //			return SUCCESS;		// return
 			continue;
 		}
-		item.info.SrcPort = addr.sin_port;
-		memcpy (buffer,(void *)&(item.info),sizeof(conn_info));
-		printf("SrcIP\t=%s\nDestIP\t=%s\nSrcPort\t=%d\nDestIP\t=%d\n",inet_ntoa(item.info.SrcIP),inet_ntoa(item.info.DestIP),item.info.SrcPort,item.info.DestPort);
+		item.info.Src = addr;
 		sendto(sockfd,buffer,512,0,(struct sockaddr *)&addr,len);
-		tmp.SrcIP=item.info.DestIP;
-		tmp.DestIP=item.info.SrcIP;
-		tmp.SrcPort=item.info.DestPort;
-		tmp.DestPort=item.info.SrcPort;
-		addr.sin_addr.s_addr = item.info.DestIP;
-		addr.sin_port = item.info.DestPort;
+		tmp.Src=item.info.Dest;
+		tmp.Dest=item.info.Src;
+		addr = item.info.Dest;
 		addr.sin_family = AF_INET;
 		memcpy (buffer,(void *)&tmp,sizeof(conn_info));
-		printf("Sending...\n");
-		if (sendto(sockfd,buffer,512,0,(struct sockaddr *)&addr,len) == -1)
-		{
-			perror("sendto");
-			return 0;
-		}
-		printf("Send done\n");
+		sendto(sockfd,buffer,512,0,(struct sockaddr *)&addr,len);
 		conn_list_remove(&list,item.info);	// remove item
 	}
 	exit(0);
 }
 
 
-int init_network(int port)
+int Network_init(int port)
 {
 	int sockfd;					//网络句柄
 	socklen_t len;					//长度

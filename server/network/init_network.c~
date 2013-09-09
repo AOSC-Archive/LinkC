@@ -24,5 +24,6 @@ int init_network(int port)
 
 	bind (sockfd, (struct sockaddr *)&local_addr, len);
 	listen (sockfd,5);
+	printf ("Sockfd = %d\n",sockfd);
 	return sockfd;
 }

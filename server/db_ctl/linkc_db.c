@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 
 #define USER_DB_PATH		"./user.db"
 #define FRIEND_DB_PATH		"./friend.db"
@@ -112,7 +114,7 @@ int get_friend_data (int UID, int DestUID ,struct friend_data **_ffb)
 		strcpy (_friend[0].company,dbResult[user_c + 6 -1]);	// 获得公司
 		strcpy (_friend[0].address,dbResult[user_c + 7 -1]);	// 获得地址
 		_friend[0].state = atoi(dbResult[user_c +11 -1]);
-			strcpy (_friend[0].ip,dbResult[user_c + 10 -1]);	// 获得IP
+			_friend[0].ip=inet_addr(dbResult[user_c +10-1]);
 		printf("OK\n");
 		if (_friend[0].state == STATE_ONLINE)	// 如果在线
 		{
