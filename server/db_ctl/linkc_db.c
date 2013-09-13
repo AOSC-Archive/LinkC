@@ -115,7 +115,6 @@ int get_friend_data (int UID, int DestUID ,struct friend_data **_ffb)
 		strcpy (_friend[0].address,dbResult[user_c + 7 -1]);	// 获得地址
 		_friend[0].state = atoi(dbResult[user_c +11 -1]);
 			_friend[0].ip=inet_addr(dbResult[user_c +10-1]);
-		printf("OK\n");
 		if (_friend[0].state == STATE_ONLINE)	// 如果在线
 		{
 			_friend[0].state = STATE_ONLINE;			// 设置成在线

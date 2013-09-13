@@ -39,8 +39,6 @@ int p2p_helper(void)
 		if (i == -14)
 		{
 			conn_list_add(&list,item);		// Add item
-//			conn_list_remove(&(data->list),item.info);	// remove item
-//			return SUCCESS;		// return
 			continue;
 		}
 		item.info.Src = addr;

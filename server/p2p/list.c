@@ -112,14 +112,15 @@ errorcode list_node_remove(list_t *list,conn_info info)
 
 	if (list->size == 1)
 	{
-		if(node->info->Src.sin_addr.s_addr==info.Src.sin_addr.s_addr)
-			if(node->info->Dest.sin_addr.s_addr==info.Dest.sin_addr.s_addr)
+		if(node->info->Src.sin_addr.s_addr==info.Dest.sin_addr.s_addr)
+			if(node->info->Dest.sin_addr.s_addr==info.Src.sin_addr.s_addr)
 			{
 				free(node);
 				list->head = NULL;
 				list->size=0;
 				return SUCCESS;
 			}
+		printf("Here\n");
 		return ERROR_NOT_FOUND;
 	}
 
@@ -129,9 +130,9 @@ errorcode list_node_remove(list_t *list,conn_info info)
 		{
 			break;
 		}
-		if(node->next->info->Src.sin_addr.s_addr==info.Src.sin_addr.s_addr)
+		if(node->next->info->Src.sin_addr.s_addr==info.Dest.sin_addr.s_addr)
 		{
-			if(node->next->info->Dest.sin_addr.s_addr==info.Dest.sin_addr.s_addr)
+			if(node->next->info->Dest.sin_addr.s_addr==info.Src.sin_addr.s_addr)
 			{
 				tmp = node->next;
 				node->next=node->next->next;

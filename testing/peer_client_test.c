@@ -24,24 +24,26 @@ int main(int argc,char **argv)
 	printf("%s\n",argv[1]);			// Check IP
 	char buffer[MAXBUF];
 	socklen_t addr_len = sizeof(struct sockaddr_in);
-        int PrimaryUDP,peer;
-        struct sockaddr_in helper_addr,local_addr,peer_addr;
-        int opt = 1;
-        int len = sizeof(opt);
-       
-        if ((PrimaryUDP = socket(AF_INET,SOCK_DGRAM,0)) == -1)	// Creat Socket
-        {
-                perror("Socket");
-                exit(1);
-        }
-       // setsockopt(PrimaryUDP,SOL_SOCKET,SO_REUSEADDR,&opt,len);
+	int PrimaryUDP,PrimaryTCP;
+	struct sockaddr_in helper_addr,local_addr,peer_addr;
+	int opt = 1;
+	int len = sizeof(opt);
+       	
+	if ((PrimaryUDP = socket(AF_INET,SOCK_DGRAM,0)) == -1)	// Creat Socket
+	{
+		perror("Socket");
+		exit(1);
+	}
+
+	setsockopt(PrimaryUDP,SOL_SOCKET,SO_REUSEADDR,&opt,len);
+
         local_addr.sin_family = AF_INET;
         local_addr.sin_port = 0;	//random Port
 	local_addr.sin_addr.s_addr = INADDR_ANY;
 
-        helper_addr.sin_family = AF_INET;
-        helper_addr.sin_port = htons(2342);
-        inet_pton(AF_INET,"117.59.14.114",&helper_addr.sin_addr);
+	helper_addr.sin_family = AF_INET;
+	helper_addr.sin_port = htons(2342);
+	inet_pton(AF_INET,"117.59.14.114",&helper_addr.sin_addr);
 
         if (bind(PrimaryUDP,(struct sockaddr *)&local_addr,sizeof(local_addr)) == -1)	// Bind Address
         {
@@ -50,7 +52,6 @@ int main(int argc,char **argv)
         }
        
         printf("Server IP\t=%s\t\tPort\t=%d\n",inet_ntoa(helper_addr.sin_addr),ntohs(helper_addr.sin_port));
-        printf("Client IP\t=%s\t\tPort\t=%d\n",inet_ntoa(peer_addr.sin_addr),ntohs(helper_addr.sin_port));
 
 	memcpy(buffer,(void *)&item,sizeof(conn_list_item));
 	if ((sendto(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&helper_addr,addr_len)) < 0)
