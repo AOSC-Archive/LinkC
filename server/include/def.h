@@ -13,6 +13,11 @@ typedef unsigned long ip_t;
 typedef unsigned short port_t;
 
 
+/*
+  The node of the connection pool
+  Src is the Source connection's address
+  Dest is the Dest connection's address
+*/
 struct conn_info_t
 {
 	struct sockaddr_in Src;

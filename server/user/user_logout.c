@@ -3,7 +3,7 @@
  * ###################################################*/
 
 
-#include "server_data_type.h"
+#include "linkc_types.h"
 #include "linkc_db.h"
 #include "linkc_user.h"
 #include "def.h"

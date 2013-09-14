@@ -2,7 +2,7 @@
 #define _LINKC_DB_H_
 
 #include <sqlite3.h>
-#include "server_data_type.h"
+#include "linkc_types.h"
 
 
 extern int init_sqlite3_db (void);

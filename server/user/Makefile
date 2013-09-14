@@ -32,15 +32,14 @@ distclean: clean
 ####### Compile
 
 chat_with.o :   chat_with.c \
-		../include/server_data_type.h \
+		../include/linkc_types.h \
 		../include/linkc_db.h \
-		../include/server_data_type.h \
 		../include/linkc_user.h
 	$(CC) -c chat_with.c $(INCLUDE)
 
 user_login.o :  user_login.c \
 		../include/linkc_db.h \
-		../include/server_data_type.h \
+		../include/linkc_types.h \
 		../include/linkc_user.h
 	$(CC) -c user_login.c $(INCLUDE)
 

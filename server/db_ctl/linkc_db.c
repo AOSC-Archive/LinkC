@@ -1,5 +1,5 @@
 #include "linkc_db.h"
-#include "server_data_type.h"
+#include "linkc_types.h"
 #include <sqlite3.h>
 #include <stdio.h>
 #include <stdlib.h>

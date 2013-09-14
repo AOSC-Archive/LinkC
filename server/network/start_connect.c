@@ -4,7 +4,6 @@
 
 #include "linkc_db.h"
 #include "linkc_network.h"
-#include "linkc_qmsg.h"
 #include "p2p_helper.h"
 #include <stdio.h>
 #include <stdlib.h>

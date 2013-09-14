@@ -2,7 +2,7 @@
 #define _LINKC_NETWORK_H_
 
 #include <sys/types.h>
-#include "server_data_type.h"
+#include "linkc_types.h"
 
 extern int start_connect (void);
 /* 初始化连接，并等待连接 */

@@ -1,21 +1,14 @@
-#ifndef _SERVER_DATA_TYPE_H_
-#define _SERVER_DATA_TYPE_H_
+#ifndef LINKC_TYPES_H
+#define LINKC_TYPES_H
 #define MAXBUF		1024
 
-#include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include "def.h"
 
-typedef struct msg_type{
-	int SCR_UID;		// 原始UID
-	int DEST_UID;		// 目标UID
-	char msg_text[MAXBUF];	// 信息
-	
-}msg_type;
-
-typedef struct login_data{
+typedef struct login_data
+{
         char user_name[12];
         char pass_word[20];
 }login_data;

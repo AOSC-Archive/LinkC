@@ -1,5 +1,4 @@
 #include "linkc_network.h"
-#include "linkc_qmsg.h"
 #include <string.h>
 #include <stdlib.h>
 
