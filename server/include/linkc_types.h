@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include "def.h"
 
+#define uint32_t	id_t
+
 typedef struct login_data
 {
         char user_name[12];
@@ -15,7 +17,7 @@ typedef struct login_data
 
 typedef struct user_data
 {
-	int UID;
+	id_t UID;
 	int sockfd;
 	struct sockaddr_in addr;
 	struct login_data login;
@@ -23,7 +25,7 @@ typedef struct user_data
 
 typedef struct friend_data
 {
-	int UID;
+	id_t UID;
 	char name [20];
 	char nickname [20];		//可以为空，空为“NULL”
 	int group;

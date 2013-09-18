@@ -73,7 +73,7 @@ int main(int argc,char **argv)
 	getchar();
 
 	memcpy(buffer,(void *)&item,sizeof(conn_list_item));
-	if ((sendto(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&helper_addr,addr_len)) < 0)
+	if ((sendto(PrimaryUDP,argv[1],MAXBUF,0,(struct sockaddr *)&helper_addr,addr_len)) < 0)
 	{
 		perror("sendto");
 		close (PrimaryUDP);
