@@ -26,12 +26,12 @@ int main(int argc,char **argv)
 		return 0;
 	}
 	int is_server = atoi(argv[2]);
-	conn_list_item item;
-	item.info.Dest.sin_addr.s_addr=inet_addr(argv[1]);	// Save IP
+	struct sockaddr_in Dest;
+	Dest.sin_addr.s_addr=inet_addr(argv[1]);	// Save IP
 	char buffer[MAXBUF];
 	socklen_t addr_len = sizeof(struct sockaddr_in);
 	int PrimaryUDP,PrimaryTCP,peer;
-	struct sockaddr_in helper_addr,local_addr,peer_addr;
+	struct sockaddr_in helper_addr,local_addr;
 	int opt = 1;
 	int i; 		//tmp argument
 	int len = sizeof(opt);
@@ -87,21 +87,19 @@ int main(int argc,char **argv)
 		close (PrimaryTCP);
 		return 0;
 	}
-	conn_info info;
-	memcpy((void *)&info,buffer,sizeof(conn_info));
-	printf("DestIP\t=%s\n",inet_ntoa(info.Dest.sin_addr));
+	printf("DestIP\t=%s\n",inet_ntoa(Dest.sin_addr));
 
 	for (i=0;i<MAXTRY;i++)
 	{
 		strncpy(buffer,"1",1);
 		buffer[1] = '\0';
-		sendto(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&(info.Dest),addr_len);
+		sendto(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&Dest,addr_len);
 		strncpy(buffer,"0",1);
-		recvfrom(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&(info.Dest),&addr_len);
+		recvfrom(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&Dest,&addr_len);
 		printf("buffer =%s\n",buffer);
 		if(atoi(buffer)==1)	break;
 	}
-	len = sizeof(info.Dest);
+	len = sizeof(Dest);
 	if (is_server == 1)		// 确定是服务端
 	{
 		if (listen(PrimaryTCP,2) == -1)	// 添加监听
@@ -111,7 +109,7 @@ int main(int argc,char **argv)
 			close (PrimaryTCP);
 			return 0;
 		}
-		if(peer = accept(PrimaryTCP,(struct sockaddr *)&(info.Dest),&addr_len)==-1)
+		if(peer = accept(PrimaryTCP,(struct sockaddr *)&Dest,&addr_len)==-1)
 		{
 			perror("accept");
 			close (PrimaryUDP);
@@ -125,7 +123,7 @@ int main(int argc,char **argv)
 		i=0;
 		while(1)
 		{
-			if (connect(PrimaryTCP,(struct sockaddr *)&(info.Dest),sizeof(info.Dest)) == -1)
+			if (connect(PrimaryTCP,(struct sockaddr *)&Dest,addr_len) == -1)
 			{
 				perror("connect");
 				return 0;
