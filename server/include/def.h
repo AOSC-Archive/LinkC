@@ -9,8 +9,8 @@
 /* define type */
 typedef int errorcode;
 typedef int flag_t;
-typedef unsigned long ip_t;
-typedef unsigned short port_t;
+typedef uint32_t ip_t;
+typedef uint16_t port_t;
 
 
 /*

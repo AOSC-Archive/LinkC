@@ -71,8 +71,8 @@ int main(int argc,char **argv)
        
         printf("Server IP\t=%s\t\tPort\t=%d\n",inet_ntoa(helper_addr.sin_addr),ntohs(helper_addr.sin_port));
 
-	memcpy(buffer,(void *)&item,sizeof(conn_list_item));
-	if ((sendto(PrimaryUDP,argv[1],MAXBUF,0,(struct sockaddr *)&helper_addr,addr_len)) < 0)
+	inet_aton(argv[1],(void *)&buffer);
+	if ((sendto(PrimaryUDP,(void *)&(local_addr.sin_addr.s_addr),sizeof(ip_t),0,(struct sockaddr *)&helper_addr,addr_len)) < 0)
 	{
 		perror("sendto");
 		close (PrimaryUDP);
@@ -91,7 +91,6 @@ int main(int argc,char **argv)
 	memcpy((void *)&info,buffer,sizeof(conn_info));
 	printf("DestIP\t=%s\n",inet_ntoa(info.Dest.sin_addr));
 
-	int i;
 	for (i=0;i<MAXTRY;i++)
 	{
 		strncpy(buffer,"1",1);
@@ -132,7 +131,7 @@ int main(int argc,char **argv)
 				return 0;
 			}
 			i++;
-			if(i > MAX_TRY)
+			if(i > MAXTRY)
 			{
 				break;
 			}
@@ -144,3 +143,4 @@ int main(int argc,char **argv)
 	close (PrimaryTCP);
 	return 0;
 }
+

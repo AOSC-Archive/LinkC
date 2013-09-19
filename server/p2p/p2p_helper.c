@@ -32,7 +32,7 @@ int p2p_helper(void)
 	{
 		memset(buffer,'\0',512);
 		recvfrom(sockfd,buffer,512,0,(struct sockaddr *)&addr,&len);
-		item.info.Dest.sin_addr.s_addr = inet_addr(buffer);
+		memcpy((void *)&(item.info.Dest.sin_addr.s_addr),buffer,sizeof(ip_t));
 		
 		printf("DestIP=%s\n",inet_ntoa(item.info.Dest.sin_addr));
 		item.info.Src=addr;
