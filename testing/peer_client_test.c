@@ -71,8 +71,7 @@ int main(int argc,char **argv)
        
         printf("Server IP\t=%s\t\tPort\t=%d\n",inet_ntoa(helper_addr.sin_addr),ntohs(helper_addr.sin_port));
 
-	inet_aton(argv[1],(void *)&buffer);
-	if ((sendto(PrimaryUDP,(void *)&(local_addr.sin_addr.s_addr),sizeof(ip_t),0,(struct sockaddr *)&helper_addr,addr_len)) < 0)
+	if ((sendto(PrimaryUDP,(void *)&(Dest.sin_addr.s_addr),sizeof(ip_t),0,(struct sockaddr *)&helper_addr,addr_len)) < 0)
 	{
 		perror("sendto");
 		close (PrimaryUDP);
@@ -80,7 +79,7 @@ int main(int argc,char **argv)
 		return 0;
 	}
 	
-	if ((recvfrom(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&helper_addr,&addr_len)) < 0)
+	if ((recvfrom(PrimaryUDP,buffer,sizeof(struct sockaddr_in),0,(struct sockaddr *)&helper_addr,&addr_len)) < 0)
 	{
 		perror("sendto");
 		close (PrimaryUDP);
