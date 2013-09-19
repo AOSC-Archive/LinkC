@@ -27,12 +27,12 @@ int main(int argc,char **argv)
 	int is_server = atoi(argv[2]);
 	conn_list_item item;
 	item.info.Dest.sin_addr.s_addr=inet_addr(argv[1]);	// Save IP
-	printf("%s\n",argv[1]);			// Check IP
 	char buffer[MAXBUF];
 	socklen_t addr_len = sizeof(struct sockaddr_in);
 	int PrimaryUDP,PrimaryTCP,peer;
 	struct sockaddr_in helper_addr,local_addr,peer_addr;
 	int opt = 1;
+	int i; 		//tmp argument
 	int len = sizeof(opt);
        	
 	if ((PrimaryUDP = socket(AF_INET,SOCK_DGRAM,0)) == -1)	// Creat UDP Socket
@@ -69,15 +69,13 @@ int main(int argc,char **argv)
         }
        
         printf("Server IP\t=%s\t\tPort\t=%d\n",inet_ntoa(helper_addr.sin_addr),ntohs(helper_addr.sin_port));
-	
-	getchar();
 
 	memcpy(buffer,(void *)&item,sizeof(conn_list_item));
 	if ((sendto(PrimaryUDP,argv[1],MAXBUF,0,(struct sockaddr *)&helper_addr,addr_len)) < 0)
 	{
 		perror("sendto");
 		close (PrimaryUDP);
-		close (PrimaryUDP);
+		close (PrimaryTCP);
 		return 0;
 	}
 	
@@ -85,7 +83,7 @@ int main(int argc,char **argv)
 	{
 		perror("sendto");
 		close (PrimaryUDP);
-		close (PrimaryUDP);
+		close (PrimaryTCP);
 		return 0;
 	}
 	conn_info info;
@@ -109,27 +107,39 @@ int main(int argc,char **argv)
 		if (listen(PrimaryTCP,2) == -1)	// 添加监听
 		{
 			perror("listen");	
+			close (PrimaryUDP);
+			close (PrimaryTCP);
 			return 0;
 		}
 		if(peer = accept(PrimaryTCP,(struct sockaddr *)&(info.Dest),&addr_len)==-1)
 		{
 			perror("accept");
+			close (PrimaryUDP);
+			close (PrimaryTCP);
 			return 0;
 		}
 		printf("Connect successful!\n");
 	}
 	else
 	{
-		sleep(1); //sleep a while so the dest can perpare for this connection
-		if (connect(PrimaryTCP,(struct sockaddr *)&(info.Dest),sizeof(info.Dest)) == -1)
+		i=0;
+		while(1)
 		{
-			perror("connect");
-			return 0;
+			if (connect(PrimaryTCP,(struct sockaddr *)&(info.Dest),sizeof(info.Dest)) == -1)
+			{
+				perror("connect");
+				return 0;
+			}
+			i++;
+			if(i > MAX_TRY)
+			{
+				break;
+			}
 		}
 		
 	}
 
 	close (PrimaryUDP);
-	close (PrimaryUDP);
+	close (PrimaryTCP);
 	return 0;
 }

@@ -3,6 +3,7 @@
 #include "def.h"
 #include <stdio.h>
 #include <sys/types.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -37,7 +38,7 @@ int p2p_helper(void)
 		item.info.Src=addr;
 
 		int i = conn_list_find(&list,item.info,&(item.info.Dest));
-		printf("SrcIP\t=%s\nSrcPort\t=%d\n",inet_ntoa(item.info.Src.sin_addr.s_addr),addr.sin_port);
+		printf("SrcIP\t=%s\nSrcPort\t=%d\n",inet_ntoa(item.info.Src.sin_addr),addr.sin_port);
 		if (i == -14)
 		{
 			conn_list_add(&list,item);		// Add item
