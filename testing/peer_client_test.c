@@ -9,6 +9,7 @@
 #include "conn_list.h"
 #define MAXBUF	512
 #define MAXTRY	10
+#define IP_ADDR	"58.215.179.37"
 
 void str_echo(int sockfd);
 
@@ -55,7 +56,7 @@ int main(int argc,char **argv)
 
 	helper_addr.sin_family = AF_INET;
 	helper_addr.sin_port = htons(2342);
-	inet_pton(AF_INET,"117.59.14.114",&helper_addr.sin_addr);
+	inet_pton(AF_INET,IP_ADDR,&helper_addr.sin_addr);
 
         if (bind(PrimaryUDP,(struct sockaddr *)&local_addr,sizeof(local_addr)) == -1)	// Bind Address for UDP Socket
         {
