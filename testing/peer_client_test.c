@@ -86,8 +86,8 @@ int main(int argc,char **argv)
 		close (PrimaryTCP);
 		return 0;
 	}
-	printf("DestIP\t=%s\n",inet_ntoa(Dest.sin_addr));
-	memcpy((void *)&Dest,buffer,sizeof(struct sockaddr_in))
+	memcpy((void *)&Dest,buffer,sizeof(struct sockaddr_in));
+	printf("DestIP\t=%s\nDestPort\t=%d\n",inet_ntoa(Dest.sin_addr),Dest.sin_port);
 
 	for (i=0;i<MAXTRY;i++)
 	{
