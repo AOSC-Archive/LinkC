@@ -87,6 +87,7 @@ int main(int argc,char **argv)
 		return 0;
 	}
 	printf("DestIP\t=%s\n",inet_ntoa(Dest.sin_addr));
+	memcpy((void *)&Dest,buffer,sizeof(struct sockaddr_in))
 
 	for (i=0;i<MAXTRY;i++)
 	{
