@@ -34,7 +34,9 @@ MainWindow::MainWindow(QWidget *parent) :
     tab         = new QTabWidget;       //
     setWindowTitle("Main_Window");      // 标题
     Connection_state = NetworkInit();   // 初始化网络
-    if(Connection_state == -1)exit(0);  // 如果链接失败，退出
+    if(Connection_state == -1){
+        exit(0);  // 如果链接失败，退出
+    }
     this->setCentralWidget(MainWidget); // 设置主widget
     MainWidget->setLayout(layout);      // 设置主layout
     layout->addLayout(MainLayout,0,0,1,1);
@@ -88,12 +90,12 @@ void MainWindow::test_slot(int i){
 
 int MainWindow::NetworkInit(void){
 	int i;
-    server.Set_IP("117.59.12.19");
+    server.Set_IP("127.0.0.1");
     server.Debug_Csocket_IP();
 	server.Set_Port(2341);
 	server.Debug_Csocket_Port();
 	i = server.ConnectToServer();
-	if (i == 0)
+    if (i == -1)
 	{
 		QMessageBox::warning(0,"Waring","Connection refused!",QMessageBox::Yes);
 		return(-1);
@@ -103,7 +105,7 @@ int MainWindow::NetworkInit(void){
 	if (!strncasecmp(buffer,LINKC_OK,MAXBUF))printf ("Debug >> Connect\t= [Successful]\n");
 	else if(!strncasecmp(buffer,LINKC_FAILURE,MAXBUF))printf ("Debug >> Connect\t= [Faliure]\n");
 	server.cls_buf(buffer,MAXBUF);
-	return 1;
+    return 0;
 }
 
 int MainWindow::Login(){
@@ -167,11 +169,13 @@ int MainWindow::InitFriendList(){
     server.Send_msg(buffer,MSG_WAITALL);
     friend_data *data = new friend_data;
     server.Recv_msg(buffer,MSG_WAITALL);                // recv Friend Data
-    memcpy(data,buffer,sizeof(friend_data));  // Save Friend Data
-    printf("%s\n",data->ip);
+    memcpy(data,buffer,sizeof(friend_data));            // Save Friend Data
+    struct in_addr i_add;
+    i_add.s_addr=data->ip;
+    printf("%s\n",inet_ntoa(i_add));
     area->AddFriendToLayout(ffb[0]);
 
-    return 1;
+    return 0;
 }
 
 void MainWindow::check(){
@@ -191,7 +195,7 @@ void MainWindow::ChatWith(int UID){
     }
 }
 
-//#####################################################33
+//#####################################################
 /*ChatDialog::ChatDialog(QWidget *parent)
     :QDialog(parent){
     resize(200,200);

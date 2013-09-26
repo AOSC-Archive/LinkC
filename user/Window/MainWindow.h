@@ -43,7 +43,7 @@ signals:
     void test_signal(int i);
 private:
     typedef QMap<int,ChatDialog *> _Map;
-	csocket server;
+    TCP_csocket server;
 	int Connection_state;
     FriendArea * area;
     QTabWidget * tab;

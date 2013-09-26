@@ -15,7 +15,7 @@ struct conn_info_t
 };
 typedef struct conn_info_t conn_info;
 
-class p2p_client : public csocket{
+class p2p_client : public TCP_csocket{
     
 public:
     p2p_client();

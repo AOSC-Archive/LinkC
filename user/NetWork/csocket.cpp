@@ -20,7 +20,7 @@
 #define MAXBUF 1024
 #endif
 
-csocket::csocket(){
+TCP_csocket::TCP_csocket(){
     IP = 0;
     Port = 0;
     Sockfd = 0;
@@ -28,7 +28,7 @@ csocket::csocket(){
 }
 
 
-void csocket::Set_IP(const char *Address){
+void TCP_csocket::Set_IP(const char *Address){
     struct hostent *hp;
     hp=gethostbyname(Address);
     if(hp==NULL){
@@ -38,12 +38,12 @@ void csocket::Set_IP(const char *Address){
     IP=server_addr.sin_addr.s_addr;
 }
 
-void csocket::Set_IP(ip_t ip){
+void TCP_csocket::Set_IP(ip_t ip){
     server_addr.sin_addr.s_addr = ip;
     IP = ip;
 }
 
-int csocket::ConnectToServer(void){
+int TCP_csocket::ConnectToServer(void){
     if (IP == 0){
         printf ("IP Has Not Set Yet!\n");
         return -1;
@@ -61,21 +61,21 @@ int csocket::ConnectToServer(void){
         perror("Connect");
         Debug_Csocket_Sockfd();
         Sockfd = 0;
-        return 0;
+        return -1;
     }
-    return 1;
+    return 0;
 }
 
-void csocket::Set_Port(char* port){
+void TCP_csocket::Set_Port(char* port){
     Port = atoi(port);
 }
 
-void csocket::Set_Port(port_t port){
+void TCP_csocket::Set_Port(port_t port){
     Port = port;
     server_addr.sin_port=htons(Port);
 }
 
-int csocket::Recv_msg(void* Buffer,int Flag){
+int TCP_csocket::Recv_msg(void* Buffer,int Flag){
     if (recv (Sockfd,Buffer,MAXBUF,Flag) < 0){
         printf ("Recv Error!\n");
         return -1;
@@ -83,14 +83,14 @@ int csocket::Recv_msg(void* Buffer,int Flag){
     return 0;
 }
 
-int csocket::Send_msg(const char* Message,int Flag){
+int TCP_csocket::Send_msg(const char* Message,int Flag){
     if (send (Sockfd,Message,MAXBUF,Flag) < 0){
         printf ("Send Error!\n");
         return -1;
     }
     return 0;
 }
-int csocket::Send_msg(const void* Message,int Flag){
+int TCP_csocket::Send_msg(const void* Message,int Flag){
     if (send (Sockfd,Message,MAXBUF,Flag) < 0){
         printf ("Send Error!\n");
         return -1;
@@ -98,7 +98,7 @@ int csocket::Send_msg(const void* Message,int Flag){
     return 0;
 }
 
-int csocket::Send_msg(const void* Message,int maxbuf,int Flag){
+int TCP_csocket::Send_msg(const void* Message,int maxbuf,int Flag){
     if (send (Sockfd,Message,maxbuf,Flag) < 0){
         printf ("Send Error!\n");
         return -1;
@@ -107,22 +107,22 @@ int csocket::Send_msg(const void* Message,int maxbuf,int Flag){
 }
 
 
-void csocket::cls_buf(char *buffer,int size){
+void TCP_csocket::cls_buf(char *buffer,int size){
     memset(buffer,'\0',size);
 }
 
-csocket::~csocket(){
+TCP_csocket::~TCP_csocket(){
 
 }
 
 //Debug Functions
-void csocket::Debug_Csocket_IP(void){
+void TCP_csocket::Debug_Csocket_IP(void){
     printf ("Debug >> IP\t\t= [%s]\n",inet_ntoa(server_addr.sin_addr));
 }
-void csocket::Debug_Csocket_Port(){
+void TCP_csocket::Debug_Csocket_Port(){
     printf ("Debug >> Port\t\t= [%d]\n",Port);
 }
 
-void csocket::Debug_Csocket_Sockfd(void){
+void TCP_csocket::Debug_Csocket_Sockfd(void){
     printf ("Debug >> Socket\t\t= [%d]\n",Sockfd);
 }

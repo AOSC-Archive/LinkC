@@ -1,34 +1,22 @@
-#ifndef _DATA_TYPE_H
-#define _DATA_TYPE_H
-#define MAXBUF		1024
+#ifndef LINKC_TYPES_H
+#define LINKC_TYPES_H
 
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 
-typedef struct msg_type{
-	int SCR_UID;		// 原始UID
-	int DEST_UID;		// 目标UID
-	char msg_text[MAXBUF];	// 信息
-	
-}msg_type;
+typedef uint32_t ip_t;
+typedef uint16_t port_t;
 
-typedef struct login_data{
+typedef struct login_data
+{
         char user_name[12];
         char pass_word[20];
 }login_data;
 
-typedef struct user_data
-{
-	int UID;
-	int sockfd;
-	struct sockaddr_in addr;
-	struct login_data login;
-}user_data;
-
 typedef struct friend_data
 {
-	int UID;
+	id_t UID;
 	char name [20];
 	char nickname [20];		//可以为空，空为“NULL”
 	int group;
@@ -38,8 +26,8 @@ typedef struct friend_data
 	char address [80];
 	char join_time [25];
 	char last_login [25];
-	char ip [10];
-    int state;
+	ip_t ip;
+	int state;
 
 }friend_data;
 
