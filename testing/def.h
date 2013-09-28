@@ -20,8 +20,22 @@ struct conn_info_t
 };
 typedef struct conn_info_t conn_info;
 
+struct message_t
+{
+	uint8_t header;
+	time_t check_time;
+	char message[512];
+};
+
+int testing_ui(int sockfd,struct sockaddr_in peer);
+
+#define HEARTBEAT	0
+#define MESSAGE		1
+
 #define SUCCESS 0
+#ifndef OK
 #define OK 0
+#endif
 #define NOT_OK -1
 #define ERROR_TRACE
 
