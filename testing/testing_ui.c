@@ -81,6 +81,8 @@ void recv_msg(struct pthread_data *data)
 {
 	int error=0;
 	struct message_t message;
+	time_t check_time;
+	char *time_to_print=NULL;
 	while(1)
 	{
 		if(error > MAX_ERROR)
@@ -93,11 +95,15 @@ void recv_msg(struct pthread_data *data)
 			error++;
 			continue;
 		}
+		if (check_time == message.check_time)	continue;
 		switch (message.header)
 		{
 			case MESSAGE:			// if the message is MESSAGE
 			{
-				waddstr(data->history,"Peer\t");
+				check_time = message.check_time;
+				waddstr(data->history,"Peer[");
+				waddstr(data->history,ctime(&check_time));
+				waddstr(data->history,"] : ");
 				waddstr(data->history,message.message);
 				waddstr(data->history,"\n");
 				break;
@@ -107,6 +113,7 @@ void recv_msg(struct pthread_data *data)
 				break;
 			}
 		}
+		error = 0;
 	}
 }
 void heartbeat(struct pthread_data *data)
