@@ -1,6 +1,6 @@
 CC		= gcc
 DEL_FILE	= rm -f
-LIBS		= -lncursesw -lpthread
+LIBS		= -lncursesw -lpthread -pthread
 
 ####### Output directory
 

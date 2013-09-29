@@ -30,7 +30,8 @@ struct message_t
 int testing_ui(int sockfd,struct sockaddr_in peer);
 
 #define HEARTBEAT	0
-#define MESSAGE		1
+#define CHANGE_STAT	1
+#define MESSAGE		2
 
 #define SUCCESS 0
 #ifndef OK
