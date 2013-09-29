@@ -93,10 +93,20 @@ void recv_msg(struct pthread_data *data)
 			error++;
 			continue;
 		}
-		waddstr(data->history,"Peer\t");
-		waddstr(data->history,message.message);
-		waddstr(data->history,"\n");
-		error = 0;
+		switch (message.header)
+		{
+			case MESSAGE:			// if the message is MESSAGE
+			{
+				waddstr(data->history,"Peer\t");
+				waddstr(data->history,message.message);
+				waddstr(data->history,"\n");
+				break;
+			}
+			case HEARTBEAT:			// if the message only a heartbeat
+			{
+				break;
+			}
+		}
 	}
 }
 void heartbeat(struct pthread_data *data)
