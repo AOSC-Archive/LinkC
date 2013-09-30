@@ -57,7 +57,7 @@ int testing_ui(int sockfd,struct sockaddr_in peer)
 		message.header = MESSAGE;
 		pthread_mutex_lock(&lock);		// Locked	
 		for(i=0;i<5;i++)
-			if ((sendto(sockfd,(void *)&message,size,MSG_DONTWAIT,(struct sockaddr *)&peer,addr_len)) < 0)
+			if ((sendto(sockfd,(void *)&message,size,MSG_DONTWAIT,(struct sockaddr *)&peer,addr_len)) <= 0)
         		{
 				perror("FAILURE");
         		}

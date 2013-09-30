@@ -28,7 +28,7 @@ int main(int argc,char **argv)
 	struct sockaddr_in helper_addr,local_addr;
 	int i; 		//tmp argument
 	struct timeval tv;
-	tv.tv_sec = 100;		// 5 second timed out
+	tv.tv_sec = 5;		// 5 second timed out
 	tv.tv_usec = 0;
 	int len = sizeof(tv);
        	
@@ -66,7 +66,7 @@ int main(int argc,char **argv)
         }*/
        
 	printf("Connecting to server.....\n");
-	if ((sendto(PrimaryUDP,(void *)&(Dest.sin_addr.s_addr),sizeof(ip_t),0,(struct sockaddr *)&helper_addr,addr_len)) < 0)
+	if ((sendto(PrimaryUDP,(void *)&(Dest.sin_addr.s_addr),sizeof(ip_t),MSG_DONTWAIT,(struct sockaddr *)&helper_addr,addr_len)) < 0)
 	{
 		perror("FAILURE");
 		close (PrimaryUDP);
@@ -94,25 +94,20 @@ int main(int argc,char **argv)
 	{
 		strncpy(buffer,"1",1);
 		buffer[1] = '\0';
-		if((sendto(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&Dest,addr_len)) <= 0)
+		if((sendto(PrimaryUDP,buffer,MAXBUF,MSG_DONTWAIT,(struct sockaddr *)&Dest,addr_len)) <= 0)
 		{
-			perror("FAILED");
-			continue;
-		}
-		if((sendto(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&Dest,addr_len)) <= 0)
-		{
-			perror("FAILED");
+			perror("Send");
 			continue;
 		}
 		strncpy(buffer,"0",1);
 		if((recvfrom(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&Dest,&addr_len)) <= 0)
 		{
-			perror("FAILED");
+			perror("Recv");
 			continue;
 		}
 		if(atoi(buffer)==1)
 		{
-			sendto(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&Dest,addr_len);
+			sendto(PrimaryUDP,buffer,MAXBUF,MSG_DONTWAIT,(struct sockaddr *)&Dest,addr_len);
 			break;
 		}
 		sleep(1);
