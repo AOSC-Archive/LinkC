@@ -94,15 +94,13 @@ int main(int argc,char **argv)
 	{
 		strncpy(buffer,"1",1);
 		buffer[1] = '\0';
-		i = sendto(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&Dest,addr_len);
-		if (i <= 0)
+		if(( sendto(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&Dest,addr_len)) <= 0)
 		{
 			perror("FAILED");
 			continue;
 		}
 		strncpy(buffer,"0",1);
-		i = recvfrom(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&Dest,&addr_len);
-		if (i <= 0)
+		if((recvfrom(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&Dest,&addr_len)) <= 0)
 		{
 			perror("FAILED");
 			continue;
@@ -112,6 +110,7 @@ int main(int argc,char **argv)
 			sendto(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&Dest,addr_len);
 			break;
 		}
+		sleep(1);
 	}
 	printf("Done.\n");
 	testing_ui(PrimaryUDP,Dest);
