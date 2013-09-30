@@ -94,7 +94,12 @@ int main(int argc,char **argv)
 	{
 		strncpy(buffer,"1",1);
 		buffer[1] = '\0';
-		if(( sendto(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&Dest,addr_len)) <= 0)
+		if((sendto(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&Dest,addr_len)) <= 0)
+		{
+			perror("FAILED");
+			continue;
+		}
+		if((sendto(PrimaryUDP,buffer,MAXBUF,0,(struct sockaddr *)&Dest,addr_len)) <= 0)
 		{
 			perror("FAILED");
 			continue;
