@@ -28,7 +28,7 @@ int main(int argc,char **argv)
 	struct sockaddr_in helper_addr,local_addr;
 	int i; 		//tmp argument
 	struct timeval tv;
-	tv.tv_sec = 5;		// 5 second timed out
+	tv.tv_sec = 100;		// 5 second timed out
 	tv.tv_usec = 0;
 	int len = sizeof(tv);
        	
