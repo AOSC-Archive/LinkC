@@ -23,6 +23,7 @@ int p2p_helper(void)
 	conn_list_item item;		// item
 	conn_info tmp;
 	socklen_t size;			// size
+	int addr_size = sizeof(struct sockaddr_in);
 	char buffer[512];		// buffer
 	struct sockaddr_in addr;	// save addr
 	len = sizeof (struct sockaddr_in);
@@ -45,13 +46,8 @@ int p2p_helper(void)
 			continue;
 		}
 		item.info.Src = addr;
-		sendto(sockfd,buffer,512,0,(struct sockaddr *)&addr,len);
-		tmp.Src=item.info.Dest;
-		tmp.Dest=item.info.Src;
-		addr = item.info.Dest;
-		addr.sin_family = AF_INET;
-		memcpy (buffer,(void *)&tmp,sizeof(conn_info));
-		sendto(sockfd,buffer,512,0,(struct sockaddr *)&addr,len);
+		sendto(sockfd,(void *)&(item.info.Dest),addr_size,MSG_DONTWAIT,(struct sockaddr *)&(item.info.Src),len);
+		sendto(sockfd,(void *)&(item.info.Src),addr_size,MSG_DONTWAIT,(struct sockaddr *)&(item.info.Dest),len);
 		conn_list_remove(&list,item.info);	// remove item
 	}
 	exit(0);
