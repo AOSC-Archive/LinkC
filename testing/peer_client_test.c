@@ -17,20 +17,21 @@ int main(int argc,char **argv)
 {
 	if(argv[1] == NULL)
 	{
-		printf("输入目标IP地址\n");
+		printf("Please Input Peer's IP!\n");
 		return 0;
 	}
-	struct sockaddr_in Dest;
-	Dest.sin_addr.s_addr=inet_addr(argv[1]);	// Save IP
-	char buffer[MAXBUF];
-	socklen_t addr_len = sizeof(struct sockaddr_in);
-	int PrimaryUDP,PrimaryTCP,peer;
-	struct sockaddr_in helper_addr,local_addr;
-	int i; 		//tmp argument
-	struct timeval tv;
-	tv.tv_sec = 5;		// 5 second timed out
-	tv.tv_usec = 0;
-	int len = sizeof(tv);
+	struct 	sockaddr_in Dest;
+	struct 	timeval tv;					// for saving Times
+	char 	buffer[MAXBUF];					// Buffer
+	socklen_t addr_len	= sizeof(struct sockaddr_in);	// addr's Size
+	int 	addr_size	= sizeof(struct sockaddr_in);	// addr's Size
+	int 	len		= sizeof(tv);			// Time's Len
+	int 	PrimaryUDP,PrimaryTCP;				// Socket
+	struct 	sockaddr_in helper_addr,local_addr;		// Address
+	int 	i; 						// tmp argument
+	tv.tv_sec = 5;						// 5 second timed out
+	tv.tv_usec = 0;						// 0 mic second
+	Dest.sin_addr.s_addr=inet_addr(argv[1]);		// Save IP
        	
 	if ((PrimaryUDP = socket(AF_INET,SOCK_DGRAM,0)) == -1)	// Creat UDP Socket
 	{
@@ -42,33 +43,33 @@ int main(int argc,char **argv)
 		perror("Socket");
 		exit(1);
 	}
-
 	setsockopt(PrimaryUDP,SOL_SOCKET,SO_REUSEADDR,&opt,len);
-	setsockopt(PrimaryTCP,SOL_SOCKET,SO_REUSEADDR,&opt,len);	// Set reuseable address*/
+	setsockopt(PrimaryTCP,SOL_SOCKET,SO_REUSEADDR,&opt,len);// Set address reuseable*/
 
-        local_addr.sin_family = AF_INET;
-        local_addr.sin_port = 0;	//random Port
-	local_addr.sin_addr.s_addr = INADDR_ANY;
+	local_addr.sin_family = AF_INET;			// UNIX SOCKET
+	local_addr.sin_port = 0;				// Random Port[System will distribute the program a Random Port(Port>1024)]
+	local_addr.sin_addr.s_addr = INADDR_ANY;		// Random IP[It's Meaning that Use All The IP Addr we have]
 
-	helper_addr.sin_family = AF_INET;
-	helper_addr.sin_port = htons(2342);
-	inet_pton(AF_INET,IP_ADDR,&helper_addr.sin_addr);
+	helper_addr.sin_family = AF_INET;			// UNIX SOCKET
+	helper_addr.sin_port = htons(2342);			// Set Helper's Port
+	inet_pton(AF_INET,IP_ADDR,&helper_addr.sin_addr);	// Set Helper's IP address
 
-        if (bind(PrimaryUDP,(struct sockaddr *)&local_addr,sizeof(local_addr)) == -1)	// Bind Address for UDP Socket
-        {
-                perror("Bind");
-                exit(1);
+	if (bind(PrimaryUDP,(struct sockaddr *)&local_addr,sizeof(local_addr)) == -1)	// Bind Address for UDP Socket
+	{
+		perror("Bind");
+		exit(1);
         }
-/*        if (bind(PrimaryTCP,(struct sockaddr *)&local_addr,sizeof(local_addr)) == -1)	// Bind Address for TCP Socket
-        {
-                perror("Bind");
-                exit(1);
-        }*/
+/*	if (bind(PrimaryTCP,(struct sockaddr *)&local_addr,sizeof(local_addr)) == -1)	// Bind Address for TCP Socket
+	{
+		perror("Bind");
+		exit(1);
+	}*/
        
 	printf("Connecting to server.....\n");
-	if ((sendto(PrimaryUDP,(void *)&(Dest.sin_addr.s_addr),sizeof(ip_t),MSG_DONTWAIT,(struct sockaddr *)&helper_addr,addr_len)) < 0)
+	/* Tell Helper Who You Want Chat With */
+	if ((sendto(PrimaryUDP,(void *)&(Dest.sin_addr.s_addr),sizeof(ip_t),MSG_DONTWAIT,(struct sockaddr *)&helper_addr,addr_len)) <= 0)
 	{
-		perror("FAILURE");
+		perror("Sendto");
 		close (PrimaryUDP);
 //		close (PrimaryTCP);
 		return 0;
@@ -76,19 +77,19 @@ int main(int argc,char **argv)
 	
 	printf("Done.\n");
 	printf("Waiting for peer.........\n");
-	if ((recvfrom(PrimaryUDP,buffer,sizeof(struct sockaddr_in),0,(struct sockaddr *)&helper_addr,&addr_len)) < 0)
+	/* Waiting fot The Helper's Reply */
+	if ((recvfrom(PrimaryUDP,buffer,sizeof(struct sockaddr_in),0,(struct sockaddr *)&helper_addr,&addr_len)) <= 0)
 	{
 		perror("Recvfrom");
 		close (PrimaryUDP);
 //		close (PrimaryTCP);
 		return 0;
 	}
-
 	printf("Done\n");
-	memcpy((void *)&Dest,buffer,sizeof(struct sockaddr_in));
+	memcpy((void *)&Dest,buffer,sizeof(struct sockaddr_in));	// Save Dest's Address
 	printf("Connecting to peer.......\n");
-	setsockopt(PrimaryUDP,SOL_SOCKET,SO_RCVTIMEO,(void *)&tv,len);
-	setsockopt(PrimaryUDP,SOL_SOCKET,SO_SNDTIMEO,(void *)&tv,len);
+	setsockopt(PrimaryUDP,SOL_SOCKET,SO_RCVTIMEO,(void *)&tv,len);	// Set Recv Time Out
+	setsockopt(PrimaryUDP,SOL_SOCKET,SO_SNDTIMEO,(void *)&tv,len);	// Set Send Time Out
 
 	for (i=0;i<MAXTRY;i++)
 	{
@@ -118,7 +119,7 @@ int main(int argc,char **argv)
 	
 
 	close (PrimaryUDP);
-	close (PrimaryTCP);
+//	close (PrimaryTCP);
 	return 0;
 }
 

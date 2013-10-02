@@ -12,20 +12,18 @@ extern int init_network(int port);
 
 int p2p_helper(void)
 {
-	int sockfd = Network_init(2342);
-	if (sockfd < 0)
-		return ERROR_NETWORK_INIT;
-	conn_list list;
-	CHECK_FAILED(conn_list_init(&(list)),ERROR_LIST_INIT);	// 初始化池
-
-	socklen_t len;		// 长度
-
-	conn_list_item item;		// item
+	int sockfd;		// Sockfd
+	conn_list list;		// Connection List
+	conn_list_item item;	// item
+	socklen_t len;		// Address's Lenth
+	char buffer[512];	// buffer
+	struct sockaddr_in addr;// save addr
+	socklen_t size;		// size
+	if ((sockfd = Network_init(2342)) < 0)			// Init Network
+		return ERROR_NETWORK_INIT;			// Return Error
+	CHECK_FAILED(conn_list_init(&(list)),ERROR_LIST_INIT);	// Init List
 	conn_info tmp;
-	socklen_t size;			// size
 	int addr_size = sizeof(struct sockaddr_in);
-	char buffer[512];		// buffer
-	struct sockaddr_in addr;	// save addr
 	len = sizeof (struct sockaddr_in);
 
 
