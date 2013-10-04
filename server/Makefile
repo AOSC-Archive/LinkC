@@ -20,8 +20,8 @@ SOURCES       = main.c			\
 		network/keep_connect.c 	\
 		network/start_connect.c \
 		network/init_network.c 	\
-		p2p/conn_list.c		\
-		p2p/list.c		\
+		list/conn_list.c	\
+		list/list.c		\
 		p2p/p2p_helper.c	\
 		user/chat_with.c 	\
 		user/user_logout.c 	\
@@ -37,8 +37,8 @@ USER_CTL      = user/chat_with.o	\
 		user/user_login.o
 		
 P2P	      = p2p/p2p_helper.o	\
-		p2p/conn_list.o		\
-		p2p/list.o
+		list/conn_list.o	\
+		list/list.o
 
 DB_CTL	      = db_ctl/linkc_db.o
 
@@ -61,9 +61,10 @@ $(DB_CTL) : db_ctl/Makefile
 	
 $(P2P)	: p2p/Makefile
 	$(MAKE) -C p2p
+	$(MAKE) -C list
 
 clean:
-	$(MAKE) clean -C network && $(MAKE) clean -C user && $(MAKE) clean -C p2p && $(MAKE) clean -C db_ctl && $(DEL_FILE) $(OBJECT)
+	$(MAKE) clean -C network && $(MAKE) clean -C user && $(MAKE) clean -C p2p && $(MAKE) clean -C list && $(MAKE) clean -C db_ctl && $(DEL_FILE) $(OBJECT)
 
 clean_all:
 	$(MAKE) clean -C network && $(MAKE) clean -C user && $(MAKE) clean -C db_ctl && $(MAKE) clean -C p2p && $(DEL_FILE) $(OBJECT) $(TARGET)

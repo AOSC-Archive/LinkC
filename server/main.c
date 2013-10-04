@@ -7,7 +7,8 @@
 
 int main(int argc, char* argv[])
 {
-	pid_t LCServer = 0;
+	pid_t LCServer = 0;		// LinkC Server
+	pid_t P2PServer = 0;		// P2P Helper
 	if ((LCServer = fork()) < -1)
 	{
 		perror("fork");
@@ -17,7 +18,6 @@ int main(int argc, char* argv[])
 	{
 		start_connect();
 	}
-	pid_t P2PServer = 0;
 	if ((P2PServer = fork()) < -1)
 	{
 		perror("fork");

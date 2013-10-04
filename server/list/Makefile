@@ -7,8 +7,10 @@ INCLUDE		= -I./../include
 OBJECTS_DIR   = ./
 
 ####### Files
-SOURCES       = p2p_helper.c
-OBJECTS       = p2p_helper.o
+SOURCES       = conn_list.c \
+		list.c
+OBJECTS       = conn_list.o \
+		list.o
 
 first: all
 
@@ -25,11 +27,14 @@ distclean: clean
 	-$(DEL_FILE) $(TARGET)
 
 ####### Compile
-
-p2p_helper.o : p2p_helper.c	\
+	
+conn_list.o : conn_list.c	\
 		../include/conn_list.h	\
 		../include/list.h	\
-		../list/conn_list.c	\
-		../list/list.c
-	$(CC) -c p2p_helper.c $(INCLUDE)
+		list.c
+	$(CC) -c conn_list.c $(INCLUDE)
+	
+list.o	:	list.c	\
+		../include/list.h
+	$(CC) -c list.c $(INCLUDE)
 	
