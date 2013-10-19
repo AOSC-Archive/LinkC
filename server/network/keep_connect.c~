@@ -118,7 +118,7 @@ int keep_connect (struct user_data* _user)
 					printf("%d\n",tmp);
 					memcpy(buffer,My_friend,friend_count * sizeof(friend_data));
 					buffer[sizeof(friend_data)]='\0';
-					byte = send (sockfd,buffer,MAXBUF,MSG_WAITALL);	// 发送好友信息
+					byte = send (sockfd,buffer,1024,MSG_WAITALL);	// 发送好友信息
 					free (My_friend);
 				}
 				if (!strncasecmp (buffer,LINKC_GET_FRIENDS,MAXBUF))	// 如果接受数据为 请求好友数据
