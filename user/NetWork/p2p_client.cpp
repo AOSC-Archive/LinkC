@@ -21,7 +21,7 @@ int p2p_client::inDirectConnect(){
         printf("Dest Ip is not set!\n");
         return -1;
     }
-    int i = this->ConnectToServer();
+    int i = this->start_connect();
     if (i != 1) return i;
     this->Send_msg((void *)&info,MAXBUF,MSG_WAITALL);
     return 1;

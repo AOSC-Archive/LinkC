@@ -94,7 +94,7 @@ int MainWindow::NetworkInit(void){
     server.Debug_Csocket_IP();
 	server.Set_Port(2341);
 	server.Debug_Csocket_Port();
-	i = server.ConnectToServer();
+    i = server.start_connect();
     if (i == -1)
 	{
 		QMessageBox::warning(0,"Waring","Connection refused!",QMessageBox::Yes);

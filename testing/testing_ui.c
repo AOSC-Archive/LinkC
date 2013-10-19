@@ -108,7 +108,7 @@ void recv_msg(struct pthread_data *data)
 			{
 				check_time = message.check_time;
 				waddstr(data->history,"Peer\t:");
-				waddstr(data->history,message.message);
+				waddstr(data->history,message.message);	// Can not show Message ,Why?
 				waddstr(data->history,"\n");
 				break;
 			}
