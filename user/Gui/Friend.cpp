@@ -42,10 +42,7 @@ void LinkcFriendItem::mousePressEvent(QMouseEvent *event){
 //##########################################
 FriendArea::FriendArea(QWidget *parent)
     :QWidget(parent){
-//    s               = new QScrollArea(this);
     list              = new QListWidget(this);
-//    FriendLayout    = new QVBoxLayout;
-//    FriendWidget    = new QWidget;
     connect(list,SIGNAL(itemClicked(QListWidgetItem*)),this,SLOT(ItemClicked(QListWidgetItem*)));
 }
 

@@ -38,10 +38,12 @@ socket_c::~socket_c(){
 
 int socket_c::build_socket(int _Flage){
     switch (_Flage)
+    {
         case TCP :
         {
             if ((Sockfd = socket (AF_INET,SOCK_STREAM, 0)) < 0){
                 perror ("Socket");
+            }
             type = TCP;
             break;
         }
@@ -49,12 +51,12 @@ int socket_c::build_socket(int _Flage){
         {
             if ((Sockfd = socket (AF_INET,SOCK_DGRAM, 0)) < 0){
                 perror ("Socket");
+            }
             type = UDP;
             break;
-        }
             }
-            return -1;
-    }
+        return -1;
+        }
     return 0;
 }
 
@@ -72,7 +74,7 @@ int socket_c::start_connect(void){
         return -1;
     }
     server_addr.sin_family=AF_INET;
-    if (connect(Sockfd,(struct sockaddr *)&server_addr,sizeof(server_addr)) == -1){
+    if (connect(Sockfd,(struct sockaddr *)&server_addr,sizeof(server_addr)) < 0){
         perror("Connect");
         Debug_Csocket_Sockfd();
         Sockfd = 0;

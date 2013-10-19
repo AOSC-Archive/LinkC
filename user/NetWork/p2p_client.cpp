@@ -2,27 +2,39 @@
 #include "NetWork/csocket.h"
 #include "NetWork/p2p_client.h"
 #include <stdio.h>
+#include <netdb.h>
 
 p2p_client::p2p_client(){
-    this->Set_IP("117.59.12.19");
-    this->Set_Port(2342);
+    build_socket(UDP);
+    ip_size = sizeof(ip_t);
 }
 
 p2p_client::~p2p_client(){
 
 }
 
-void p2p_client::SetDestIP(ip_t ip){
-    info.DestIP=ip;
+int p2p_client::DirectConnect(){
+
+    return 0;
 }
 
 int p2p_client::inDirectConnect(){
-    if (info.DestIP == 0){
-        printf("Dest Ip is not set!\n");
+
+    return 0;
+}
+
+int p2p_client::SetDestIP(const char *ip){
+    struct hostent *hp;
+    hp=gethostbyname(ip);
+    if(hp==NULL){
+        printf("Get Host By Name Error\n");
         return -1;
     }
-    int i = this->start_connect();
-    if (i != 1) return i;
-    this->Send_msg((void *)&info,MAXBUF,MSG_WAITALL);
-    return 1;
+    memcpy (&DestIP,hp->h_addr,4);
+    return 0;
+}
+
+int p2p_client::SetDestIP(ip_t ip){
+    DestIP = ip;
+    return 0;
 }

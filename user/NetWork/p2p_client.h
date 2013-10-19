@@ -15,17 +15,20 @@ struct conn_info_t
 };
 typedef struct conn_info_t conn_info;
 
-class p2p_client : public TCP_csocket{
+class p2p_client : public socket_c{
     
 public:
     p2p_client();
     ~p2p_client();
-    void SetDestIP(ip_t ip);
+    int SetDestIP(ip_t ip);
+    int SetDestIP(const char* ip);
+
     int DirectConnect(void);
     int inDirectConnect(void);
 
 protected:
-    conn_info info;
+    ip_t DestIP;
+    int ip_size;
     
 };
 #endif // P2P_CLIENT_H

@@ -20,6 +20,7 @@
 
 #define MAXBUF 1024
 char buffer[MAXBUF];
+struct friend_data MyFriend;
 LoginWindow *s;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -81,7 +82,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow(){
 	server.Send_msg(LINKC_QUIT,MSG_DONTWAIT);
-	printf ("Debug >> Done!\n");
+    printf ("Debug >> Main_Window Exited Normally!\n");
 }
 
 void MainWindow::test_slot(int i){
@@ -102,8 +103,8 @@ int MainWindow::NetworkInit(void){
 	}
 	server.Debug_Csocket_Sockfd();
 	server.Recv_msg(buffer,MSG_WAITALL);
-	if (!strncasecmp(buffer,LINKC_OK,MAXBUF))printf ("Debug >> Connect\t= [Successful]\n");
-	else if(!strncasecmp(buffer,LINKC_FAILURE,MAXBUF))printf ("Debug >> Connect\t= [Faliure]\n");
+    if (!strncasecmp(buffer,LINKC_OK,MAXBUF))printf ("Debug >> Connect\t= [Success]\n");
+    else if(!strncasecmp(buffer,LINKC_ERROR,MAXBUF))printf ("Debug >> Connect\t= [Faliure]\n");
 	server.cls_buf(buffer,MAXBUF);
     return 0;
 }
@@ -125,7 +126,7 @@ int MainWindow::Login(){
 			i = server.Recv_msg(buffer,MSG_WAITALL);
 			if (!strncasecmp(buffer,LINKC_OK,MAXBUF)){
 
-				printf ("Debug >> Login\t\t= [Successful]\n");
+                printf ("Debug >> Login\t\t= [Success]\n");
 				server.cls_buf(buffer,MAXBUF);
 				this->show();
 				return 1;
@@ -184,8 +185,12 @@ void MainWindow::check(){
 
 void MainWindow::ChatWith(int UID){
     ChatDialog *log;
+    server.Send_msg(LINKC_GET_FRIEND,MSG_WAITALL);
+    server.Send_msg((void *)&UID,MSG_DONTWAIT);
+    server.Recv_msg(buffer,MSG_WAITALL);
+    memcpy((void *)&MyFriend,buffer,sizeof(MyFriend));
     if(!ChatDialogMap.contains(UID)){
-        log = new ChatDialog(UID);
+        log = new ChatDialog(MyFriend);
         log->show();
         ChatDialogMap.insert(UID, log);
     }else{
@@ -194,11 +199,3 @@ void MainWindow::ChatWith(int UID){
         log->show();
     }
 }
-
-//#####################################################
-/*ChatDialog::ChatDialog(QWidget *parent)
-    :QDialog(parent){
-    resize(200,200);
-    show();
-}
-*/

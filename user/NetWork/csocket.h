@@ -49,7 +49,6 @@ public:
     TCP_csocket();
     ~TCP_csocket();      // 析构函数
 
-    int ConnectToServer(void);          // 链接到服务器
     void cls_buf(char *buffer,int size);    // 清理Buffer
 };
 
