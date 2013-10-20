@@ -6,7 +6,6 @@
 
 ChatDialog::ChatDialog(struct friend_data MyFriend, QWidget *parent)
     :QWidget(parent){
-                printf("%d\n",MyFriend.state);
     SendButton = new QPushButton(this);
     connect(SendButton,SIGNAL(clicked()),this,SLOT(Send()));
     QuitButton = new QPushButton(this);
@@ -29,7 +28,7 @@ ChatDialog::ChatDialog(struct friend_data MyFriend, QWidget *parent)
 
     //NetWork Init
     if(MyFriend.state == STATE_OFFLINE){
-        History->setText(tr("Friend is Offline!\nLinkC NOT Support OFFLINE MESSAGE PUSHING"));
+        History->setText(tr("Friend is Offline!\nLinkC NOT Supports OFFLINE MESSAGE PUSHING"));
     }else{
     p2p_client peer;
     peer.Set_IP("127.0.0.1");

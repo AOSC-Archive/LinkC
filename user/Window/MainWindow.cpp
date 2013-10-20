@@ -155,7 +155,7 @@ void MainWindow::closeEvent(QCloseEvent *){
 int MainWindow::InitFriendList(){
     server.Send_msg(LINKC_GET_FRIENDS,MSG_WAITALL);     // Send for Getting Friend Data
     server.Recv_msg(buffer,MSG_WAITALL);                // recv state
-    printf("State = %s\n",buffer);                      // debug
+    printf("Debug >> State\t\t= [%s]\n",buffer);        // debug
     if (!strncasecmp(buffer,LINKC_NO_FRIEND,MAXBUF))    // if This Has no friend
             return 0;
     server.Recv_msg(buffer,MSG_WAITALL);                // recv Friend count
@@ -164,8 +164,7 @@ int MainWindow::InitFriendList(){
     friend_data *ffb = new friend_data[area->FriendCount()];    // new memory
     server.Recv_msg(buffer,MSG_WAITALL);                // recv Friend Data
     memcpy(ffb,buffer,area->FriendCount() * sizeof(friend_data));  // Save Friend Data
-    printf("Name = %s\n",ffb[0].name);                  // Debug
-    server.Send_msg(LINKC_GET_FRIEND,MSG_WAITALL);
+/*    server.Send_msg(LINKC_GET_FRIEND,MSG_WAITALL);
     sprintf(buffer,"%d",ffb[0].UID);
     server.Send_msg(buffer,MSG_WAITALL);
     friend_data *data = new friend_data;
@@ -173,7 +172,7 @@ int MainWindow::InitFriendList(){
     memcpy(data,buffer,sizeof(friend_data));            // Save Friend Data
     struct in_addr i_add;
     i_add.s_addr=data->ip;
-    printf("%s\n",inet_ntoa(i_add));
+    printf("%s\n",inet_ntoa(i_add));*/
     area->AddFriendToLayout(ffb[0]);
 
     return 0;
@@ -186,7 +185,8 @@ void MainWindow::check(){
 void MainWindow::ChatWith(int UID){
     ChatDialog *log;
     server.Send_msg(LINKC_GET_FRIEND,MSG_WAITALL);
-    server.Send_msg((void *)&UID,MSG_DONTWAIT);
+    sprintf(buffer,"%d",UID);
+    server.Send_msg(buffer,MSG_DONTWAIT);
     server.Recv_msg(buffer,MSG_WAITALL);
     memcpy((void *)&MyFriend,buffer,sizeof(MyFriend));
     if(!ChatDialogMap.contains(UID)){
