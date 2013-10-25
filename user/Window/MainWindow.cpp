@@ -18,7 +18,7 @@
 #include "../include/LinkC_Label.h"
 #include "../include/LinkC_GUI.h"
 
-#define MAXBUF 1024
+
 char buffer[MAXBUF];
 struct friend_data MyFriend;
 LoginWindow *s;
@@ -164,15 +164,7 @@ int MainWindow::InitFriendList(){
     friend_data *ffb = new friend_data[area->FriendCount()];    // new memory
     server.Recv_msg(buffer,MSG_WAITALL);                // recv Friend Data
     memcpy(ffb,buffer,area->FriendCount() * sizeof(friend_data));  // Save Friend Data
-/*    server.Send_msg(LINKC_GET_FRIEND,MSG_WAITALL);
-    sprintf(buffer,"%d",ffb[0].UID);
-    server.Send_msg(buffer,MSG_WAITALL);
-    friend_data *data = new friend_data;
-    server.Recv_msg(buffer,MSG_WAITALL);                // recv Friend Data
-    memcpy(data,buffer,sizeof(friend_data));            // Save Friend Data
-    struct in_addr i_add;
-    i_add.s_addr=data->ip;
-    printf("%s\n",inet_ntoa(i_add));*/
+
     area->AddFriendToLayout(ffb[0]);
 
     return 0;

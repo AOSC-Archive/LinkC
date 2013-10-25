@@ -24,7 +24,7 @@
 /*  ------------- socket_c ---------- */
 
 socket_c::socket_c(){
-    memset((void *)&server_addr,'0',sizeof(server_addr));
+    memset((void *)&DestAddr,'0',sizeof(DestAddr));
     addr_len = sizeof(struct sockaddr_in);
     IP = 0;
     Port = 0;
@@ -60,6 +60,17 @@ int socket_c::build_socket(int _Flage){
     return 0;
 }
 
+int socket_c::SetTimedOut(timeval tv){
+    int len= sizeof(tv);
+    setsockopt(Sockfd,SOL_SOCKET,SO_SNDTIMEO,(void *)&tv,len);
+    return 0;
+}
+
+int socket_c::SetAddress(sockaddr_in addr){
+    DestAddr = addr;
+    return 0;
+}
+
 int socket_c::start_connect(void){
     if(type == UDP){
         printf("UDP Socket Can not Face Connection!\n");
@@ -73,8 +84,8 @@ int socket_c::start_connect(void){
         printf ("Port Has Not Set Yet!\n");
         return -1;
     }
-    server_addr.sin_family=AF_INET;
-    if (connect(Sockfd,(struct sockaddr *)&server_addr,sizeof(server_addr)) < 0){
+    DestAddr.sin_family=AF_INET;
+    if (connect(Sockfd,(struct sockaddr *)&DestAddr,addr_len) < 0){
         perror("Connect");
         Debug_Csocket_Sockfd();
         Sockfd = 0;
@@ -84,7 +95,7 @@ int socket_c::start_connect(void){
 }
 
 void socket_c::Set_IP(ip_t ip){
-    server_addr.sin_addr.s_addr = ip;
+    DestAddr.sin_addr.s_addr = ip;
     IP = ip;
 }
 
@@ -94,8 +105,8 @@ void socket_c::Set_IP(const char *Address){
     if(hp==NULL){
         printf("Get Host By Name Error\n");
     }
-    memcpy (&server_addr.sin_addr.s_addr,hp->h_addr,4);
-    IP=server_addr.sin_addr.s_addr;
+    memcpy (&DestAddr.sin_addr.s_addr,hp->h_addr,4);
+    IP=DestAddr.sin_addr.s_addr;
 }
 
 void socket_c::Set_Port(char* port){
@@ -104,13 +115,13 @@ void socket_c::Set_Port(char* port){
 
 void socket_c::Set_Port(port_t port){
     Port = port;
-    server_addr.sin_port=htons(Port);
+    DestAddr.sin_port=htons(Port);
 }
 
 
 
 void socket_c::Debug_Csocket_IP(void){
-    printf ("Debug >> IP\t\t= [%s]\n",inet_ntoa(server_addr.sin_addr));
+    printf ("Debug >> IP\t\t= [%s]\n",inet_ntoa(DestAddr.sin_addr));
 }
 void socket_c::Debug_Csocket_Port(){
     printf ("Debug >> Port\t\t= [%d]\n",Port);
@@ -128,7 +139,7 @@ int socket_c::Recv_msg(void* Buffer,int Flag){
             return -1;
         }
     if(type == UDP)
-        if (recvfrom (Sockfd,Buffer,MAXBUF,Flag,(struct sockaddr *)&server_addr,&addr_len) < 0){
+        if (recvfrom (Sockfd,Buffer,MAXBUF,Flag,(struct sockaddr *)&DestAddr,&addr_len) < 0){
             perror("UDP_Recv");
         return -1;
     }
@@ -142,7 +153,7 @@ int socket_c::Recv_msg(void* Buffer,int maxbuf,int Flag){
             return -1;
         }
     if(type == UDP)
-        if (recvfrom (Sockfd,Buffer,maxbuf,Flag,(struct sockaddr *)&server_addr,&addr_len) < 0){
+        if (recvfrom (Sockfd,Buffer,maxbuf,Flag,(struct sockaddr *)&DestAddr,&addr_len) < 0){
             perror("UDP_Recv");
         return -1;
     }
@@ -156,7 +167,7 @@ int socket_c::Send_msg(const char* Message,int Flag){
             return -1;
         }
     if (type == UDP)
-        if (sendto (Sockfd,Message,MAXBUF,Flag,(struct sockaddr *)&server_addr,addr_len) < 0){
+        if (sendto (Sockfd,Message,MAXBUF,Flag,(struct sockaddr *)&DestAddr,addr_len) < 0){
             perror("UDP_Send");
             return -1;
         }
@@ -170,7 +181,7 @@ int socket_c::Send_msg(const void* Message,int Flag){
             return -1;
         }
     if (type == UDP)
-        if (sendto (Sockfd,Message,MAXBUF,Flag,(struct sockaddr *)&server_addr,addr_len) < 0){
+        if (sendto (Sockfd,Message,MAXBUF,Flag,(struct sockaddr *)&DestAddr,addr_len) < 0){
             perror("UDP_Send");
             return -1;
         }
@@ -184,7 +195,7 @@ int socket_c::Send_msg(const void* Message,int maxbuf,int Flag){
             return -1;
         }
     if (type == UDP)
-        if (sendto (Sockfd,Message,maxbuf,Flag,(struct sockaddr *)&server_addr,addr_len) < 0){
+        if (sendto (Sockfd,Message,maxbuf,Flag,(struct sockaddr *)&DestAddr,addr_len) < 0){
             perror("UDP_Send");
             return -1;
         }

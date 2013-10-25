@@ -1,7 +1,8 @@
 #ifndef LINKC_GUI_H
 #define LINKC_GUI_H
-#include "../include/LinkC_Label.h"
-#include "../include/data_type.h"
+#include "LinkC_Label.h"
+#include "data_type.h"
+#include "p2p_client.h"
 #include <qt4/QtCore/QObject>
 #include <qt4/QtCore/QMap>
 #include <qt4/QtGui/QLabel>
@@ -63,6 +64,7 @@ public:
     explicit ChatDialog(friend_data MyFriend, QWidget *parent = 0);
     ~ChatDialog();
     void resizeEvent(QResizeEvent *);
+    int ConnectToPeer(void);
     int UID;
 public slots:
     int Send(void);
@@ -72,6 +74,8 @@ protected:
     QTextEdit   *History;
     QTextEdit   *Input;
     QVBoxLayout *Layout;
+    struct friend_data MyFriend;
+    p2p_client  peer;
 };
 
 #endif

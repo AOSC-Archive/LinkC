@@ -7,6 +7,10 @@
 #define TCP  1
 #define UDP  2
 
+#ifndef MAXBUF
+#define MAXBUF 1024
+#endif
+
 class socket_c{
 public:
     socket_c();
@@ -31,12 +35,15 @@ public:
     void Debug_Csocket_Sockfd(void);
     void Debug_Csocket_Port(void);
 
+    int SetTimedOut(struct  timeval tv);
+    int SetAddress(struct sockaddr_in addr);
+
     int GetSockfd();
     port_t GetPort();
     ip_t GetIP();
 
 protected:
-    struct sockaddr_in server_addr;
+    struct sockaddr_in DestAddr;
     ip_t IP;
     port_t Port;
     int Sockfd;

@@ -14,6 +14,13 @@ typedef struct login_data
         char pass_word[20];
 }login_data;
 
+struct conn_info_t
+{
+        struct sockaddr_in Src;
+        struct sockaddr_in Dest;
+};
+typedef struct conn_info_t conn_info;
+
 typedef struct friend_data
 {
 	id_t UID;

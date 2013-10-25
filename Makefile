@@ -18,6 +18,9 @@ $(CLIENT) : user/LinkC_Client.pro
 clean:
 	$(MAKE) clean -C user && $(MAKE) clean -C server
 
+clean_all:
+	$(MAKE) clean -C user && $(MAKE) clean -C server && rm user/LinkC_Client user/LinkC_Client.pro.user user/Makefile server/LinkC_Server
+
 ####### Sub-libraries
 
 distclean: clean
