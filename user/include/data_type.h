@@ -5,8 +5,17 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 
-typedef uint32_t ip_t;
-typedef uint16_t port_t;
+typedef int errorcode;
+typedef int flag_t;
+typedef unsigned long ip_t;
+typedef unsigned short port_t;
+
+struct message_t
+{
+        uint8_t header;
+        time_t check_time;
+        char message[512];
+};
 
 typedef struct login_data
 {

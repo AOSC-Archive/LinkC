@@ -1,11 +1,18 @@
 #ifndef P2P_CLIENT_H
 #define P2P_CLIENT_H
 
+#ifndef P2P_CLIENT
+#define HEARTBEAT       0
+#define CHANGE_STAT     1
+#define MESSAGE         2
+#endif
+
 #include "csocket.h"
+#include <QTimer>
 
 typedef struct conn_info_t conn_info;
 
-class p2p_client : public socket_c{
+class p2p_client : public UDP_csocket{
     
 public:
     p2p_client();
@@ -24,6 +31,5 @@ protected:
     int ip_size;
     char buffer[MAXBUF];
     struct conn_info_t P2PInfo;
-    
 };
 #endif // P2P_CLIENT_H

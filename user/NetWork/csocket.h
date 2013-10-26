@@ -1,5 +1,6 @@
 #ifndef CSOCKET_H
 #define CSOCKET_H
+#include "data_type.h"
 #include <arpa/inet.h>
 #include <string.h>
 #include <data_type.h>
@@ -7,9 +8,8 @@
 #define TCP  1
 #define UDP  2
 
-#ifndef MAXBUF
-#define MAXBUF 1024
-#endif
+#define MAXBUF  512
+
 
 class socket_c{
 public:
@@ -48,7 +48,7 @@ protected:
     port_t Port;
     int Sockfd;
     int type;
-    socklen_t addr_len;
+    socklen_t AddrLen;
 };
 
 class TCP_csocket : public socket_c{

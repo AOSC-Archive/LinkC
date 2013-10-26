@@ -65,9 +65,11 @@ public:
     ~ChatDialog();
     void resizeEvent(QResizeEvent *);
     int ConnectToPeer(void);
+    void Recver(void);
     int UID;
 public slots:
     int Send(void);
+    int HeartBeats(void);
 protected:
     QPushButton *SendButton;
     QPushButton *QuitButton;
@@ -76,6 +78,10 @@ protected:
     QVBoxLayout *Layout;
     struct friend_data MyFriend;
     p2p_client  peer;
+    struct message_t message_recv;
+    struct message_t message_send;
+    QTimer *timer;
+    int MessageSize;
 };
 
 #endif

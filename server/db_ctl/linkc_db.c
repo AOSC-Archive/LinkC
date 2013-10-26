@@ -10,7 +10,6 @@
 
 #define USER_DB_PATH		"./user.db"
 #define FRIEND_DB_PATH		"./friend.db"
-#define MAXBUF			1024
 #define db_column		2
 #define user_c			12
 

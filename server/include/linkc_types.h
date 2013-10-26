@@ -1,6 +1,6 @@
 #ifndef LINKC_TYPES_H
 #define LINKC_TYPES_H
-#define MAXBUF		1024
+#define MAXBUF		512
 
 #include <sys/socket.h>
 #include <netinet/in.h>

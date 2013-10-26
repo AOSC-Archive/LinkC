@@ -1,11 +1,9 @@
-#define MAXBUF 512
 #include "csocket.h"
 #include "p2p_client.h"
 #include <stdio.h>
 #include <netdb.h>
 
 p2p_client::p2p_client(){
-    build_socket(UDP);
     ip_size = sizeof(ip_t);
 }
 

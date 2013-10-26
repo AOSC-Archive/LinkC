@@ -2,9 +2,9 @@
 #define MAINWINDOW_H
 
 
-#include "../NetWork/csocket.h"
-#include "../include/LinkC_GUI.h"
-#include "../include/data_type.h"
+#include "csocket.h"
+#include "LinkC_GUI.h"
+#include "data_type.h"
 #include <qt4/QtGui/QToolBox>
 #include <qt4/QtGui/QGroupBox>
 #include <qt4/QtGui/QLayout>

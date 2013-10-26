@@ -1,5 +1,8 @@
 #include "MainWindow.h"
-#include "../NetWork/csocket.h"
+#include "csocket.h"
+#include "data_type.h"
+#include "LinkC_Label.h"
+#include "LinkC_GUI.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -13,10 +16,6 @@
 #include <qt4/QtGui/QtGui>
 #include <qt4/QtGui/QListView>
 #include <qt4/QtGui/QMainWindow>
-
-#include "../include/data_type.h"
-#include "../include/LinkC_Label.h"
-#include "../include/LinkC_GUI.h"
 
 
 char buffer[MAXBUF];
@@ -122,7 +121,7 @@ int MainWindow::Login(){
 			if (i == -1)continue;
 			server.Send_msg(LINKC_LOGIN,MSG_DONTWAIT);
 			server.Send_msg((void *)&st,MSG_WAITALL);
-			server.cls_buf(buffer,1024);
+            server.cls_buf(buffer,MAXBUF);
 			i = server.Recv_msg(buffer,MSG_WAITALL);
 			if (!strncasecmp(buffer,LINKC_OK,MAXBUF)){
 

@@ -25,7 +25,7 @@
 
 socket_c::socket_c(){
     memset((void *)&DestAddr,'0',sizeof(DestAddr));
-    addr_len = sizeof(struct sockaddr_in);
+    AddrLen = sizeof(struct sockaddr_in);
     IP = 0;
     Port = 0;
     Sockfd = 0;
@@ -85,7 +85,7 @@ int socket_c::start_connect(void){
         return -1;
     }
     DestAddr.sin_family=AF_INET;
-    if (connect(Sockfd,(struct sockaddr *)&DestAddr,addr_len) < 0){
+    if (connect(Sockfd,(struct sockaddr *)&DestAddr,AddrLen) < 0){
         perror("Connect");
         Debug_Csocket_Sockfd();
         Sockfd = 0;
@@ -139,7 +139,7 @@ int socket_c::Recv_msg(void* Buffer,int Flag){
             return -1;
         }
     if(type == UDP)
-        if (recvfrom (Sockfd,Buffer,MAXBUF,Flag,(struct sockaddr *)&DestAddr,&addr_len) < 0){
+        if (recvfrom (Sockfd,Buffer,MAXBUF,Flag,(struct sockaddr *)&DestAddr,&AddrLen) < 0){
             perror("UDP_Recv");
         return -1;
     }
@@ -153,7 +153,7 @@ int socket_c::Recv_msg(void* Buffer,int maxbuf,int Flag){
             return -1;
         }
     if(type == UDP)
-        if (recvfrom (Sockfd,Buffer,maxbuf,Flag,(struct sockaddr *)&DestAddr,&addr_len) < 0){
+        if (recvfrom (Sockfd,Buffer,maxbuf,Flag,(struct sockaddr *)&DestAddr,&AddrLen) < 0){
             perror("UDP_Recv");
         return -1;
     }
@@ -167,7 +167,7 @@ int socket_c::Send_msg(const char* Message,int Flag){
             return -1;
         }
     if (type == UDP)
-        if (sendto (Sockfd,Message,MAXBUF,Flag,(struct sockaddr *)&DestAddr,addr_len) < 0){
+        if (sendto (Sockfd,Message,MAXBUF,Flag,(struct sockaddr *)&DestAddr,AddrLen) < 0){
             perror("UDP_Send");
             return -1;
         }
@@ -181,7 +181,7 @@ int socket_c::Send_msg(const void* Message,int Flag){
             return -1;
         }
     if (type == UDP)
-        if (sendto (Sockfd,Message,MAXBUF,Flag,(struct sockaddr *)&DestAddr,addr_len) < 0){
+        if (sendto (Sockfd,Message,MAXBUF,Flag,(struct sockaddr *)&DestAddr,AddrLen) < 0){
             perror("UDP_Send");
             return -1;
         }
@@ -195,7 +195,7 @@ int socket_c::Send_msg(const void* Message,int maxbuf,int Flag){
             return -1;
         }
     if (type == UDP)
-        if (sendto (Sockfd,Message,maxbuf,Flag,(struct sockaddr *)&DestAddr,addr_len) < 0){
+        if (sendto (Sockfd,Message,maxbuf,Flag,(struct sockaddr *)&DestAddr,AddrLen) < 0){
             perror("UDP_Send");
             return -1;
         }
@@ -221,4 +221,8 @@ TCP_csocket::~TCP_csocket(){
 /* --------------UDP_Socket -------------*/
 UDP_csocket::UDP_csocket(){
     build_socket(UDP);
+}
+
+UDP_csocket::~UDP_csocket(){
+
 }

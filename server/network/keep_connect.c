@@ -68,7 +68,7 @@ int keep_connect (struct user_data* _user)
 			{
 				count++;
 				printf ("Login failure!\n");
-				send(user.sockfd,LINKC_FAILURE,1024,MSG_DONTWAIT);
+				send(user.sockfd,LINKC_FAILURE,MAXBUF,MSG_DONTWAIT);
 				if (count > LOGINCOUNT)
                			{
 					byte = send (sockfd,LINKC_TRY_SO_MANY,500,MSG_DONTWAIT);
@@ -79,7 +79,7 @@ int keep_connect (struct user_data* _user)
 				continue;
 			}
 
-			byte = send (user.sockfd,LINKC_OK,1024,MSG_WAITALL);
+			byte = send (user.sockfd,LINKC_OK,MAXBUF,MSG_WAITALL);
 			error_count = 0;			// 初始化错误个数
 			while (1)				// 如果成功
 			{
@@ -161,7 +161,7 @@ int keep_connect (struct user_data* _user)
 					byte = send(user.sockfd,buffer,MAXBUF,MSG_WAITALL);
 					memcpy(buffer,My_friend,friend_count * sizeof(friend_data));
 					buffer[sizeof(friend_data)*friend_count]='\0';
-					byte = send (sockfd,buffer,1024,MSG_WAITALL);	// 发送好友信息
+					byte = send (sockfd,buffer,MAXBUF,MSG_WAITALL);	// 发送好友信息
 					free(My_friend);
 					My_friend = NULL;
 					if (byte < 0)
