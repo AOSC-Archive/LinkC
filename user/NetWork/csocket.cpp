@@ -133,73 +133,98 @@ void socket_c::Debug_Csocket_Sockfd(void){
 
 
 int socket_c::Recv_msg(void* Buffer,int Flag){
-    if(type == TCP)
-        if (recv (Sockfd,Buffer,MAXBUF,Flag) < 0){
+    int byte=0;
+    if(type == TCP){
+        byte = recv (Sockfd,Buffer,MAXBUF,Flag);
+        if (byte < 0){
             perror("TCP_Recv");
             return -1;
         }
-    if(type == UDP)
-        if (recvfrom (Sockfd,Buffer,MAXBUF,Flag,(struct sockaddr *)&DestAddr,&AddrLen) < 0){
+    }
+    if(type == UDP){
+        byte = recvfrom (Sockfd,Buffer,MAXBUF,Flag,(struct sockaddr *)&DestAddr,&AddrLen);
+        if (byte < 0){
             perror("UDP_Recv");
         return -1;
+        }
     }
-    return 0;
+    return byte;
 }
 
 int socket_c::Recv_msg(void* Buffer,int maxbuf,int Flag){
-    if(type == TCP)
-        if (recv (Sockfd,Buffer,maxbuf,Flag) < 0){
+    int byte=0;
+    if(type == TCP){
+        byte = recv (Sockfd,Buffer,maxbuf,Flag);
+        if (byte < 0){
             perror("TCP_Recv");
             return -1;
         }
-    if(type == UDP)
-        if (recvfrom (Sockfd,Buffer,maxbuf,Flag,(struct sockaddr *)&DestAddr,&AddrLen) < 0){
+    }
+    if(type == UDP){
+        byte = recvfrom (Sockfd,Buffer,maxbuf,Flag,(struct sockaddr *)&DestAddr,&AddrLen);
+        if (byte < 0){
             perror("UDP_Recv");
         return -1;
+        }
     }
-    return 0;
+    return byte;
 }
 
 int socket_c::Send_msg(const char* Message,int Flag){
-    if (type == TCP)
-        if (send (Sockfd,Message,MAXBUF,Flag) < 0){
+    int byte=0;
+    if (type == TCP){
+        byte = send (Sockfd,Message,MAXBUF,Flag);
+        if (byte < 0){
             perror("TCP_Send");
             return -1;
         }
-    if (type == UDP)
-        if (sendto (Sockfd,Message,MAXBUF,Flag,(struct sockaddr *)&DestAddr,AddrLen) < 0){
+    }
+    if (type == UDP){
+        byte = sendto (Sockfd,Message,MAXBUF,Flag,(struct sockaddr *)&DestAddr,AddrLen);
+        if (byte < 0){
             perror("UDP_Send");
             return -1;
         }
-    return 0;
+    }
+    return byte;
 }
 
 int socket_c::Send_msg(const void* Message,int Flag){
-    if (type == TCP)
-        if (send (Sockfd,Message,MAXBUF,Flag) < 0){
+    int byte=0;
+    if (type == TCP){
+        byte = send (Sockfd,Message,MAXBUF,Flag);
+        if (byte < 0){
             perror("Send");
             return -1;
         }
-    if (type == UDP)
-        if (sendto (Sockfd,Message,MAXBUF,Flag,(struct sockaddr *)&DestAddr,AddrLen) < 0){
+    }
+    if (type == UDP){
+        byte = sendto (Sockfd,Message,MAXBUF,Flag,(struct sockaddr *)&DestAddr,AddrLen);
+        if (byte < 0){
             perror("UDP_Send");
             return -1;
         }
-    return 0;
+    }
+    return byte;
 }
 
 int socket_c::Send_msg(const void* Message,int maxbuf,int Flag){
-    if (type == TCP)
-        if (send (Sockfd,Message,maxbuf,Flag) < 0){
+    int byte=0;
+    if (type == TCP){
+        byte = send (Sockfd,Message,maxbuf,Flag);
+        if (byte < 0){
             perror("TCP_Send");
             return -1;
         }
-    if (type == UDP)
-        if (sendto (Sockfd,Message,maxbuf,Flag,(struct sockaddr *)&DestAddr,AddrLen) < 0){
+    }
+    if (type == UDP){
+        byte = sendto (Sockfd,Message,maxbuf,Flag,(struct sockaddr *)&DestAddr,AddrLen);
+        if (byte < 0){
             perror("UDP_Send");
             return -1;
         }
-    return 0;
+    }
+    return byte;
 }
 
 
