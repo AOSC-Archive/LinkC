@@ -11,6 +11,6 @@ int user_login(struct user_data* user)
 {
 	int result;
 	user->UID = check_pass(user->login);
-	state_set(*user,STATE_ONLINE);
+	status_set(*user,STATE_ONLINE);
 	return 1;
 }

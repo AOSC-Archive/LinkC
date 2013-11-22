@@ -26,18 +26,16 @@ typedef struct user_data
 typedef struct friend_data
 {
 	id_t UID;
-	char name [20];
-	char nickname [20];		//可以为空，空为“NULL”
+	char name[20];
+	char nickname[20];
 	int group;
-//-------来自客户端的User_data---------//
-	char telephone [20];
-	char company [50];
-	char address [80];
-	char join_time [25];
-	char last_login [25];
+	char telephone[20];
+	char company[50];
+	char address[80];
+	char join_time[25];
+	char last_login[25];
 	ip_t ip;
-	int state;
-
+	int status;
 }friend_data;
 
 

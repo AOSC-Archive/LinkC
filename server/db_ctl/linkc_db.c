@@ -112,13 +112,13 @@ int get_friend_data (int UID, int DestUID ,struct friend_data **_ffb)
 		strcpy (_friend[0].telephone,dbResult[user_c + 5 -1]);	// 获得电话
 		strcpy (_friend[0].company,dbResult[user_c + 6 -1]);	// 获得公司
 		strcpy (_friend[0].address,dbResult[user_c + 7 -1]);	// 获得地址
-		_friend[0].state = atoi(dbResult[user_c +11 -1]);
+		_friend[0].status = atoi(dbResult[user_c +11 -1]);
 			_friend[0].ip=inet_addr(dbResult[user_c +10-1]);
-		if (_friend[0].state == STATE_ONLINE)	// 如果在线
+		if (_friend[0].status == STATE_ONLINE)	// 如果在线
 		{
-			_friend[0].state = STATE_ONLINE;			// 设置成在线
+			_friend[0].status = STATE_ONLINE;			// 设置成在线
 		}
-		else	_friend[0].state = STATE_OFFLINE;	// 否者设置为不在线
+		else	_friend[0].status = STATE_OFFLINE;	// 否者设置为不在线
 		sprintf (exec,"SELECT * FROM id%d WHERE id='%d'",UID,DestUID);
 		result = sqlite3_get_table( friend_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
 		if (nRow == 0)						// 如果不是好友
@@ -216,7 +216,7 @@ int get_info(int UID,int _Flag)
 	return -1;
 }
 
-int state_set (struct user_data user,int _Flag)
+int status_set (struct user_data user,int _Flag)
 {
 	
 	char exec[MAXBUF];

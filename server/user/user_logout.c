@@ -10,6 +10,6 @@
 
 int user_logout(struct user_data user)
 {
-	CHECK_FAILED(state_set (user,STATE_OFFLINE),ERROR_SET_STATE);	// 设置下线
+	CHECK_FAILED(status_set (user,STATE_OFFLINE),ERROR_SET_STATE);	// 设置下线
 	return SUCCESS;
 }

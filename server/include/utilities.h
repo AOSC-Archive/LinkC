@@ -3,47 +3,51 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "def.h"
+#include "linkc_types.h"
 
-#define uint8_t		        Message_Header
-#define uint16_t		Message_Size
-#define END_OF_LINKC_MESSAGE    "3036ACFB8D33BBC4"
-#define START_OF_LINKC_MESSAGE	"7791A13CAA92A8B2"
-#define CHECK_CODE_LENTH	16
+#define END_OF_LINKC_MESSAGE	0X011B	// Esc键 汗!
+#define BUFFER_SIZE		2048
 
-#define NOT_MESSAGE		-1	// 非消息
 #define EXCEED_THE_LIMIT	-2	// 大小超出限制
+#define NOT_MESSAGE		-1	// 非消息
 #define MESSAGE_INCOMPLETE	1	// 数据不完整
-#define DATA_SIZE_LIMITED	512	// 单个包数据段最大限制
 #define HEADER_SIZE		5	// Header的大小
 #define MESSAGE_POOL_SIZE	15	// 发送消息池的大小
+#define DATA_SIZE_LIMITED	512	// 单个包数据段最大限制
 #define RECV_POOL_SIZE		10240	// 接受缓冲区大小
-struct linkc_message_header_t
+
+#define FRIEND_MESSAGE		1	// 好友发送的聊天信息
+#define SYS_MESSAGE_PUSHING	2	// 系统消息推送
+#define SYS_LOGIN_STATUS	3	// 系统登录状况
+#define SYS_FRIEND_DATA		4	// 好友数据
+#define USER_ADD_FRIEND		5	// 添加好友
+#define USER_DEL_FRIEND		6	// 删除好友
+#define USER_LOGIN		7	// 登录
+#define USER_LOGOUT		8	// 登出
+#define USER_CHAT		9	// 聊天请求
+struct LinkC_Message_Header_t
 {
-	uint8_t		Mark;		// Data's Mark[A Random Number]
-	uint8_t		Type;		// Message Type[Header]
-	uint8_t		Totle;		// Totle Message count;
-	uint8_t		Current;	// Current Message
-	uint16_t	Lenth;		// Current Data's Lenth
+	uint16_t MessageHeader;
+	uint16_t MessageLenth;
+	uint16_t Marks;
+	uint8_t  Totle;
+	uint8_t  Current;
 }
-struct linkc_message_pool_t
-{
-	struct linkc_message_header_t*	data_header;
-	uint8_t	Current;
+struct LinkC_User_Request_t{
+	uint32_t	UID;
+	uint32_t	Flag;		// 补充说明操作情况，省略值为0
 };
-typedef struct linkc_message_header_t	linkc_message_header;
-typedef struct linkc_message_pool_t	linkc_message_pool;
+struct LinkC_Sys_Status_t{
+	uint32_t	Error_Code;
+};
 
-errorcode	check_message		(const void *message);	// Errorcode Define in def.h
-errorcode	send_message		(int sockfd,const void *message,uint8_t size,uint8_t Type,struct sockaddr_in Dest,int FLAG);
-errorcode	recv_message		(int sockfd,void *buffer,struct sockaddr_in Dest,int FALG);
-errorcoed	send_message_pack	(int sockfd,const void *message,uint8_t size,struct sockaddr_in Dest,int FALG);
-errorcode	recv_message_pack	(int sockfd,void *buffer,struct sockaddr_in Dest,int FLAG);
-errorcode	build_message_pool	(struct linkc_message_pool_t* pool);
-errorcode	destroy_message_pool	(struct linkc_message_pool_t* pool);
-errorcode	add_message_pool_item	(struct linkc_message_pool_t* pool,void *data);
-void*		get_message_pool_item	(struct linkc_message_pool_t* pool,uint8_t Mark);
-void*		unpack_message		(void *message);
-void*		pack_message		(uint8_t header,const void* message,int size);
+typedef LinkC_Message_Header_t	LinkC_Message_Header;
+typedef LinkC_User_Requiest_t	LinkC_User_Request;
+typedef LinkC_Sys_Statue_t	LinkC_Sys_Status;
+typedef friend_data		LinkC_Sys_Friend_data;
 
+uint16_t	Is_Message	(void *Message);
+uint16_t	Pack_Message	(uint16_t Header,void *Data,uint16_t Lenth,void *Out);
+uint16_t	UnPack_Message	(void *Message,void *Out);
 
 #endif
