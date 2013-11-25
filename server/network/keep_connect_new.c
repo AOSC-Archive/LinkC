@@ -186,21 +186,9 @@ start:
 						for (i=0;i<friend_count;i++)	printf ("\tUID\t= %d\tNAME\t= %s\n",My_friend[i].UID,My_friend[i].name);
 						printf ("------End----------\n");
 #endif
-						sprintf (buffer,"%d",friend_count);
-						byte = send(user.sockfd,buffer,MAXBUF,MSG_WAITALL);
-						memcpy(buffer,My_friend,friend_count * sizeof(friend_data));
-						buffer[sizeof(friend_data)*friend_count]='\0';
-						byte = send (sockfd,buffer,MAXBUF,MSG_WAITALL);	// 发送好友信息
+						non_std_m_message_send(My_friend,user.sockfd,friend_count,sizeof(friend_data),SYS_FRIEND_DATA,MSG_DONTWAIT);
 						free(My_friend);
 						My_friend = NULL;
-						if (byte < 0)
-						{
-#if DEBUG
-								printf ("Send Error!\n");
-#endif	
-								error_count ++;
-								continue;
-						}
 					}
 					else
 					{
@@ -213,19 +201,6 @@ start:
 						lenth = pack_message(SYS_FRIEND_DATA,buffer,sizeof(friend_data),data);
 						byte = send (sockfd,data,lenth,MSG_WAITALL);	// 发送好友信息
 						free (My_friend);
-					}
-				}
-				if (!strncasecmp(buffer,LINKC_QUIT,MAXBUF))	goto end;	// 退出
-				if (!strncasecmp (buffer,LINKC_CHAT_WANT,MAXBUF))	//如果是聊天请求
-				{
-					byte = send (sockfd,"Who?",MAXBUF,MSG_WAITALL);
-					byte = recv (sockfd,buffer,MAXBUF,MSG_WAITALL);
-					sprintf (buffer,"%d",DEST_UID);			// 获得目标的UID
-					i = chat_with(user.UID,DEST_UID,sockfd);	// 执行并获得想发送的数据，然后发送
-					if (i == -1)
-					{
-						error_count++;
-						continue;
 					}
 				}
 			} 

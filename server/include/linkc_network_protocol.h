@@ -8,7 +8,7 @@
 
 /* 系统 */
 #define MESSAGE_POOL_SIZE	15	// 发送消息池的大小
-#define DATA_SIZE_LIMITED	512	// 单个包数据段最大限制
+#define STD_PACKAGE_SIZE	1024	// 标准包最大大小
 #define RECV_POOL_SIZE		10240	// 接受缓冲区大小
 #define END_OF_LINKC_MESSAGE	0X011B	// Esc键 汗!
 #define LINKC_MESSAGE_VERSION	1	// 协议版本
@@ -82,8 +82,9 @@ typedef struct friend_data		LinkC_Sys_Friend_Data;
 
 int16_t	check_message		(void *Message,uint16_t Recv_Lenth);
 int16_t	pack_message		(uint16_t Header,void *Data,uint16_t Lenth,void *Out);
+int16_t pack_m_message		(uint16_t Header,void *Data,uint16_t Lenth,void *Out,uint16_t Totle,uint16_t Current);
 int16_t	unpack_message		(void *Message,uint16_t Recv_Lenth,void *Out);
 int16_t std_m_message_send	(void *Message,int sockfd,uint16_t Lenth);
-int16_t non_std_m_message_send	(void *Message,int sockfd,uint16_t Memb,uint16_t Each_Lenth,int Flag);
+int16_t non_std_m_message_send	(void *Message,int sockfd,uint16_t Memb,uint16_t Each_Lenth,uint16_t Header,int Flag);
 
 #endif
