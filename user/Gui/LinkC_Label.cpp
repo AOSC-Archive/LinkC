@@ -1,4 +1,4 @@
-#include "../include/LinkC_Label.h"
+#include "LinkC_Label.h"
 #include <qt4/QtGui/QWidget>
 #include <qt4/QtGui/QtGui>
 

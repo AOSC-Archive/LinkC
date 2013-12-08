@@ -1,5 +1,5 @@
-#include "../include/LinkC_GUI.h"
-#include "../include/LinkC_Label.h"
+#include "LinkC_GUI.h"
+#include "LinkC_Label.h"
 #include <stdio.h>
 #include <qt4/QtGui/QToolBox>
 #include <qt4/QtGui/QListWidget>
@@ -60,6 +60,10 @@ void FriendArea::resizeEvent(QResizeEvent *){
 
 void FriendArea::setFriendCount(const char s[]){
     friendcount=atoi(s);
+}
+
+void FriendArea::setFriendCount(int n){
+    friendcount=n;
 }
 
 int FriendArea::FriendCount(){

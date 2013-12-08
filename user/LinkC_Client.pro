@@ -13,15 +13,17 @@ HEADERS += include/data_type.h \
            include/LinkC_Label.h \
            include/ListWidget.h \
            include/MessageBox.h \
-           NetWork/csocket.h \
+	   include/LinkC_Protocol.h \
            Window/MainWindow.h \
-    NetWork/p2p_client.h
+    NetWork/p2p_client.h \
+    NetWork/Csocket.h
 SOURCES += main.cpp \
            Gui/ChatDialog.cpp \
            Gui/Friend.cpp \
            Gui/LinkC_Label.cpp \
            Gui/MessageBox.cpp \
-           NetWork/csocket.cpp \
+	   NetWork/LinkC_Package_Ctl.cpp \
            Window/LoginWindow.cpp \
            Window/MainWindow.cpp \
-    NetWork/p2p_client.cpp
+	   NetWork/p2p_client.cpp \
+    NetWork/Csocket.cpp

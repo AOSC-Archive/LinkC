@@ -1,4 +1,4 @@
-#include "csocket.h"
+#include "Csocket.h"
 #include "p2p_client.h"
 #include <stdio.h>
 #include <netdb.h>
@@ -19,7 +19,7 @@ int p2p_client::DirectConnect(){
 
 int p2p_client::inDirectConnect(){
     this->Send_msg((void *)&DestIP,ip_size,MSG_DONTWAIT);
-    if (this->Recv_msg((void *)&P2PInfo,sizeof(P2PInfo),MSG_WAITALL) == 0)
+    if (this->Recv_msg((void *)&P2PInfo,sizeof(P2PInfo),0) == 0)
         return -1;
     struct timeval tv;
     tv.tv_sec = 6;                                          // 6 second timed out
@@ -37,7 +37,7 @@ int p2p_client::inDirectConnect(){
             continue;
         }
         strncpy(buffer,"0",1);
-        if(this->Recv_msg(buffer,MAXBUF,MSG_WAITALL) <= 0)
+        if(this->Recv_msg(buffer,MAXBUF,0) <= 0)
         {
                 perror("Recv");
                 continue;

@@ -41,6 +41,7 @@ public:
     void AddFriendToLayout(friend_data Myfriend);
     void resizeEvent(QResizeEvent *);
     void setFriendCount(const char s[]);
+    void setFriendCount(int n);
     int FriendCount(void);
 public slots:
     void ItemClicked(QListWidgetItem *item);

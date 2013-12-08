@@ -47,7 +47,7 @@ ChatDialog::ChatDialog(struct friend_data MyFriend, QWidget *parent)
     timer->start();
 
     //NetWork Init
-    if(MyFriend.state == STATE_OFFLINE){
+/*    if(MyFriend.state == STATE_OFFLINE){
         History->setText(tr("Friend is Offline!\nLinkC NOT Supports OFFLINE MESSAGE PUSHING"));
         return;
     }
@@ -56,7 +56,7 @@ ChatDialog::ChatDialog(struct friend_data MyFriend, QWidget *parent)
         if ((ConnectToPeer()) == 0)
             History->setText(tr("Connect Success"));
         else return;
-    }
+    }*/
     SendButton->setEnabled(true);
     Recver();
 }
@@ -105,7 +105,7 @@ void ChatDialog::Recver(void){
             History->setText(tr("Peer Has Disconnected!"));
             break;
         }
-        if(peer.Recv_msg((void *)&message_recv,MessageSize,MSG_WAITALL) <= 0)
+        if(peer.Recv_msg((void *)&message_recv,MessageSize,0) <= 0)
         {
             error++;
             continue;

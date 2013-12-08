@@ -1,15 +1,14 @@
-//#define _LINUX_		1
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "csocket.h"
+#include "Csocket.h"
 #include <string.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include "../include/data_type.h"
+#include "data_type.h"
 #if _LINUX_
 #include<netdb.h>
 #elif _WIN32_
@@ -250,4 +249,8 @@ UDP_csocket::UDP_csocket(){
 
 UDP_csocket::~UDP_csocket(){
 
+}
+
+int socket_c::GetSockfd(){
+    return Sockfd;
 }

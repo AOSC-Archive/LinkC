@@ -7,7 +7,7 @@
 #define MESSAGE         2
 #endif
 
-#include "csocket.h"
+#include "Csocket.h"
 #include <QTimer>
 
 typedef struct conn_info_t conn_info;

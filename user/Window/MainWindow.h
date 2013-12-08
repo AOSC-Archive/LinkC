@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 
-#include "csocket.h"
+#include "Csocket.h"
 #include "LinkC_GUI.h"
 #include "data_type.h"
 #include <qt4/QtGui/QToolBox>
@@ -35,6 +35,7 @@ public:
     void closeEvent(QCloseEvent *);
     int InitFriendList();
     FriendArea *friendArea;
+    void *package;
 private slots:
     void check(void);
     void test_slot(int i);

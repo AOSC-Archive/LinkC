@@ -1,8 +1,9 @@
 #include "MainWindow.h"
-#include "csocket.h"
+#include "Csocket.h"
 #include "data_type.h"
 #include "LinkC_Label.h"
 #include "LinkC_GUI.h"
+#include "LinkC_Protocol.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -19,7 +20,8 @@
 
 
 char buffer[MAXBUF];
-struct friend_data MyFriend;
+int lenth;
+int flag;
 LoginWindow *s;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -32,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
     MainLayout  = new QVBoxLayout;      // 中间layout
     area        = new FriendArea;       //
     tab         = new QTabWidget;       //
+    package     = new char[MAXBUF];     //
     setWindowTitle("Main_Window");      // 标题
     Connection_state = NetworkInit();   // 初始化网络
     if(Connection_state == -1){
@@ -80,8 +83,9 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 MainWindow::~MainWindow(){
-	server.Send_msg(LINKC_QUIT,MSG_DONTWAIT);
-    printf ("Debug >> Main_Window Exited Normally!\n");
+//    lenth = pack_message(EXIT,NULL,0,buffer);
+//    server.Send_msg(buffer,lenth,MSG_DONTWAIT);
+    printf ("Debug >> Main_Window\t= [EXITED]\n");
 }
 
 void MainWindow::test_slot(int i){
@@ -98,14 +102,28 @@ int MainWindow::NetworkInit(void){
     if (i == -1)
 	{
 		QMessageBox::warning(0,"Waring","Connection refused!",QMessageBox::Yes);
-		return(-1);
+        return -1;
 	}
-	server.Debug_Csocket_Sockfd();
-	server.Recv_msg(buffer,MSG_WAITALL);
-    if (!strncasecmp(buffer,LINKC_OK,MAXBUF))printf ("Debug >> Connect\t= [Success]\n");
-    else if(!strncasecmp(buffer,LINKC_ERROR,MAXBUF))printf ("Debug >> Connect\t= [Faliure]\n");
-	server.cls_buf(buffer,MAXBUF);
-    return 0;
+    server.Debug_Csocket_Sockfd();
+    lenth = pack_message(CONNECTION,package,0,buffer);
+    server.Send_msg(buffer,lenth,0);
+    lenth = server.Recv_msg(buffer,STD_PACKAGE_SIZE,0);
+    flag = check_message(buffer,lenth);
+    if (flag == SYS_ACTION_STATUS){
+        unpack_message(buffer,lenth,package);
+        if(((LinkC_Sys_Status *)package)->Action == CONNECTION){
+            if(((LinkC_Sys_Status *)package)->Status == LINKC_SUCCESS){
+                printf ("Debug >> Connect\t= [Success]\n");
+                return 0;
+            }
+            else if(((LinkC_Sys_Status *)package)->Status == LINKC_FAILURE){
+                printf ("Debug >> Connect\t= [Failure]\n");
+                return -1;
+            }
+        }
+    }
+    printf("Flag = %d\n",flag);
+    return -1;
 }
 
 int MainWindow::Login(){
@@ -116,27 +134,34 @@ int MainWindow::Login(){
 
 		i = s->exec();
 		if (i == 1){
-
 			i = s->GetLoginData(st);
 			if (i == -1)continue;
-			server.Send_msg(LINKC_LOGIN,MSG_DONTWAIT);
-			server.Send_msg((void *)&st,MSG_WAITALL);
-            server.cls_buf(buffer,MAXBUF);
-			i = server.Recv_msg(buffer,MSG_WAITALL);
-			if (!strncasecmp(buffer,LINKC_OK,MAXBUF)){
-
-                printf ("Debug >> Login\t\t= [Success]\n");
-				server.cls_buf(buffer,MAXBUF);
-				this->show();
-				return 1;
-			}
-			else if (!strncasecmp(buffer,LINKC_FAILURE,MAXBUF)){
-				QMessageBox::warning(0,"Waring","Login Faliure!",QMessageBox::Yes);
-			}
-			else if (!strncasecmp(buffer,LINKC_TRY_SO_MANY,MAXBUF)) {
-				QMessageBox::warning(0,"Waring","You Try So Much Times!",QMessageBox::Yes);
-			}
-			printf ("Debug >> Login\t\t= [Faliure]\n");
+            lenth = pack_message(LOGIN,(void *)&st,USER_LOGIN_LENTH,package);
+            server.Send_msg(package,lenth,0);
+            lenth = server.Recv_msg(buffer,STD_PACKAGE_SIZE,0);
+            flag = check_message(buffer,lenth);
+            if (flag == SYS_ACTION_STATUS){
+                unpack_message(buffer,lenth,package);
+                if(((LinkC_Sys_Status *)package)->Action == LOGIN){
+                    if(((LinkC_Sys_Status *)package)->Status == LINKC_SUCCESS){
+                        printf ("Debug >> Login\t\t= [Success]\n");
+                        this->show();
+                        return 0;
+                    }
+                    else if(((LinkC_Sys_Status *)package)->Status == LINKC_FAILURE){
+                        printf ("Debug >> Login\t\t= [Failure]\n");
+                        QMessageBox::warning(0,"Waring","Login Faliure!",QMessageBox::Yes);
+                        continue;
+                    }
+                    else if(((LinkC_Sys_Status *)package)->Status == LINKC_LIMITED){
+                        QMessageBox::warning(0,"Waring","Please Try later!",QMessageBox::Yes);
+                        printf ("Debug >> Login\t\t= [Limited]\n");
+                        exit(0);
+                    }
+                }
+            }
+            printf("Debug >> Login\t\t= [Package Broken]\n");
+            exit(0);
 		}
 		if (i == -1)exit(0);
 	}
@@ -152,17 +177,32 @@ void MainWindow::closeEvent(QCloseEvent *){
 }
 
 int MainWindow::InitFriendList(){
-    server.Send_msg(LINKC_GET_FRIENDS,MSG_WAITALL);     // Send for Getting Friend Data
-    server.Recv_msg(buffer,MSG_WAITALL);                // recv state
-    printf("Debug >> State\t\t= [%s]\n",buffer);        // debug
-    if (!strncasecmp(buffer,LINKC_NO_FRIEND,MAXBUF))    // if This Has no friend
-            return 0;
-    server.Recv_msg(buffer,MSG_WAITALL);                // recv Friend count
-    printf("I Have %s Friend(s)\n",buffer);             // debug
-    area->setFriendCount(buffer);                       // save Friend count
+    int flag;
+    ((LinkC_User_Request *)package)->Action = USER_FRIEND_DATA;
+    ((LinkC_User_Request *)package)->Flag = 0;
+    lenth = pack_message(USER_REQUEST,package,USER_REQUEST_LENTH,buffer);
+    server.Send_msg(buffer,lenth,0);     // Send for Getting Friend Data
+    lenth = server.Recv_msg(buffer,0);                // recv state
+    flag = check_message(buffer,lenth);
+    if(flag == SYS_ACTION_STATUS){
+        unpack_message(buffer,lenth,package);
+        if(((LinkC_Sys_Status *)package)->Action == USER_FRIEND_DATA){
+            if(((LinkC_Sys_Status *)package)->Status == LINKC_SUCCESS)
+                printf("Debug >> State\t\t= [Success]\n");
+            else{
+                if(((LinkC_Sys_Status *)package)->Status == LINKC_FAILURE)
+                    printf("Debug >> State\t\t= [Failure]\n");
+                else
+                    printf("Debug >> Friend\t\t= [NULL]");
+                return 0;
+            }
+        }
+    }
+    flag = non_std_m_message_recv(server.GetSockfd(),sizeof(friend_data),package);
+    printf("Debug >> Friends Count\t= [%d]\n",flag);             // debug
+    area->setFriendCount(flag);                       // save Friend count
     friend_data *ffb = new friend_data[area->FriendCount()];    // new memory
-    server.Recv_msg(buffer,MSG_WAITALL);                // recv Friend Data
-    memcpy(ffb,buffer,area->FriendCount() * sizeof(friend_data));  // Save Friend Data
+    memcpy(ffb,package,area->FriendCount() * sizeof(friend_data));  // Save Friend Data
 
     area->AddFriendToLayout(ffb[0]);
 
@@ -174,11 +214,11 @@ void MainWindow::check(){
 }
 
 void MainWindow::ChatWith(int UID){
-    ChatDialog *log;
-    server.Send_msg(LINKC_GET_FRIEND,MSG_WAITALL);
+/*    ChatDialog *log;
+    server.Send_msg(LINKC_GET_FRIEND,0);
     sprintf(buffer,"%d",UID);
     server.Send_msg(buffer,MSG_DONTWAIT);
-    server.Recv_msg(buffer,MSG_WAITALL);
+    server.Recv_msg(buffer,0);
     memcpy((void *)&MyFriend,buffer,sizeof(MyFriend));
     if(!ChatDialogMap.contains(UID)){
         log = new ChatDialog(MyFriend);
@@ -188,5 +228,5 @@ void MainWindow::ChatWith(int UID){
         tmp = ChatDialogMap.find(UID);
         log = tmp.value();
         log->show();
-    }
+    }*/
 }

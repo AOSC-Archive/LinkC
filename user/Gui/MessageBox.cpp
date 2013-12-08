@@ -1,4 +1,4 @@
-#include "../include/MessageBox.h"
+#include "MessageBox.h"
 
 MessageBox::MessageBox(QWidget *parent, const QString &mes, int sec):
     QWidget(parent),
