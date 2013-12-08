@@ -17,6 +17,8 @@ OBJECTS       = start_connect.o \
 
 first: all
 
+New : $(OBJECTS_NEW)
+
 all : $(OBJECTS)
 
 
@@ -43,6 +45,7 @@ keep_connect.o : keep_connect.c \
 		../include/linkc_user.h \
 		../include/linkc_db.h
 	$(CC) -c keep_connect.c $(INCLUDE)
+
 
 init_network.o: init_network.c \
 		../include/linkc_network.h

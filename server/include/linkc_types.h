@@ -41,23 +41,5 @@ typedef struct friend_data
 
 #endif
 
-#ifndef _LINKC_
-
-#define LINKC_OK		"OK"
-#define LINKC_FAILURE		"Failure"
-#define LINKC_ERROR		"Error"
-#define LINKC_FULL		"Full"
-#define LINKC_TRY_SO_MANY	"Tried_So_Many"
-#define LINKC_TIMED_OUT		"Timed_Out"
-#define LINKC_LOGIN		"Action_Login"
-#define LINKC_LOGOUT		"Action_Logout"
-#define LINKC_GET_FRIENDS	"Get_Friends_Data"	//这个是获得所有好友数据
-#define LINKC_GET_FRIEND	"Get_Friend_Data"	//这是对指定好友数据获取
-#define LINKC_NO_FRIEND		"No_Friend"
-#define LINKC_CHAT_WANT		"Chat_Want" 
-#define LINKC_MESSAGE		"YOUR_MESSAGE"
-#define LINKC_QUIT		"QUIT"
-
-#endif
 
 

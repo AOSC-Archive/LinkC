@@ -26,6 +26,11 @@ struct conn_info_t
 typedef struct conn_info_t conn_info;
 
 #define SUCCESS 0
+#ifndef LINKC_STATUS
+#define LINKC_STATUS
+#define LINKC_SUCCESS 0
+#define LINKC_FAILURE -1
+#endif
 #define OK 0
 #define NOT_OK -1
 #define ERROR_TRACE

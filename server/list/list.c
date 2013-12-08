@@ -9,7 +9,7 @@ errorcode list_init(list_t *list)
 {
 	if (list == NULL)
 		return ERROR_NULL_ARG;
-	
+
 	list->head = NULL;
 	list->size = 0;
 
@@ -20,7 +20,7 @@ errorcode list_destroy(list_t *list)
 {
 	if (list == NULL)
 		return ERROR_NULL_ARG;
-	
+
 	list_node *node;
 
 	while (list->head != NULL)
@@ -74,7 +74,7 @@ errorcode list_item_add(list_t *list,conn_info item)
 errorcode list_node_remove(list_t *list,conn_info info)
 {
 	CHECK_NOT_NULL(list,ERROR_NULL_ARG);
-	list_node *node,*tmp;
+	list_node *node;
 	node = list->head;
 
 	while(1)

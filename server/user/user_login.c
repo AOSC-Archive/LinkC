@@ -9,8 +9,9 @@
 
 int user_login(struct user_data* user)
 {
-	int result;
 	user->UID = check_pass(user->login);
+	if(user->UID == LINKC_FAILURE)
+		return LINKC_FAILURE;
 	status_set(*user,STATE_ONLINE);
-	return 1;
+	return LINKC_SUCCESS;
 }

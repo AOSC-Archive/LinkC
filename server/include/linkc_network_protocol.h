@@ -6,12 +6,17 @@
 #include "def.h"
 #include "linkc_types.h"
 
+#define LINKC_STATUS
+#define LINKC_SUCCESS	 0
+#define LINKC_FAILURE	-1
+#define LINKC_LIMITED	-2
 /* 系统 */
 #define MESSAGE_POOL_SIZE	15	// 发送消息池的大小
-#define STD_PACKAGE_SIZE	1024	// 标准包最大大小
+#define STD_PACKAGE_SIZE	512	// 标准包最大大小
 #define RECV_POOL_SIZE		10240	// 接受缓冲区大小
 #define END_OF_LINKC_MESSAGE	0X011B	// Esc键 汗!
 #define LINKC_MESSAGE_VERSION	1	// 协议版本
+#define ALL_FRIEND              0
 
 /* Error_Code 定义区 [Check_Message里]*/
 #define DIFF_VERSION		-3	// 协议版本不一致
@@ -21,33 +26,26 @@
 
 
 /* 消息头[LinkC_Message_Header] */
-#define EXIT			0	// 退出
-#define SYS_MESSAGE_PUSHING	1	// 系统消息推送
-#define SYS_ACTION_STATUS	2	// 系统操作状态
-#define SYS_FRIEND_DATA		3	// 好友数据
-#define USER_LOGIN		4	// 登录
-#define USER_LOGOUT		5	// 登出
-#define USER_STATUS_HIDDEN	6	// 状态-隐身
-#define USER_STATUS_ONLINE	7	// 状态-在线
-#define USER_FRIEND_DATA	8	// 请求好友数据
-#define USER_CHAT		9	// 请求聊天
-#define USER_ADD_FRIEND		10	// 添加好友
-#define USER_DEL_FRIEND		11	// 删除好友
-#define USER_REQUEST		100	// 用户请求 [以后扩展]
+#define HEART_BEATS		0	// 心跳包
+#define EXIT			1	// 退出
+#define CONNECTION		2	// 连接
+#define SYS_MESSAGE_PUSHING	3	// 系统消息推送
+#define SYS_ACTION_STATUS	4	// 系统操作状态
+#define SYS_FRIEND_DATA		5	// 好友数据
+#define LOGIN		    	6	// 登录
+
+/* 用户请求[LinkC_User_Request] */
+#define USER_LOGOUT		1	// 登出
+#define USER_STATUS_HIDDEN	2	// 状态-隐身
+#define USER_STATUS_ONLINE	3	// 状态-在线
+#define USER_FRIEND_DATA	4	// 请求好友数据
+#define USER_CHAT		5	// 请求聊天
+#define USER_ADD_FRIEND		6	// 添加好友
+#define USER_DEL_FRIEND		7	// 删除好友
+#define USER_REQUEST		8	// 用户请求 [以后扩展]
 
 /* 以下是Error_Code 定义区 [LinkC_Sys_Status里面]*/
 /*      操作者 操作项目 状态*/
-#define USER_LOGIN_SUCCESS	1	// 用户登录成功
-
-#ifndef SUCCESS
-#define SUCCESS			0	// 成功
-#endif
-
-#define USER_LOGIN_FAILURE	-1	// 用户登录失败
-#define USER_FRIEND_NULL	-2	// 用户没有好友
-#define USER_LOGIN_LIMITED	-3	// 登录次数超过限制
-#define SYS_LOGIN_FAILURE	-10	// 系统登录系统出现错误
-#define SYS_FRIEND_GET_FAILURE	-11	// 系统获取好友信息失败
 
 
 struct LinkC_Message_Header_t
@@ -60,12 +58,13 @@ struct LinkC_Message_Header_t
 	uint8_t  Current;		// 当前包标记
 };
 struct LinkC_User_Request_t{
-	uint32_t UID;
-	int32_t	 Flag;			// 补充说明操作情况，省略值为0
+	uint16_t Action;
+	uint16_t Flag;			// 补充说明操作情况，省略值为0
+	uint32_t UID;			// 若是自己则UID为0
 };
 struct LinkC_Sys_Status_t{
 	uint16_t Action;
-	int32_t  Status;
+	int16_t  Status;
 };
 
 typedef struct LinkC_Message_Header_t	LinkC_Message_Header;

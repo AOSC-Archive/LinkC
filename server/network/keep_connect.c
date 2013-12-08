@@ -5,6 +5,8 @@
 #include "linkc_types.h"
 #include "linkc_db.h"
 #include "linkc_user.h"
+#include "linkc_network.h"
+#include "linkc_network_protocol.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -18,6 +20,7 @@
 
 #define DEBUG		1		// 是否为DEBUG模式
 #define MAX_ERROR	5		// 最大错误次数
+#define MAX_FAILURE_COUNT 5
 
 #define LOGINCOUNT	2		// 最大登录尝试次数
 extern void cls_buf(char * buffer,int size);
@@ -25,177 +28,136 @@ extern void cls_buf(char * buffer,int size);
 int msgid;
 int keep_connect (struct user_data* _user)
 {
-	int i,friend_count,result,tmp,error_count;
+	int result,tmp,error_count,count,friend_count;
 	struct user_data user;				// 用户基本数据
-	int count = 0;					// 已经失败次数
+	int failure_count = 0;				// 登录已经失败次数
 	int byte;					// 接受的数据。
-	socklen_t len = sizeof (_user -> addr);
 
 	int sockfd = _user -> sockfd;			// 保存sockfd
 	user.sockfd = _user -> sockfd;
 	user.addr = _user -> addr;			// 保存addr
 	struct friend_data* My_friend = NULL;		// 暂定
 
-	char * body = NULL;
-	int DEST_UID;
+	char  buffer[MAXBUF];			//缓存
+	void *data = malloc(MAXBUF);
+	uint16_t flag;
+	uint16_t offset=0;
+	uint16_t lenth;
 
-	char  buffer[MAXBUF + 1];			//缓存
 
-	byte = send (sockfd,LINKC_OK,MAXBUF,MSG_WAITALL);	//发送连接成功
+	byte = recv(user.sockfd,buffer,STD_PACKAGE_SIZE,0);
+	tmp = check_message(buffer,byte);
+	((LinkC_Sys_Status *)data)->Action = CONNECTION;
+	if(check_message(buffer,byte) == CONNECTION)
+		((LinkC_Sys_Status *)data)->Status = LINKC_SUCCESS;
+	else
+		((LinkC_Sys_Status *)data)->Status = LINKC_FAILURE;
+	lenth = pack_message(SYS_ACTION_STATUS,data,SYS_STATUS_LENTH,buffer);
+	byte = send (sockfd,buffer,lenth,0);
 #if DEBUG
 	printf ("Socket\t= %d\n",sockfd);
 	printf ("Connected!\n\tIP\t= %s\n\tPort\t= %d\n",inet_ntoa(user.addr.sin_addr),user.addr.sin_port);	/* 输出连接信息 */
 #endif
-	while(1)
+	failure_count = 0;
+start:
+	byte = recv (sockfd,buffer+offset,STD_PACKAGE_SIZE,0);
+	if (byte <= 0)		goto end;
+	flag = check_message(buffer,byte+offset);
+	if(flag == NOT_MESSAGE || flag == EXIT)	goto end;	/* 不是消息或者是退出请求 */
+	if(flag == MESSAGE_INCOMPLETE)
 	{
-		byte = recv (sockfd,buffer,MAXBUF,MSG_WAITALL);
-		if (byte <= 0)	goto end;
-		if (!strncasecmp(buffer,LINKC_QUIT,MAXBUF))
+		offset += byte;					/* 设置偏移量 */
+		if(offset > 1024)	goto end;
+		goto start;
+	}
+	else	offset = 0;
+	unpack_message(buffer,byte,data);
+	if (flag == LOGIN)	/* 如果是登录请求 */
+	{
+		if (failure_count > MAX_FAILURE_COUNT)
 		{
-			printf ("Recv:QUIT\n");
+			((LinkC_Sys_Status *)data)->Action = LOGIN;
+			((LinkC_Sys_Status *)data)->Status = LINKC_LIMITED;
+			lenth = pack_message(SYS_ACTION_STATUS,data,SYS_STATUS_LENTH,buffer);
+			send(user.sockfd,buffer,lenth,MSG_DONTWAIT);
 			goto end;
 		}
-		if (!strncasecmp(buffer,LINKC_LOGIN,MAXBUF))	/* 如果是登录请求 */
+		memcpy((void *)&(user.login),data,sizeof(login_data));
+		result = user_login (&user);	/* 进行登录 , 获得username,password和UID*/
+		printf("Result = %d\n",result);
+		printf("UserName = %s\nPassWord = %s\n",user.login.user_name,user.login.pass_word);
+		((LinkC_Sys_Status *)data)->Action = LOGIN;
+	        if (result == LINKC_FAILURE)
 		{
-			cls_buf (buffer,MAXBUF);
-			byte = recv (sockfd,buffer,MAXBUF,MSG_WAITALL);
-			memcpy((void *)&user.login,buffer,sizeof(struct login_data));
-			if (byte <= 0)	goto end;
-			
-			result = user_login (&user);		/* 进行登录 , 获得username,password和UID*/
-			if (result < 0)		goto end;		// 如果出现错误，则退出
-			else if(result == 0)			// 如果登陆失败，则增加错误计数，然后continue
+			printf ("Login failure!\n");
+			((LinkC_Sys_Status *)data)->Status = LINKC_FAILURE;
+			lenth = pack_message(SYS_ACTION_STATUS,data,SYS_STATUS_LENTH,buffer);
+			send(user.sockfd,buffer,lenth,MSG_DONTWAIT);
+			failure_count ++;
+			goto start;
+		}
+		printf("Login Success!\n");
+		((LinkC_Sys_Status *)data)->Status = LINKC_SUCCESS;
+		lenth = pack_message(SYS_ACTION_STATUS,data,SYS_STATUS_LENTH,buffer);
+		byte = send (user.sockfd,buffer,lenth,0);
+		error_count = 0;	/* 初始化错误个数 */
+		offset = 0;		/* 初始化偏移量   */
+		while (1)
+		{
+			if (error_count > MAX_ERROR)		// 如果超过最大错误允许范围
 			{
-				count++;
-				printf ("Login failure!\n");
-				send(user.sockfd,LINKC_FAILURE,MAXBUF,MSG_DONTWAIT);
-				if (count > LOGINCOUNT)
-               			{
-					byte = send (sockfd,LINKC_TRY_SO_MANY,500,MSG_DONTWAIT);
 #if DEBUG
-					printf ("You tried so many times!\n");
+				printf ("UID = %d cause so much errors!\n",user.UID);
 #endif
-				}
+				user_logout(user);
+				goto end;
+			}
+			byte = recv (user.sockfd,buffer+offset,STD_PACKAGE_SIZE,0);
+			if (byte <= 0)				// 如果接受错误，则增加一个错误计数
+			{
+				printf ("Recv Nothing!\n");
+				error_count ++;
 				continue;
 			}
-
-			byte = send (user.sockfd,LINKC_OK,MAXBUF,MSG_WAITALL);
-			error_count = 0;			// 初始化错误个数
-			while (1)				// 如果成功
+			flag = check_message(buffer,byte+offset);
+			unpack_message(buffer,byte+offset,data);
+			if(flag == MESSAGE_INCOMPLETE)
 			{
-				if (error_count > MAX_ERROR)		// 如果超过最大错误允许范围
+				offset += byte;		// 设置偏移量
+				if(offset > 1024)	goto end;
+				continue;
+			}
+			byte += offset;
+			offset = 0;
+			switch(flag)
+			{
+				case HEART_BEATS:	continue;
+				case USER_REQUEST:
 				{
-#if DEBUG
-					printf ("UID = %d cause so much error!\n",user.UID);
-#endif
-					goto end;
-				}
-				byte = recv (user.sockfd,buffer,MAXBUF,MSG_WAITALL);
-				if (byte <= 0)				// 如果接受错误，则增加一个错误计数
-				{
-					printf ("Recv Nothing!\n");
-					error_count ++;
-					continue;
-				}
-#if DEBUG
-				sleep(1);
-				printf ("RECV %s\n",buffer);				// 输出接受信息
-#endif
-				if (!strncasecmp (buffer,LINKC_LOGOUT,MAXBUF))	//如果接受数据为 注销
-					break;
-				if (!strncasecmp (buffer,LINKC_GET_FRIEND,MAXBUF))	//如果接受数据为 请求单个好友数据
-				{
-					cls_buf (buffer,MAXBUF);
-					tmp = recv(user.sockfd,buffer,MAXBUF,MSG_WAITALL);
-					if (tmp < 0)
+					if(((LinkC_User_Request *)data)->Action == USER_LOGOUT)	// 注销
 					{
-						error_count++;	
-						continue;
+						user_logout(user);
+						goto end;
 					}
-					result = atoi(buffer);
-					printf("%d\n",result);
-					tmp = get_friend_data (user.UID,result,&My_friend);
-					printf("%d\n",tmp);
-					memcpy(buffer,My_friend,friend_count * sizeof(friend_data));
-					buffer[sizeof(friend_data)]='\0';
-					byte = send (sockfd,buffer,MAXBUF,MSG_WAITALL);	// 发送好友信息
-					free (My_friend);
-				}
-				if (!strncasecmp (buffer,LINKC_GET_FRIENDS,MAXBUF))	// 如果接受数据为 请求好友数据
-				{
-					friend_count = get_friends_data (user.UID,&My_friend);
-					if (friend_count == 0)		// 如果好友个数为 0
+					else if(((LinkC_User_Request *)data)->Action == USER_FRIEND_DATA)	// 好友数据
 					{
-						byte = send (sockfd,LINKC_NO_FRIEND,MAXBUF,MSG_WAITALL);	// 发送 没有好友
-						My_friend = NULL;
-						if (byte < 0)		// 如果失败
-						{
-#if DEBUG
-							printf ("Send Error!\n");
-#endif
-							error_count ++;
-						}
-						continue;
+						if(((LinkC_User_Request *)data)->Flag == ALL_FRIEND)		// 若是获得全部好友数据
+						send_friends_data(user,data);
 					}
-					else if (friend_count < 0)	// 如果执行失败
+					else if(((LinkC_User_Request *)data)->Action == USER_LOGOUT)
 					{
-						byte = send (sockfd,LINKC_ERROR,MAXBUF,MSG_WAITALL);		// 发送 错误
-						My_friend = NULL;
-						if (byte < 0)
-						{
-#if DEBUG
-							printf ("Send Error!\n");
-#endif
-							error_count ++;
-						}
-						continue;
-					}
-					byte = send (sockfd,LINKC_OK,MAXBUF,MSG_WAITALL);	// 发送 执行成功
-#if DEBUG
-					printf ("UID = %d\nHave %d friend(s)\n",user.UID,friend_count);
-					printf ("------Friends------\n");
-					for (i=0;i<friend_count;i++)	printf ("\tUID\t= %d\tNAME\t= %s\n",My_friend[i].UID,My_friend[i].name);
-					printf ("------End----------\n");
-#endif
-					sprintf (buffer,"%d",friend_count);
-					byte = send(user.sockfd,buffer,MAXBUF,MSG_WAITALL);
-					memcpy(buffer,My_friend,friend_count * sizeof(friend_data));
-					buffer[sizeof(friend_data)*friend_count]='\0';
-					byte = send (sockfd,buffer,MAXBUF,MSG_WAITALL);	// 发送好友信息
-					free(My_friend);
-					My_friend = NULL;
-					if (byte < 0)
-					{
-#if DEBUG
-							printf ("Send Error!\n");
-#endif	
-							error_count ++;
-							continue;
+						user_logout(user);
+						goto end;
 					}
 				}
-				if (!strncasecmp(buffer,LINKC_QUIT,MAXBUF))	goto end;	// 退出
-				if (!strncasecmp (buffer,LINKC_CHAT_WANT,MAXBUF))	//如果是聊天请求
-				{
-					byte = send (sockfd,"Who?",MAXBUF,MSG_WAITALL);
-					byte = recv (sockfd,buffer,MAXBUF,MSG_WAITALL);
-					sprintf (buffer,"%d",DEST_UID);			// 获得目标的UID
-					i = chat_with(user.UID,DEST_UID,sockfd);	// 执行并获得想发送的数据，然后发送
-					if (i == -1)
-					{
-						error_count++;
-						continue;
-					}
-				}
-			} 
+			}
 		}
 	}
-end:	
+end:
 #if DEBUG
 	printf ("the IP\t=%s closed conncetion!\n",inet_ntoa(user.addr.sin_addr));
 #endif
-	user_logout(user);
+	free(data);
+	close(user.sockfd);
 	return 0;
-}
-void cls_buf(char *buffer,int size){
-    memset(buffer,'\0',size);
 }

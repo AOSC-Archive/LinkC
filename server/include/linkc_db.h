@@ -9,7 +9,7 @@ extern int init_sqlite3_db (void);
 /* 打开数据库，并且设置全局变量 */
 
 extern int check_pass (struct login_data user);
-/* 
+/*
  * 检验用户密码是否正确，并且返回 struct login_data 中的 UID 键值
  * 参数：1	Login_data 结构类型
  */
@@ -64,5 +64,8 @@ extern int add_friend(int UID,int _who_ID,int _Flag);
 #define LINKC_FRIEND_ADD			1
 #define LINKC_FRIEND_ADD_WITH_NICKNAME		2
 #define LINKC_FRIEND_DELETE			3
+
+#define USER_DB_PATH		"./user.db"
+#define FRIEND_DB_PATH		"./friend.db"
 
 #endif

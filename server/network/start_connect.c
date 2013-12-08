@@ -16,12 +16,10 @@
 
 int start_connect(void)
 {
-	int i;
-	int client_sockfd;
 	struct user_data client;
 	socklen_t len;
 	int result = init_sqlite3_db();				// 初始化数据库
-	if (result != 1)
+	if (result != LINKC_SUCCESS)
 	{
 		printf ("DB Init error!\n");
 		exit(EXIT_FAILURE);

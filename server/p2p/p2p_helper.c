@@ -14,6 +14,8 @@ int ip_size 	= sizeof(ip_t);
 int addr_size	= sizeof(struct sockaddr_in);
 socklen_t len	= sizeof(struct sockaddr_in);
 
+int Network_init(int port);
+
 int p2p_helper(void)
 {
 	int sockfd;		// Sockfd
