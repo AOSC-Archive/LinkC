@@ -13,7 +13,7 @@
 /* 系统 */
 #define MESSAGE_POOL_SIZE	15	// 发送消息池的大小
 #define STD_PACKAGE_SIZE	512	// 标准包最大大小
-#define RECV_POOL_SIZE		10240	// 接受缓冲区大小
+#define RECV_POOL_SIZE		1024	// 接受缓冲区大小
 #define END_OF_LINKC_MESSAGE	0X011B	// Esc键 汗!
 #define LINKC_MESSAGE_VERSION	1	// 协议版本
 #define ALL_FRIEND              0
@@ -66,6 +66,13 @@ struct LinkC_Sys_Status_t{
 	uint16_t Action;
 	int16_t  Status;
 };
+struct LinkC_Msg_Buf_t{
+	char buffer[1024];
+	int type;			// 数据类型
+	int byte;			// 接收到的数据长度
+	int flag;			// flag = 1 时表示还有数据，= 0时表示无数据
+	int offset;
+};
 
 typedef struct LinkC_Message_Header_t	LinkC_Message_Header;
 typedef struct LinkC_User_Request_t	LinkC_User_Request;
@@ -85,5 +92,8 @@ int16_t pack_m_message		(uint16_t Header,void *Data,uint16_t Lenth,void *Out,uin
 int16_t	unpack_message		(void *Message,uint16_t Recv_Lenth,void *Out);
 int16_t std_m_message_send	(void *Message,int sockfd,uint16_t Lenth);
 int16_t non_std_m_message_send	(void *Message,int sockfd,uint16_t Memb,uint16_t Each_Lenth,uint16_t Header,int Flag);
+
+extern int Send(int sockfd, void *buf, size_t len, int flag);
+extern int Recv(int sockfd, void *buf, size_t len, int flag);
 
 #endif
