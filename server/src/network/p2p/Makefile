@@ -93,10 +93,10 @@ AM_V_AR = $(am__v_AR_$(V))
 am__v_AR_ = $(am__v_AR_$(AM_DEFAULT_VERBOSITY))
 am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
-libp2p_a_AR = $(AR) $(ARFLAGS)
-libp2p_a_LIBADD =
-am_libp2p_a_OBJECTS = p2p_helper.$(OBJEXT)
-libp2p_a_OBJECTS = $(am_libp2p_a_OBJECTS)
+libP2P_a_AR = $(AR) $(ARFLAGS)
+libP2P_a_LIBADD =
+am_libP2P_a_OBJECTS = libP2P_a-p2p_helper.$(OBJEXT)
+libP2P_a_OBJECTS = $(am_libP2P_a_OBJECTS)
 AM_V_P = $(am__v_P_$(V))
 am__v_P_ = $(am__v_P_$(AM_DEFAULT_VERBOSITY))
 am__v_P_0 = false
@@ -113,6 +113,10 @@ DEFAULT_INCLUDES = -I.
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
+AM_V_lt = $(am__v_lt_$(V))
+am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
+am__v_lt_0 = --silent
+am__v_lt_1 = 
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 AM_V_CC = $(am__v_CC_$(V))
@@ -125,8 +129,8 @@ AM_V_CCLD = $(am__v_CCLD_$(V))
 am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libp2p_a_SOURCES)
-DIST_SOURCES = $(libp2p_a_SOURCES)
+SOURCES = $(libP2P_a_SOURCES)
+DIST_SOURCES = $(libP2P_a_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -241,8 +245,8 @@ top_build_prefix = ../../../
 top_builddir = ../../..
 top_srcdir = ../../..
 UTOMAKE_OPTIONS = foreign -Wall -Werror
-noinst_LIBRARIES = libp2p.a
-libp2p_a_SOURCES = p2p_helper.c				\
+noinst_LIBRARIES = libP2P.a
+libP2P_a_SOURCES = p2p_helper.c				\
 		$(top_srcdir)/include/linkc_db.h	\
 		$(top_srcdir)/include/linkc_types.h	\
 		$(top_srcdir)/include/linkc_network_protocol.h	\
@@ -250,8 +254,8 @@ libp2p_a_SOURCES = p2p_helper.c				\
 		$(top_srcdir)/include/p2p_helper.h	\
 		$(top_srcdir)/include/def.h
 
-INCLUDES = -I$(top_srcdir)/include/
-AM_CXXFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
+AM_CPPFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
+libP2P_a_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/include/
 all: all-am
 
 .SUFFIXES:
@@ -290,10 +294,10 @@ $(am__aclocal_m4_deps):
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
 
-libp2p.a: $(libp2p_a_OBJECTS) $(libp2p_a_DEPENDENCIES) $(EXTRA_libp2p_a_DEPENDENCIES) 
-	$(AM_V_at)-rm -f libp2p.a
-	$(AM_V_AR)$(libp2p_a_AR) libp2p.a $(libp2p_a_OBJECTS) $(libp2p_a_LIBADD)
-	$(AM_V_at)$(RANLIB) libp2p.a
+libP2P.a: $(libP2P_a_OBJECTS) $(libP2P_a_DEPENDENCIES) $(EXTRA_libP2P_a_DEPENDENCIES) 
+	$(AM_V_at)-rm -f libP2P.a
+	$(AM_V_AR)$(libP2P_a_AR) libP2P.a $(libP2P_a_OBJECTS) $(libP2P_a_LIBADD)
+	$(AM_V_at)$(RANLIB) libP2P.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -301,7 +305,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-include ./$(DEPDIR)/p2p_helper.Po
+include ./$(DEPDIR)/libP2P_a-p2p_helper.Po
 
 .c.o:
 	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -316,6 +320,20 @@ include ./$(DEPDIR)/p2p_helper.Po
 #	$(AM_V_CC)source='$<' object='$@' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(AM_V_CC_no)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+libP2P_a-p2p_helper.o: p2p_helper.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libP2P_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libP2P_a-p2p_helper.o -MD -MP -MF $(DEPDIR)/libP2P_a-p2p_helper.Tpo -c -o libP2P_a-p2p_helper.o `test -f 'p2p_helper.c' || echo '$(srcdir)/'`p2p_helper.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libP2P_a-p2p_helper.Tpo $(DEPDIR)/libP2P_a-p2p_helper.Po
+#	$(AM_V_CC)source='p2p_helper.c' object='libP2P_a-p2p_helper.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libP2P_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libP2P_a-p2p_helper.o `test -f 'p2p_helper.c' || echo '$(srcdir)/'`p2p_helper.c
+
+libP2P_a-p2p_helper.obj: p2p_helper.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libP2P_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libP2P_a-p2p_helper.obj -MD -MP -MF $(DEPDIR)/libP2P_a-p2p_helper.Tpo -c -o libP2P_a-p2p_helper.obj `if test -f 'p2p_helper.c'; then $(CYGPATH_W) 'p2p_helper.c'; else $(CYGPATH_W) '$(srcdir)/p2p_helper.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libP2P_a-p2p_helper.Tpo $(DEPDIR)/libP2P_a-p2p_helper.Po
+#	$(AM_V_CC)source='p2p_helper.c' object='libP2P_a-p2p_helper.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libP2P_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libP2P_a-p2p_helper.obj `if test -f 'p2p_helper.c'; then $(CYGPATH_W) 'p2p_helper.c'; else $(CYGPATH_W) '$(srcdir)/p2p_helper.c'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique

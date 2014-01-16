@@ -14,7 +14,7 @@ AC_PROG_CC
 # FIXME: Replace `main' with a function in `-lpthread':
 AC_CHECK_LIB(pthread, main)
 # FIXME: Replace `main' with a function in `-lsqlite3':
-AC_CHECK_LIB([sqlite3], [main])
+AC_CHECK_LIB(sqlite3, main)
 
 # Checks for header files.
 AC_CHECK_HEADERS(arpa/inet.h malloc.h netinet/in.h stdlib.h string.h sys/socket.h unistd.h)
@@ -39,9 +39,9 @@ AC_CONFIG_FILES(Makefile
                  src/Makefile
                  src/network/Makefile
                  src/network/p2p/Makefile
+                 src/network/network_protocol/Makefile
                  src/utilities/Makefile
                  src/utilities/db_ctl/Makefile
                  src/utilities/list/Makefile
-                 src/utilities/network_protocol/Makefile
                  src/utilities/user/Makefile)
 AC_OUTPUT

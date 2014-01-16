@@ -393,7 +393,7 @@ on `(hostname || uname -n) 2>/dev/null | sed 1q`
 "
 
 # Files that config.status was made for.
-config_files=" Makefile src/Makefile src/network/Makefile src/network/p2p/Makefile src/utilities/Makefile src/utilities/db_ctl/Makefile src/utilities/list/Makefile src/utilities/network_protocol/Makefile src/utilities/user/Makefile"
+config_files=" Makefile src/Makefile src/network/Makefile src/network/p2p/Makefile src/network/network_protocol/Makefile src/utilities/Makefile src/utilities/db_ctl/Makefile src/utilities/list/Makefile src/utilities/user/Makefile"
 config_commands=" depfiles"
 
 ac_cs_usage="\
@@ -534,10 +534,10 @@ do
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/network/Makefile") CONFIG_FILES="$CONFIG_FILES src/network/Makefile" ;;
     "src/network/p2p/Makefile") CONFIG_FILES="$CONFIG_FILES src/network/p2p/Makefile" ;;
+    "src/network/network_protocol/Makefile") CONFIG_FILES="$CONFIG_FILES src/network/network_protocol/Makefile" ;;
     "src/utilities/Makefile") CONFIG_FILES="$CONFIG_FILES src/utilities/Makefile" ;;
     "src/utilities/db_ctl/Makefile") CONFIG_FILES="$CONFIG_FILES src/utilities/db_ctl/Makefile" ;;
     "src/utilities/list/Makefile") CONFIG_FILES="$CONFIG_FILES src/utilities/list/Makefile" ;;
-    "src/utilities/network_protocol/Makefile") CONFIG_FILES="$CONFIG_FILES src/utilities/network_protocol/Makefile" ;;
     "src/utilities/user/Makefile") CONFIG_FILES="$CONFIG_FILES src/utilities/user/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

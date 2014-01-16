@@ -93,14 +93,14 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_Server_OBJECTS = main.$(OBJEXT)
+am_Server_OBJECTS = Server-main.$(OBJEXT)
 Server_OBJECTS = $(am_Server_OBJECTS)
-Server_DEPENDENCIES = $(top_builddir)/src/network/p2p/libp2p.a \
-	$(top_builddir)/src/network/libconnect.a \
-	$(top_builddir)/src/utilities/db_ctl/libdb.a \
-	$(top_builddir)/src/utilities/list/liblist.a \
-	$(top_builddir)/src/utilities/network_protocol/libnetwork.a \
-	$(top_builddir)/src/utilities/user/libuser.a
+Server_DEPENDENCIES = $(top_builddir)/src/network/p2p/libP2P.a \
+	$(top_builddir)/src/network/libConnect.a \
+	$(top_builddir)/src/utilities/db_ctl/libDb.a \
+	$(top_builddir)/src/utilities/list/libList.a \
+	$(top_builddir)/src/network/network_protocol/libLinkCProtocol.a \
+	$(top_builddir)/src/utilities/user/libUser.a
 AM_V_P = $(am__v_P_$(V))
 am__v_P_ = $(am__v_P_$(AM_DEFAULT_VERBOSITY))
 am__v_P_0 = false
@@ -310,15 +310,16 @@ top_srcdir = .
 UTOMAKE_OPTIONS = foreign -Wall -Werror
 SUBDIRS = src
 Server_SOURCES = src/main.c
-Server_LDADD = $(top_builddir)/src/network/p2p/libp2p.a				\
-		$(top_builddir)/src/network/libconnect.a				\
-		$(top_builddir)/src/utilities/db_ctl/libdb.a			\
-		$(top_builddir)/src/utilities/list/liblist.a			\
-		$(top_builddir)/src/utilities/network_protocol/libnetwork.a	\
-		$(top_builddir)/src/utilities/user/libuser.a			\
+Server_LDADD = $(top_builddir)/src/network/p2p/libP2P.a				\
+		$(top_builddir)/src/network/libConnect.a			\
+		$(top_builddir)/src/utilities/db_ctl/libDb.a			\
+		$(top_builddir)/src/utilities/list/libList.a			\
+		$(top_builddir)/src/network/network_protocol/libLinkCProtocol.a	\
+		$(top_builddir)/src/utilities/user/libUser.a			\
 		-lsqlite3 -lpthread
 
-INCLUDES = -I$(top_srcdir)/include/
+AM_CPPFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
+Server_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/include/
 all: all-recursive
 
 .SUFFIXES:
@@ -410,7 +411,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-include ./$(DEPDIR)/main.Po
+include ./$(DEPDIR)/Server-main.Po
 
 .c.o:
 	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -426,19 +427,19 @@ include ./$(DEPDIR)/main.Po
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(AM_V_CC_no)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-main.o: src/main.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT main.o -MD -MP -MF $(DEPDIR)/main.Tpo -c -o main.o `test -f 'src/main.c' || echo '$(srcdir)/'`src/main.c
-	$(AM_V_at)$(am__mv) $(DEPDIR)/main.Tpo $(DEPDIR)/main.Po
-#	$(AM_V_CC)source='src/main.c' object='main.o' libtool=no \
+Server-main.o: src/main.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Server_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Server-main.o -MD -MP -MF $(DEPDIR)/Server-main.Tpo -c -o Server-main.o `test -f 'src/main.c' || echo '$(srcdir)/'`src/main.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/Server-main.Tpo $(DEPDIR)/Server-main.Po
+#	$(AM_V_CC)source='src/main.c' object='Server-main.o' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o main.o `test -f 'src/main.c' || echo '$(srcdir)/'`src/main.c
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Server_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Server-main.o `test -f 'src/main.c' || echo '$(srcdir)/'`src/main.c
 
-main.obj: src/main.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT main.obj -MD -MP -MF $(DEPDIR)/main.Tpo -c -o main.obj `if test -f 'src/main.c'; then $(CYGPATH_W) 'src/main.c'; else $(CYGPATH_W) '$(srcdir)/src/main.c'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/main.Tpo $(DEPDIR)/main.Po
-#	$(AM_V_CC)source='src/main.c' object='main.obj' libtool=no \
+Server-main.obj: src/main.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Server_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Server-main.obj -MD -MP -MF $(DEPDIR)/Server-main.Tpo -c -o Server-main.obj `if test -f 'src/main.c'; then $(CYGPATH_W) 'src/main.c'; else $(CYGPATH_W) '$(srcdir)/src/main.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/Server-main.Tpo $(DEPDIR)/Server-main.Po
+#	$(AM_V_CC)source='src/main.c' object='Server-main.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o main.obj `if test -f 'src/main.c'; then $(CYGPATH_W) 'src/main.c'; else $(CYGPATH_W) '$(srcdir)/src/main.c'; fi`
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Server_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Server-main.obj `if test -f 'src/main.c'; then $(CYGPATH_W) 'src/main.c'; else $(CYGPATH_W) '$(srcdir)/src/main.c'; fi`
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run 'make' without going through this Makefile.

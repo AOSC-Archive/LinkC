@@ -14,7 +14,7 @@
 /* 系统 */
 #define MESSAGE_POOL_SIZE	15	// 发送消息池的大小
 #define STD_PACKAGE_SIZE	512	// 标准包最大大小
-#define RECV_BUFFER_SIZE	1024	// 接受缓冲区大小
+#define STD_BUFFER_SIZE		1024	// 标准缓冲区大小
 #define MAX_BUFFER_SIZE		10240	// 最大缓冲区大小
 #define END_OF_LINKC_MESSAGE	0X011B	// Esc键 汗!
 #define LINKC_MESSAGE_VERSION	1	// 协议版本
@@ -106,11 +106,12 @@ typedef struct friend_data		LinkC_Sys_Friend_Data;
 int16_t	check_message		(void *Message,uint16_t Recv_Length);
 int16_t	pack_message		(uint16_t Header,void *Data,uint16_t Length,void *Out);
 int16_t pack_m_message		(uint16_t Header,void *Data,uint16_t Length,void *Out,uint16_t Totle,uint16_t Current);
-int16_t	unpack_message		(void *Message,uint16_t Recv_Length,void *Out);
+int16_t	unpack_message		(void *Message,void *Out);
 int16_t std_m_message_send	(void *Message,int sockfd,uint16_t Length);
 int16_t non_std_m_message_send	(void *Message,int sockfd,uint16_t Memb,uint16_t Each_Length,uint16_t Header,int Flag);
+int16_t TCP_Send		(int sockfd, void *in, int data_length, int flag);
+int16_t TCP_Recv		(int sockfd, void *out, int out_size, int flag);
+int16_t get_message_header	(void *Message);
 
-extern int TCP_Send(int sockfd, void *in, size_t data_length, int flag);
-extern int TCP_Recv(int sockfd, void *out, size_t buffer_length, int flag);
 
 #endif

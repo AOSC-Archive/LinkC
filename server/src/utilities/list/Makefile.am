@@ -1,10 +1,10 @@
 UTOMAKE_OPTIONS = foreign -Wall -Werror
 
-noinst_LIBRARIES = liblist.a
+noinst_LIBRARIES = libList.a
 
-liblist_a_SOURCES = list.c		\
+libList_a_SOURCES = list.c		\
 		conn_list.c	\
 		$(top_srcdir)/include/list.h
 
-INCLUDES=-I$(top_srcdir)/include/
-AM_CXXFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
+AM_CPPFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
+libList_a_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/include/

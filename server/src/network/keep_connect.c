@@ -24,7 +24,6 @@
 
 #define LOGINCOUNT	2		// 最大登录尝试次数
 extern void cls_buf(char * buffer,int size);
-
 int msgid;
 int keep_connect (struct user_data* _user)
 {
@@ -33,75 +32,64 @@ int keep_connect (struct user_data* _user)
 	int failure_count = 0;				// 登录已经失败次数
 	int byte;					// 接受的数据。
 
-	int sockfd = _user -> sockfd;			// 保存sockfd
 	user.sockfd = _user -> sockfd;
 	user.addr = _user -> addr;			// 保存addr
 	struct friend_data* My_friend = NULL;		// 暂定
 
-	char  buffer[MAXBUF];			//缓存
+	char  buffer[STD_BUFFER_SIZE];			//缓存
 	void *data = malloc(MAXBUF);
 	uint16_t flag;
-	uint16_t offset=0;
 	uint16_t length;
 
-
-	byte = recv(user.sockfd,buffer,STD_PACKAGE_SIZE,0);
-	tmp = check_message(buffer,byte);
+	if((TCP_Recv(user.sockfd,buffer,STD_BUFFER_SIZE,0)) == LINKC_FAILURE)
+		goto end;
 	((LinkC_Sys_Status *)data)->Action = CONNECTION;
-	if(check_message(buffer,byte) == CONNECTION)
+	if(get_message_header(buffer) == CONNECTION)
 		((LinkC_Sys_Status *)data)->Status = LINKC_SUCCESS;
 	else
 		((LinkC_Sys_Status *)data)->Status = LINKC_FAILURE;
 	length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
-	byte = send (sockfd,buffer,length,0);
+	TCP_Send (user.sockfd,buffer,length,0);
 #if DEBUG
-	printf ("Socket\t= %d\n",sockfd);
+	printf ("Socket\t= %d\n",user.sockfd);
 	printf ("Connected!\n\tIP\t= %s\n\tPort\t= %d\n",inet_ntoa(user.addr.sin_addr),user.addr.sin_port);	/* 输出连接信息 */
 #endif
 	failure_count = 0;
 start:
-	byte = recv (sockfd,buffer+offset,STD_PACKAGE_SIZE,0);
-	if (byte <= 0)		goto end;
-	flag = check_message(buffer,byte+offset);
-	if(flag == NOT_MESSAGE || flag == EXIT)	goto end;	/* 不是消息或者是退出请求 */
-	if(flag == MESSAGE_INCOMPLETE)
-	{
-		offset += byte;					/* 设置偏移量 */
-		if(offset > 1024)	goto end;
-		goto start;
-	}
-	else	offset = 0;
-	unpack_message(buffer,byte,data);
+	if(TCP_Recv(user.sockfd,buffer,STD_BUFFER_SIZE,0) == LINKC_FAILURE)
+		goto end;
+	flag = get_message_header(buffer);
+	if(flag == EXIT)	goto end;	/* 退出请求 */
+	unpack_message(buffer,data);
 	if (flag == LOGIN)	/* 如果是登录请求 */
 	{
 		if (failure_count > MAX_FAILURE_COUNT)
 		{
-			((LinkC_Sys_Status *)data)->Action = LOGIN;
-			((LinkC_Sys_Status *)data)->Status = LINKC_LIMITED;
+			((LSS *)data)->Action = LOGIN;
+			((LSS *)data)->Status = LINKC_LIMITED;
 			length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
-			send(user.sockfd,buffer,length,MSG_DONTWAIT);
+			TCP_Send(user.sockfd,buffer,length,MSG_DONTWAIT);
 			goto end;
 		}
 		memcpy((void *)&(user.login),data,sizeof(login_data));
 		result = user_login (&user);	/* 进行登录 , 获得username,password和UID*/
 		printf("Result = %d\n",result);
 		printf("UserName = %s\nPassWord = %s\n",user.login.user_name,user.login.pass_word);
-		((LinkC_Sys_Status *)data)->Action = LOGIN;
+		((LSS *)data)->Action = LOGIN;
 	        if (result == LINKC_FAILURE)
 		{
 			printf ("Login failure!\n");
-			((LinkC_Sys_Status *)data)->Status = LINKC_FAILURE;
+			((LSS *)data)->Status = LINKC_FAILURE;
 			length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
-			send(user.sockfd,buffer,length,MSG_DONTWAIT);
+			TCP_Send(user.sockfd,buffer,length,MSG_DONTWAIT);
 			failure_count ++;
 			goto start;
 		}
 		printf("Login Success!\n");
-		((LinkC_Sys_Status *)data)->Status = LINKC_SUCCESS;
+		((LSS *)data)->Status = LINKC_SUCCESS;
 		length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
-		byte = send (user.sockfd,buffer,length,0);
+		byte = TCP_Send (user.sockfd,buffer,length,0);
 		error_count = 0;	/* 初始化错误个数 */
-		offset = 0;		/* 初始化偏移量   */
 		while (1)
 		{
 			if (error_count > MAX_ERROR)		// 如果超过最大错误允许范围
@@ -112,36 +100,26 @@ start:
 				user_logout(&user);
 				goto end;
 			}
-			byte = recv (user.sockfd,buffer+offset,STD_PACKAGE_SIZE,0);
-			if (byte <= 0)				// 如果接受错误，则增加一个错误计数
+			if(TCP_Recv (user.sockfd,buffer,STD_PACKAGE_SIZE,0) == LINKC_FAILURE)	// 如果接受错误，则增加一个错误计数
 			{
-				printf ("Recv Nothing!\n");
 				error_count ++;
 				continue;
 			}
-			flag = check_message(buffer,byte+offset);
-			unpack_message(buffer,byte+offset,data);
-			if(flag == MESSAGE_INCOMPLETE)
-			{
-				offset += byte;		// 设置偏移量
-				if(offset > 1024)	goto end;
-				continue;
-			}
-			byte += offset;
-			offset = 0;
+			flag = get_message_header(buffer);
+			unpack_message(buffer,data);
 			switch(flag)
 			{
 				case HEART_BEATS:	continue;
 				case USER_REQUEST:
 				{
-					if(((LinkC_User_Request *)data)->Action == USER_LOGOUT)	// 注销
+					if(((LUR *)data)->Action == USER_LOGOUT)	// 注销
 					{
 						user_logout(&user);
 						goto end;
 					}
-					else if(((LinkC_User_Request *)data)->Action == USER_FRIEND_DATA)	// 好友数据
+					else if(((LUR *)data)->Action == USER_FRIEND_DATA)	// 好友数据
 					{
-						if(((LinkC_User_Request *)data)->Flag == ALL_FRIEND)		// 若是获得全部好友数据
+						if(((LUR *)data)->Flag == ALL_FRIEND)		// 若是获得全部好友数据
 						send_friends_data(user,data);
 					}
 				}

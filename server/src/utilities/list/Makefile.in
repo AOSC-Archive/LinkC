@@ -93,10 +93,11 @@ AM_V_AR = $(am__v_AR_@AM_V@)
 am__v_AR_ = $(am__v_AR_@AM_DEFAULT_V@)
 am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
-liblist_a_AR = $(AR) $(ARFLAGS)
-liblist_a_LIBADD =
-am_liblist_a_OBJECTS = list.$(OBJEXT) conn_list.$(OBJEXT)
-liblist_a_OBJECTS = $(am_liblist_a_OBJECTS)
+libList_a_AR = $(AR) $(ARFLAGS)
+libList_a_LIBADD =
+am_libList_a_OBJECTS = libList_a-list.$(OBJEXT) \
+	libList_a-conn_list.$(OBJEXT)
+libList_a_OBJECTS = $(am_libList_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -113,6 +114,10 @@ DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
+AM_V_lt = $(am__v_lt_@AM_V@)
+am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+am__v_lt_0 = --silent
+am__v_lt_1 = 
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 AM_V_CC = $(am__v_CC_@AM_V@)
@@ -125,8 +130,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(liblist_a_SOURCES)
-DIST_SOURCES = $(liblist_a_SOURCES)
+SOURCES = $(libList_a_SOURCES)
+DIST_SOURCES = $(libList_a_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -241,13 +246,13 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 UTOMAKE_OPTIONS = foreign -Wall -Werror
-noinst_LIBRARIES = liblist.a
-liblist_a_SOURCES = list.c		\
+noinst_LIBRARIES = libList.a
+libList_a_SOURCES = list.c		\
 		conn_list.c	\
 		$(top_srcdir)/include/list.h
 
-INCLUDES = -I$(top_srcdir)/include/
-AM_CXXFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
+AM_CPPFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
+libList_a_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/include/
 all: all-am
 
 .SUFFIXES:
@@ -286,10 +291,10 @@ $(am__aclocal_m4_deps):
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
 
-liblist.a: $(liblist_a_OBJECTS) $(liblist_a_DEPENDENCIES) $(EXTRA_liblist_a_DEPENDENCIES) 
-	$(AM_V_at)-rm -f liblist.a
-	$(AM_V_AR)$(liblist_a_AR) liblist.a $(liblist_a_OBJECTS) $(liblist_a_LIBADD)
-	$(AM_V_at)$(RANLIB) liblist.a
+libList.a: $(libList_a_OBJECTS) $(libList_a_DEPENDENCIES) $(EXTRA_libList_a_DEPENDENCIES) 
+	$(AM_V_at)-rm -f libList.a
+	$(AM_V_AR)$(libList_a_AR) libList.a $(libList_a_OBJECTS) $(libList_a_LIBADD)
+	$(AM_V_at)$(RANLIB) libList.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -297,8 +302,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conn_list.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/list.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libList_a-conn_list.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libList_a-list.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -313,6 +318,34 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+libList_a-list.o: list.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libList_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libList_a-list.o -MD -MP -MF $(DEPDIR)/libList_a-list.Tpo -c -o libList_a-list.o `test -f 'list.c' || echo '$(srcdir)/'`list.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libList_a-list.Tpo $(DEPDIR)/libList_a-list.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='list.c' object='libList_a-list.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libList_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libList_a-list.o `test -f 'list.c' || echo '$(srcdir)/'`list.c
+
+libList_a-list.obj: list.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libList_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libList_a-list.obj -MD -MP -MF $(DEPDIR)/libList_a-list.Tpo -c -o libList_a-list.obj `if test -f 'list.c'; then $(CYGPATH_W) 'list.c'; else $(CYGPATH_W) '$(srcdir)/list.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libList_a-list.Tpo $(DEPDIR)/libList_a-list.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='list.c' object='libList_a-list.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libList_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libList_a-list.obj `if test -f 'list.c'; then $(CYGPATH_W) 'list.c'; else $(CYGPATH_W) '$(srcdir)/list.c'; fi`
+
+libList_a-conn_list.o: conn_list.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libList_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libList_a-conn_list.o -MD -MP -MF $(DEPDIR)/libList_a-conn_list.Tpo -c -o libList_a-conn_list.o `test -f 'conn_list.c' || echo '$(srcdir)/'`conn_list.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libList_a-conn_list.Tpo $(DEPDIR)/libList_a-conn_list.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='conn_list.c' object='libList_a-conn_list.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libList_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libList_a-conn_list.o `test -f 'conn_list.c' || echo '$(srcdir)/'`conn_list.c
+
+libList_a-conn_list.obj: conn_list.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libList_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libList_a-conn_list.obj -MD -MP -MF $(DEPDIR)/libList_a-conn_list.Tpo -c -o libList_a-conn_list.obj `if test -f 'conn_list.c'; then $(CYGPATH_W) 'conn_list.c'; else $(CYGPATH_W) '$(srcdir)/conn_list.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libList_a-conn_list.Tpo $(DEPDIR)/libList_a-conn_list.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='conn_list.c' object='libList_a-conn_list.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libList_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libList_a-conn_list.obj `if test -f 'conn_list.c'; then $(CYGPATH_W) 'conn_list.c'; else $(CYGPATH_W) '$(srcdir)/conn_list.c'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique

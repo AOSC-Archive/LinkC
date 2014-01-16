@@ -11,6 +11,11 @@ int16_t check_message(void *Message,uint16_t Recv_Length)
 	return ((LMH*)Message)->MessageHeader;
 }
 
+int16_t get_message_header(void *Message)
+{
+	return ((LMH*)Message)->MessageHeader;
+}
+
 int16_t pack_message(uint16_t Header,void *Data,uint16_t Length,void *Out)
 {
 	((LMH*)Out)->Version = LINKC_MESSAGE_VERSION;
@@ -42,9 +47,9 @@ int16_t pack_m_message(uint16_t Header,void *Data,uint16_t Length,void *Out,uint
 }
 
 
-int16_t unpack_message(void *Message,uint16_t Recv_Length,void *Out)
+int16_t unpack_message(void *Message,void *Out)
 {
-    memcpy(Out,(char *)Message+LMH_L,Recv_Length-LMH_L);
+    memcpy(Out,(char *)Message + LMH_L,((LMH*)Message)->MessageLength - LMH_L);
     return 0;
 }
 

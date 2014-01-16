@@ -93,10 +93,10 @@ AM_V_AR = $(am__v_AR_@AM_V@)
 am__v_AR_ = $(am__v_AR_@AM_DEFAULT_V@)
 am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
-libuser_a_AR = $(AR) $(ARFLAGS)
-libuser_a_LIBADD =
-am_libuser_a_OBJECTS = basic_user_control.$(OBJEXT)
-libuser_a_OBJECTS = $(am_libuser_a_OBJECTS)
+libUser_a_AR = $(AR) $(ARFLAGS)
+libUser_a_LIBADD =
+am_libUser_a_OBJECTS = libUser_a-basic_user_control.$(OBJEXT)
+libUser_a_OBJECTS = $(am_libUser_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -113,6 +113,10 @@ DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
+AM_V_lt = $(am__v_lt_@AM_V@)
+am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+am__v_lt_0 = --silent
+am__v_lt_1 = 
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 AM_V_CC = $(am__v_CC_@AM_V@)
@@ -125,8 +129,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libuser_a_SOURCES)
-DIST_SOURCES = $(libuser_a_SOURCES)
+SOURCES = $(libUser_a_SOURCES)
+DIST_SOURCES = $(libUser_a_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -241,14 +245,14 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 UTOMAKE_OPTIONS = foreign -Wall -Werror
-noinst_LIBRARIES = libuser.a
-libuser_a_SOURCES = basic_user_control.c			\
+noinst_LIBRARIES = libUser.a
+libUser_a_SOURCES = basic_user_control.c		\
 		$(top_srcdir)/include/linkc_db.h	\
 		$(top_srcdir)/include/linkc_types.h	\
 		$(top_srcdir)/include/def.h
 
-INCLUDES = -I$(top_srcdir)/include/
-AM_CXXFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
+AM_CPPFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
+libUser_a_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/include/
 all: all-am
 
 .SUFFIXES:
@@ -287,10 +291,10 @@ $(am__aclocal_m4_deps):
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
 
-libuser.a: $(libuser_a_OBJECTS) $(libuser_a_DEPENDENCIES) $(EXTRA_libuser_a_DEPENDENCIES) 
-	$(AM_V_at)-rm -f libuser.a
-	$(AM_V_AR)$(libuser_a_AR) libuser.a $(libuser_a_OBJECTS) $(libuser_a_LIBADD)
-	$(AM_V_at)$(RANLIB) libuser.a
+libUser.a: $(libUser_a_OBJECTS) $(libUser_a_DEPENDENCIES) $(EXTRA_libUser_a_DEPENDENCIES) 
+	$(AM_V_at)-rm -f libUser.a
+	$(AM_V_AR)$(libUser_a_AR) libUser.a $(libUser_a_OBJECTS) $(libUser_a_LIBADD)
+	$(AM_V_at)$(RANLIB) libUser.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -298,7 +302,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/basic_user_control.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libUser_a-basic_user_control.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -313,6 +317,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+libUser_a-basic_user_control.o: basic_user_control.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libUser_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libUser_a-basic_user_control.o -MD -MP -MF $(DEPDIR)/libUser_a-basic_user_control.Tpo -c -o libUser_a-basic_user_control.o `test -f 'basic_user_control.c' || echo '$(srcdir)/'`basic_user_control.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libUser_a-basic_user_control.Tpo $(DEPDIR)/libUser_a-basic_user_control.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='basic_user_control.c' object='libUser_a-basic_user_control.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libUser_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libUser_a-basic_user_control.o `test -f 'basic_user_control.c' || echo '$(srcdir)/'`basic_user_control.c
+
+libUser_a-basic_user_control.obj: basic_user_control.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libUser_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libUser_a-basic_user_control.obj -MD -MP -MF $(DEPDIR)/libUser_a-basic_user_control.Tpo -c -o libUser_a-basic_user_control.obj `if test -f 'basic_user_control.c'; then $(CYGPATH_W) 'basic_user_control.c'; else $(CYGPATH_W) '$(srcdir)/basic_user_control.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libUser_a-basic_user_control.Tpo $(DEPDIR)/libUser_a-basic_user_control.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='basic_user_control.c' object='libUser_a-basic_user_control.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libUser_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libUser_a-basic_user_control.obj `if test -f 'basic_user_control.c'; then $(CYGPATH_W) 'basic_user_control.c'; else $(CYGPATH_W) '$(srcdir)/basic_user_control.c'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique

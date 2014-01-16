@@ -5019,7 +5019,7 @@ fi
 done
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/network/Makefile src/network/p2p/Makefile src/utilities/Makefile src/utilities/db_ctl/Makefile src/utilities/list/Makefile src/utilities/network_protocol/Makefile src/utilities/user/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/network/Makefile src/network/p2p/Makefile src/network/network_protocol/Makefile src/utilities/Makefile src/utilities/db_ctl/Makefile src/utilities/list/Makefile src/utilities/user/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -5767,10 +5767,10 @@ do
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/network/Makefile") CONFIG_FILES="$CONFIG_FILES src/network/Makefile" ;;
     "src/network/p2p/Makefile") CONFIG_FILES="$CONFIG_FILES src/network/p2p/Makefile" ;;
+    "src/network/network_protocol/Makefile") CONFIG_FILES="$CONFIG_FILES src/network/network_protocol/Makefile" ;;
     "src/utilities/Makefile") CONFIG_FILES="$CONFIG_FILES src/utilities/Makefile" ;;
     "src/utilities/db_ctl/Makefile") CONFIG_FILES="$CONFIG_FILES src/utilities/db_ctl/Makefile" ;;
     "src/utilities/list/Makefile") CONFIG_FILES="$CONFIG_FILES src/utilities/list/Makefile" ;;
-    "src/utilities/network_protocol/Makefile") CONFIG_FILES="$CONFIG_FILES src/utilities/network_protocol/Makefile" ;;
     "src/utilities/user/Makefile") CONFIG_FILES="$CONFIG_FILES src/utilities/user/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

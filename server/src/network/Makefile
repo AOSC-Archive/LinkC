@@ -93,11 +93,11 @@ AM_V_AR = $(am__v_AR_$(V))
 am__v_AR_ = $(am__v_AR_$(AM_DEFAULT_VERBOSITY))
 am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
-libconnect_a_AR = $(AR) $(ARFLAGS)
-libconnect_a_LIBADD =
-am_libconnect_a_OBJECTS = init_network.$(OBJEXT) \
-	keep_connect.$(OBJEXT)
-libconnect_a_OBJECTS = $(am_libconnect_a_OBJECTS)
+libConnect_a_AR = $(AR) $(ARFLAGS)
+libConnect_a_LIBADD =
+am_libConnect_a_OBJECTS = libConnect_a-init_network.$(OBJEXT) \
+	libConnect_a-keep_connect.$(OBJEXT)
+libConnect_a_OBJECTS = $(am_libConnect_a_OBJECTS)
 AM_V_P = $(am__v_P_$(V))
 am__v_P_ = $(am__v_P_$(AM_DEFAULT_VERBOSITY))
 am__v_P_0 = false
@@ -114,6 +114,10 @@ DEFAULT_INCLUDES = -I.
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
+AM_V_lt = $(am__v_lt_$(V))
+am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
+am__v_lt_0 = --silent
+am__v_lt_1 = 
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 AM_V_CC = $(am__v_CC_$(V))
@@ -126,8 +130,8 @@ AM_V_CCLD = $(am__v_CCLD_$(V))
 am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libconnect_a_SOURCES)
-DIST_SOURCES = $(libconnect_a_SOURCES)
+SOURCES = $(libConnect_a_SOURCES)
+DIST_SOURCES = $(libConnect_a_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -284,9 +288,9 @@ top_build_prefix = ../../
 top_builddir = ../..
 top_srcdir = ../..
 UTOMAKE_OPTIONS = foreign -Wall -Werror
-SUBDIRS = p2p
-noinst_LIBRARIES = libconnect.a
-libconnect_a_SOURCES = init_network.c			\
+SUBDIRS = p2p network_protocol
+noinst_LIBRARIES = libConnect.a
+libConnect_a_SOURCES = init_network.c			\
 		keep_connect.c				\
 		$(top_srcdir)/include/linkc_db.h	\
 		$(top_srcdir)/include/linkc_types.h	\
@@ -295,8 +299,8 @@ libconnect_a_SOURCES = init_network.c			\
 		$(top_srcdir)/include/linkc_user.h	\
 		$(top_srcdir)/include/def.h
 
-INCLUDES = -I$(top_srcdir)/include/
-AM_CXXFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
+AM_CPPFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
+libConnect_a_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/include/
 all: all-recursive
 
 .SUFFIXES:
@@ -335,10 +339,10 @@ $(am__aclocal_m4_deps):
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
 
-libconnect.a: $(libconnect_a_OBJECTS) $(libconnect_a_DEPENDENCIES) $(EXTRA_libconnect_a_DEPENDENCIES) 
-	$(AM_V_at)-rm -f libconnect.a
-	$(AM_V_AR)$(libconnect_a_AR) libconnect.a $(libconnect_a_OBJECTS) $(libconnect_a_LIBADD)
-	$(AM_V_at)$(RANLIB) libconnect.a
+libConnect.a: $(libConnect_a_OBJECTS) $(libConnect_a_DEPENDENCIES) $(EXTRA_libConnect_a_DEPENDENCIES) 
+	$(AM_V_at)-rm -f libConnect.a
+	$(AM_V_AR)$(libConnect_a_AR) libConnect.a $(libConnect_a_OBJECTS) $(libConnect_a_LIBADD)
+	$(AM_V_at)$(RANLIB) libConnect.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -346,8 +350,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-include ./$(DEPDIR)/init_network.Po
-include ./$(DEPDIR)/keep_connect.Po
+include ./$(DEPDIR)/libConnect_a-init_network.Po
+include ./$(DEPDIR)/libConnect_a-keep_connect.Po
 
 .c.o:
 	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -362,6 +366,34 @@ include ./$(DEPDIR)/keep_connect.Po
 #	$(AM_V_CC)source='$<' object='$@' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(AM_V_CC_no)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+libConnect_a-init_network.o: init_network.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libConnect_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libConnect_a-init_network.o -MD -MP -MF $(DEPDIR)/libConnect_a-init_network.Tpo -c -o libConnect_a-init_network.o `test -f 'init_network.c' || echo '$(srcdir)/'`init_network.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libConnect_a-init_network.Tpo $(DEPDIR)/libConnect_a-init_network.Po
+#	$(AM_V_CC)source='init_network.c' object='libConnect_a-init_network.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libConnect_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libConnect_a-init_network.o `test -f 'init_network.c' || echo '$(srcdir)/'`init_network.c
+
+libConnect_a-init_network.obj: init_network.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libConnect_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libConnect_a-init_network.obj -MD -MP -MF $(DEPDIR)/libConnect_a-init_network.Tpo -c -o libConnect_a-init_network.obj `if test -f 'init_network.c'; then $(CYGPATH_W) 'init_network.c'; else $(CYGPATH_W) '$(srcdir)/init_network.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libConnect_a-init_network.Tpo $(DEPDIR)/libConnect_a-init_network.Po
+#	$(AM_V_CC)source='init_network.c' object='libConnect_a-init_network.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libConnect_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libConnect_a-init_network.obj `if test -f 'init_network.c'; then $(CYGPATH_W) 'init_network.c'; else $(CYGPATH_W) '$(srcdir)/init_network.c'; fi`
+
+libConnect_a-keep_connect.o: keep_connect.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libConnect_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libConnect_a-keep_connect.o -MD -MP -MF $(DEPDIR)/libConnect_a-keep_connect.Tpo -c -o libConnect_a-keep_connect.o `test -f 'keep_connect.c' || echo '$(srcdir)/'`keep_connect.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libConnect_a-keep_connect.Tpo $(DEPDIR)/libConnect_a-keep_connect.Po
+#	$(AM_V_CC)source='keep_connect.c' object='libConnect_a-keep_connect.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libConnect_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libConnect_a-keep_connect.o `test -f 'keep_connect.c' || echo '$(srcdir)/'`keep_connect.c
+
+libConnect_a-keep_connect.obj: keep_connect.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libConnect_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libConnect_a-keep_connect.obj -MD -MP -MF $(DEPDIR)/libConnect_a-keep_connect.Tpo -c -o libConnect_a-keep_connect.obj `if test -f 'keep_connect.c'; then $(CYGPATH_W) 'keep_connect.c'; else $(CYGPATH_W) '$(srcdir)/keep_connect.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libConnect_a-keep_connect.Tpo $(DEPDIR)/libConnect_a-keep_connect.Po
+#	$(AM_V_CC)source='keep_connect.c' object='libConnect_a-keep_connect.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libConnect_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libConnect_a-keep_connect.obj `if test -f 'keep_connect.c'; then $(CYGPATH_W) 'keep_connect.c'; else $(CYGPATH_W) '$(srcdir)/keep_connect.c'; fi`
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run 'make' without going through this Makefile.

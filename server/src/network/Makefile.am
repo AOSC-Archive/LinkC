@@ -1,10 +1,10 @@
 UTOMAKE_OPTIONS = foreign -Wall -Werror
 
-SUBDIRS = p2p
+SUBDIRS = p2p network_protocol
 
-noinst_LIBRARIES = libconnect.a
+noinst_LIBRARIES = libConnect.a
 
-libconnect_a_SOURCES = init_network.c			\
+libConnect_a_SOURCES = init_network.c			\
 		keep_connect.c				\
 		$(top_srcdir)/include/linkc_db.h	\
 		$(top_srcdir)/include/linkc_types.h	\
@@ -13,5 +13,5 @@ libconnect_a_SOURCES = init_network.c			\
 		$(top_srcdir)/include/linkc_user.h	\
 		$(top_srcdir)/include/def.h
 
-INCLUDES=-I$(top_srcdir)/include/
-AM_CXXFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
+AM_CPPFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
+libConnect_a_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/include/
