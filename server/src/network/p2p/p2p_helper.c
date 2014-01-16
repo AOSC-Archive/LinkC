@@ -21,7 +21,7 @@ int p2p_helper(void)
 	int sockfd;		// Sockfd
 	int i;			// Tmp
 	conn_list list;		// Connection List
-	conn_list_item item;	// item
+	conn_list_item item;	//
 	socklen_t len;		// Address's Length
 	struct sockaddr_in addr;// save addr
 	if ((sockfd = Network_init(2342)) < 0)			// Init Network
@@ -41,9 +41,9 @@ int p2p_helper(void)
 			conn_list_add(&list,item);							// Add item
 			continue;
 		}
-		sendto(sockfd,(void *)&(item.info.Dest),addr_size,MSG_DONTWAIT,(struct sockaddr *)&(item.info.Src),len);
-		sendto(sockfd,(void *)&(item.info.Src),addr_size,MSG_DONTWAIT,(struct sockaddr *)&(item.info.Dest),len);
-		conn_list_remove(&list,item.info);							// remove item
+		sendto(sockfd,(void *)&(item.info.Dest),addr_size,0,(struct sockaddr *)&(item.info.Src),len);
+		sendto(sockfd,(void *)&(item.info.Src),addr_size,0,(struct sockaddr *)&(item.info.Dest),len);
+		conn_list_remove(&list,&item);							// remove item
 	}
 	exit(0);
 }

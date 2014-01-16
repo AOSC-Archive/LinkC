@@ -18,12 +18,6 @@ typedef uint16_t port_t;
   Src is the Source connection's address
   Dest is the Dest connection's address
 */
-struct conn_info_t
-{
-	struct sockaddr_in Src;
-	struct sockaddr_in Dest;
-};
-typedef struct conn_info_t conn_info;
 
 #define SUCCESS 0
 #ifndef LINKC_STATUS

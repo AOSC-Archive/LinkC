@@ -36,7 +36,7 @@ extern void linkc_free_data (struct friend_data ** ffb, int _count);
  * 参数：2	Get_friend_data 的返回值 （好友个数）
  */
 
-extern int status_set (struct user_data user,int _Flag);
+extern int status_set (struct user_data *user,int _Flag);
 /*
  * 设置用户的状态
  * 参数：1	int UID		用户的UID

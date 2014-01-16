@@ -41,9 +41,9 @@ errorcode list_connection_find(list_t *list, conn_info info,struct sockaddr_in *
 		if (node == NULL)		// If The Next points NULL,Break the loop
 			break;
 
-		if(node->info->Src.sin_addr.s_addr==info.Dest.sin_addr.s_addr && node->info->Dest.sin_addr.s_addr==info.Src.sin_addr.s_addr)
+		if(node->info.Src.sin_addr.s_addr==info.Dest.sin_addr.s_addr && node->info.Dest.sin_addr.s_addr==info.Src.sin_addr.s_addr)
 		{
-			*Dest=node->info->Src;
+			*Dest=node->info.Src;
 			return LINKC_SUCCESS;
 		}
 		node=node->next;
@@ -56,20 +56,23 @@ errorcode list_item_add(list_t *list,conn_info item)	// Error???
 	CHECK_NOT_NULL(list,ERROR_NULL_ARG);
 
 	list_node *node = (list_node *)malloc(sizeof(list_node));
-	conn_info *info = (conn_info *)malloc(sizeof(conn_info));
 
-	memcpy(info,(void*)&item,sizeof(conn_info));
-	node->info = info;
+	memcpy((void *)&(node->info),(void*)&item,sizeof(conn_info));
 
 	node->next=list->head;
 	node->perv=NULL;
-	list->head->perv=node;
-	list->head=node;
+	if(list->size == 0)
+		list->head=node;
+	else
+	{
+		list->head->perv=node;
+		list->head=node;
+	}
 	list->size++;
 	return LINKC_SUCCESS;
 }
 
-errorcode list_node_remove(list_t *list,conn_info info)
+errorcode list_node_remove(list_t *list,conn_list_item *item)
 {
 	CHECK_NOT_NULL(list,ERROR_NULL_ARG);
 	list_node *node;
@@ -77,19 +80,20 @@ errorcode list_node_remove(list_t *list,conn_info info)
 
 	while(1)
 	{
-		if (node == NULL)
+		if(node->info.Src.sin_addr.s_addr==item->info.Dest.sin_addr.s_addr && node->info.Dest.sin_addr.s_addr==item->info.Src.sin_addr.s_addr)
 		{
-			break;
-		}
-		if(node->info->Src.sin_addr.s_addr==info.Dest.sin_addr.s_addr && node->info->Dest.sin_addr.s_addr==info.Src.sin_addr.s_addr)
-		{
-			node->next->perv = node->perv;
-			node->perv->next = node->next;
+			if(node->next != NULL)
+				node->next->perv = node->perv;
+			if(node->perv != NULL)
+				node->perv->next = node->next;
+			if(list->size == 1)
+				list->head = NULL;
 			free(node);
 			list->size--;
 			return LINKC_SUCCESS;
 		}
-		node=node->next;
+		if(node->next == NULL)	break;
+		node = node->next;
 	}
 	return ERROR_NOT_FOUND;
 }

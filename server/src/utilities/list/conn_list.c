@@ -52,11 +52,11 @@ errorcode conn_list_find(conn_list *list,conn_info info,struct sockaddr_in *Dest
 	return SUCCESS;
 }
 
-errorcode conn_list_remove(conn_list *list, conn_info info)
+errorcode conn_list_remove(conn_list *list, conn_list_item *item)
 {
 	CHECK_NOT_NULL(list,ERROR_NULL_ARG);
 	CHECK_FAILED(pthread_mutex_lock(&(list->mutex)),ERROR_MUTEX_LOCK);
-	int i = list_node_remove(&(list->list),info);
+	int i = list_node_remove(&(list->list),item);
 	if (i == -14)
 	{
 		return NOT_OK;

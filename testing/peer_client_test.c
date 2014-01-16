@@ -9,7 +9,7 @@
 #include "conn_list.h"
 #define MAXBUF	512
 #define MAXTRY	10
-#define IP_ADDR	"58.215.179.37"
+#define IP_ADDR	"127.0.0.1"
 
 void str_echo(int sockfd);
 

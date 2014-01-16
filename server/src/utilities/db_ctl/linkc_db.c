@@ -213,7 +213,7 @@ int get_info(int UID,int _Flag)
 	return LINKC_FAILURE;
 }
 
-int status_set (struct user_data user,int _Flag)
+int status_set (struct user_data *user,int _Flag)
 {
 
 	char exec[MAXBUF];
@@ -222,11 +222,11 @@ int status_set (struct user_data user,int _Flag)
 
 	if (_Flag > 0)	// 分别为上线，隐身
 	{
-		sprintf (exec,"UPDATE user SET state='%d' where id='%d'",_Flag,user.UID);
+		sprintf (exec,"UPDATE user SET state='%d' where id='%d'",_Flag,user->UID);
 		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );
-		sprintf (exec,"UPDATE user SET sockfd='%d' where id='%d'",user.sockfd,user.UID);
+		sprintf (exec,"UPDATE user SET sockfd='%d' where id='%d'",user->sockfd,user->UID);
 		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );
-		sprintf (exec,"UPDATE user SET last_ip='%s' where id='%d'",inet_ntoa(user.addr.sin_addr),user.UID);
+		sprintf (exec,"UPDATE user SET last_ip='%s' where id='%d'",inet_ntoa(user->addr.sin_addr),user->UID);
 		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );
 		if( result == SQLITE_OK )	return LINKC_SUCCESS;
 		printf ("Exec Error\t[%s]\n",errmsg);
@@ -234,9 +234,9 @@ int status_set (struct user_data user,int _Flag)
 	}
 	if (_Flag == 0)	// 设置成下线
 	{
-		sprintf (exec,"UPDATE user SET state='0' where id='%d'",user.UID);
+		sprintf (exec,"UPDATE user SET state='0' where id='%d'",user->UID);
 		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );
-		sprintf (exec,"UPDATE user SET sockfd='0' where id='%d'",user.UID);
+		sprintf (exec,"UPDATE user SET sockfd='0' where id='%d'",user->UID);
 		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );
 		if( result == SQLITE_OK )	return LINKC_SUCCESS;
 		printf ("Exec Error\t[%s]\n",errmsg);

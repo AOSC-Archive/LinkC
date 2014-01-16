@@ -7,7 +7,7 @@ extern int user_login(struct user_data* data);
  * 参数：1	strcut user_data 的地址
  */
 
-extern int user_logout(struct user_data user);
+extern int user_logout(struct user_data* user);
 /*
  * 用户注销，成功返回0,失败返回-1.
  * 参数：1	struct user_data 	用户数据合集

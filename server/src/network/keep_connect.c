@@ -109,7 +109,7 @@ start:
 #if DEBUG
 				printf ("UID = %d cause so much errors!\n",user.UID);
 #endif
-				user_logout(user);
+				user_logout(&user);
 				goto end;
 			}
 			byte = recv (user.sockfd,buffer+offset,STD_PACKAGE_SIZE,0);
@@ -136,18 +136,13 @@ start:
 				{
 					if(((LinkC_User_Request *)data)->Action == USER_LOGOUT)	// 注销
 					{
-						user_logout(user);
+						user_logout(&user);
 						goto end;
 					}
 					else if(((LinkC_User_Request *)data)->Action == USER_FRIEND_DATA)	// 好友数据
 					{
 						if(((LinkC_User_Request *)data)->Flag == ALL_FRIEND)		// 若是获得全部好友数据
 						send_friends_data(user,data);
-					}
-					else if(((LinkC_User_Request *)data)->Action == USER_LOGOUT)
-					{
-						user_logout(user);
-						goto end;
 					}
 				}
 			}
