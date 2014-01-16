@@ -10,6 +10,7 @@
 #define LINKC_SUCCESS	 0
 #define LINKC_FAILURE	-1
 #define LINKC_LIMITED	-2
+
 /* 系统 */
 #define MESSAGE_POOL_SIZE	15	// 发送消息池的大小
 #define STD_PACKAGE_SIZE	512	// 标准包最大大小
@@ -23,6 +24,7 @@
 #define EXCEED_THE_LIMIT	-2	// 大小超出限制
 #define NOT_MESSAGE		-1	// 非消息
 #define MESSAGE_INCOMPLETE	1	// 数据不完整
+#define OVER_RECV		2	// 收到的数据大于一个包，并且前面的是一个完整的包
 
 
 /* 消息头[LinkC_Message_Header] */
@@ -53,7 +55,7 @@ struct LinkC_Message_Header_t
 	uint8_t  Version;		// 协议版本
 	uint8_t  Totle;			// 总包数
 	uint16_t MessageHeader;		// 服务类型
-	uint16_t MessageLenth;		// 数据总长度
+	uint16_t MessageLength;		// 数据总长度
 	time_t	 Time;			// 时间戳
 	uint8_t  Current;		// 当前包标记
 };
@@ -80,18 +82,32 @@ typedef struct login_data		LinkC_User_Login;
 typedef struct LinkC_Sys_Status_t	LinkC_Sys_Status;
 typedef struct friend_data		LinkC_Sys_Friend_Data;
 
-#define MESSAGE_HEADER_LENTH	sizeof(struct LinkC_Message_Header_t)
-#define USER_REQUEST_LENTH	sizeof(struct LinkC_User_Request_t)
-#define USER_LOGIN_LENTH	sizeof(struct login_data)
-#define SYS_STATUS_LENTH	sizeof(struct LinkC_Sys_Status_t)
-#define SYS_FRIEND_DATA_LENTH	sizeof(struct friend_data)
+#define MESSAGE_HEADER_LENGTH	sizeof(struct LinkC_Message_Header_t)
+#define USER_REQUEST_LENGTH	sizeof(struct LinkC_User_Request_t)
+#define USER_LOGIN_LENGTH	sizeof(struct login_data)
+#define SYS_STATUS_LENGTH	sizeof(struct LinkC_Sys_Status_t)
+#define SYS_FRIEND_DATA_LENGTH	sizeof(struct friend_data)
 
-int16_t	check_message		(void *Message,uint16_t Recv_Lenth);
-int16_t	pack_message		(uint16_t Header,void *Data,uint16_t Lenth,void *Out);
-int16_t pack_m_message		(uint16_t Header,void *Data,uint16_t Lenth,void *Out,uint16_t Totle,uint16_t Current);
-int16_t	unpack_message		(void *Message,uint16_t Recv_Lenth,void *Out);
-int16_t std_m_message_send	(void *Message,int sockfd,uint16_t Lenth);
-int16_t non_std_m_message_send	(void *Message,int sockfd,uint16_t Memb,uint16_t Each_Lenth,uint16_t Header,int Flag);
+// 缩写一下，啊哈哈哈哈哈
+#define LMH	LinkC_Message_Header
+#define LUR	LinkC_User_Request
+#define LUL	LinkC_User_Login
+#define LSS	LinkC_Sys_Status
+#define LSF	LinkC_Sys_Friend_Data
+
+#define LMH_L	MESSAGE_HEADER_LENGTH
+#define LUR_L	USER_REQUEST_LENGTH
+#define LUL_L	USER_LOGIN_LENGTH
+#define LSS_L	SYS_STATUS_LENGTH
+#define LSF_L	SYS_FRIEND_DATA_LENGTH
+// 缩写 End
+
+int16_t	check_message		(void *Message,uint16_t Recv_Length);
+int16_t	pack_message		(uint16_t Header,void *Data,uint16_t Length,void *Out);
+int16_t pack_m_message		(uint16_t Header,void *Data,uint16_t Length,void *Out,uint16_t Totle,uint16_t Current);
+int16_t	unpack_message		(void *Message,uint16_t Recv_Length,void *Out);
+int16_t std_m_message_send	(void *Message,int sockfd,uint16_t Length);
+int16_t non_std_m_message_send	(void *Message,int sockfd,uint16_t Memb,uint16_t Each_Length,uint16_t Header,int Flag);
 
 extern int Send(int sockfd, void *buf, size_t len, int flag);
 extern int Recv(int sockfd, void *buf, size_t len, int flag);

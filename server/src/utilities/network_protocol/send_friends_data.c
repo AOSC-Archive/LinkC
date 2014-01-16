@@ -6,7 +6,7 @@
 int send_friends_data(struct user_data user,void *data)
 {
 	char buffer[MAXBUF];
-	int friend_count,lenth,byte,tmp,result;
+	int friend_count,length,byte,tmp,result;
 	struct friend_data *My_friend;
 	if(((LinkC_User_Request *)data)->Flag == 0)
 	{
@@ -15,15 +15,15 @@ int send_friends_data(struct user_data user,void *data)
 		if (friend_count == 0)		// 如果好友个数为 0
 		{
 			((LinkC_Sys_Status *)data)->Status = LINKC_FAILURE;
-			lenth = pack_message(SYS_ACTION_STATUS,data,SYS_STATUS_LENTH,buffer);
-			byte = send (user.sockfd,buffer,lenth,MSG_WAITALL);	// 发送 没有好友
+			length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
+			byte = send (user.sockfd,buffer,length,MSG_WAITALL);	// 发送 没有好友
 			My_friend = NULL;
 		}
 		else if (friend_count < 0)	// 如果执行失败
 		{
 			((LinkC_Sys_Status *)data)->Status = LINKC_FAILURE;
-			lenth = pack_message(SYS_ACTION_STATUS,data,SYS_STATUS_LENTH,buffer);
-			byte = send (user.sockfd,buffer,lenth,MSG_WAITALL);		// 发送 错误
+			length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
+			byte = send (user.sockfd,buffer,length,MSG_WAITALL);		// 发送 错误
 			My_friend = NULL;
 			if (byte < 0)
 				return -1;
@@ -31,8 +31,8 @@ int send_friends_data(struct user_data user,void *data)
 		else
 		{
 			((LinkC_Sys_Status *)data)->Status = SUCCESS;
-			lenth = pack_message(SYS_ACTION_STATUS,data,SYS_STATUS_LENTH,buffer);
-			byte = send (user.sockfd,buffer,lenth,MSG_WAITALL);	// 发送 执行成功
+			length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
+			byte = send (user.sockfd,buffer,length,MSG_WAITALL);	// 发送 执行成功
 #if DEBUG
 			printf ("UID = %d\nHave %d friend(s)\n",user.UID,friend_count);
 			printf ("------Friends------\n");
@@ -51,8 +51,8 @@ int send_friends_data(struct user_data user,void *data)
 		tmp = get_friend_data (user.UID,result,&My_friend);
 		printf("%d\n",tmp);
 		memcpy(buffer,My_friend,sizeof(friend_data));
-		lenth = pack_message(SYS_FRIEND_DATA,buffer,sizeof(friend_data),data);
-		byte = send (user.sockfd,data,lenth,MSG_WAITALL);	// 发送好友信息
+		length = pack_message(SYS_FRIEND_DATA,buffer,sizeof(friend_data),data);
+		byte = send (user.sockfd,data,length,MSG_WAITALL);	// 发送好友信息
 		free (My_friend);
 	}
     return 0;

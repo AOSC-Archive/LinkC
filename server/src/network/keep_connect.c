@@ -42,7 +42,7 @@ int keep_connect (struct user_data* _user)
 	void *data = malloc(MAXBUF);
 	uint16_t flag;
 	uint16_t offset=0;
-	uint16_t lenth;
+	uint16_t length;
 
 
 	byte = recv(user.sockfd,buffer,STD_PACKAGE_SIZE,0);
@@ -52,8 +52,8 @@ int keep_connect (struct user_data* _user)
 		((LinkC_Sys_Status *)data)->Status = LINKC_SUCCESS;
 	else
 		((LinkC_Sys_Status *)data)->Status = LINKC_FAILURE;
-	lenth = pack_message(SYS_ACTION_STATUS,data,SYS_STATUS_LENTH,buffer);
-	byte = send (sockfd,buffer,lenth,0);
+	length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
+	byte = send (sockfd,buffer,length,0);
 #if DEBUG
 	printf ("Socket\t= %d\n",sockfd);
 	printf ("Connected!\n\tIP\t= %s\n\tPort\t= %d\n",inet_ntoa(user.addr.sin_addr),user.addr.sin_port);	/* 输出连接信息 */
@@ -78,8 +78,8 @@ start:
 		{
 			((LinkC_Sys_Status *)data)->Action = LOGIN;
 			((LinkC_Sys_Status *)data)->Status = LINKC_LIMITED;
-			lenth = pack_message(SYS_ACTION_STATUS,data,SYS_STATUS_LENTH,buffer);
-			send(user.sockfd,buffer,lenth,MSG_DONTWAIT);
+			length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
+			send(user.sockfd,buffer,length,MSG_DONTWAIT);
 			goto end;
 		}
 		memcpy((void *)&(user.login),data,sizeof(login_data));
@@ -91,15 +91,15 @@ start:
 		{
 			printf ("Login failure!\n");
 			((LinkC_Sys_Status *)data)->Status = LINKC_FAILURE;
-			lenth = pack_message(SYS_ACTION_STATUS,data,SYS_STATUS_LENTH,buffer);
-			send(user.sockfd,buffer,lenth,MSG_DONTWAIT);
+			length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
+			send(user.sockfd,buffer,length,MSG_DONTWAIT);
 			failure_count ++;
 			goto start;
 		}
 		printf("Login Success!\n");
 		((LinkC_Sys_Status *)data)->Status = LINKC_SUCCESS;
-		lenth = pack_message(SYS_ACTION_STATUS,data,SYS_STATUS_LENTH,buffer);
-		byte = send (user.sockfd,buffer,lenth,0);
+		length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
+		byte = send (user.sockfd,buffer,length,0);
 		error_count = 0;	/* 初始化错误个数 */
 		offset = 0;		/* 初始化偏移量   */
 		while (1)

@@ -70,7 +70,7 @@ int16_t std_m_message_send(void *Message,int sockfd,uint16_t Length)
 
 int16_t non_std_m_message_send(void *Message,int sockfd,uint16_t Memb,uint16_t Each_Length,uint16_t Header,int Flag)
 {
-	void *data = malloc(Each_Length + Memb + LMH_L);
+	void *data = malloc(Each_Length + Memb + MESSAGE_HEADER_LENTH);
 	uint16_t Totle,i,length;
 	Totle =  Memb;
 	for(i=1;i<=Totle;i++)

@@ -22,7 +22,7 @@ int p2p_helper(void)
 	int i;			// Tmp
 	conn_list list;		// Connection List
 	conn_list_item item;	// item
-	socklen_t len;		// Address's Lenth
+	socklen_t len;		// Address's Length
 	struct sockaddr_in addr;// save addr
 	if ((sockfd = Network_init(2342)) < 0)			// Init Network
 		return ERROR_NETWORK_INIT;			// Return Error
