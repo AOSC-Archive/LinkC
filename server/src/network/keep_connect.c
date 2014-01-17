@@ -106,22 +106,27 @@ start:
 				continue;
 			}
 			flag = get_message_header(buffer);
+			printf("Flag = %d\n",flag);
 			unpack_message(buffer,data);
-			switch(flag)
+			if(flag == HEART_BEATS)	continue;
+			if(flag == EXIT)
 			{
-				case HEART_BEATS:	continue;
-				case USER_REQUEST:
+				user_logout(&user);
+				goto end;
+			}
+			else if(flag == USER_REQUEST)
+			{
+				if(((LUR *)data)->Action == USER_LOGOUT)	// 注销
 				{
-					if(((LUR *)data)->Action == USER_LOGOUT)	// 注销
-					{
-						user_logout(&user);
-						goto end;
-					}
-					else if(((LUR *)data)->Action == USER_FRIEND_DATA)	// 好友数据
-					{
-						if(((LUR *)data)->Flag == ALL_FRIEND)		// 若是获得全部好友数据
+					user_logout(&user);
+					goto end;
+				}
+				else if(((LUR *)data)->Action == USER_FRIEND_DATA)	// 好友数据
+				{
+					if(((LUR *)data)->Flag == 0)		// 若是获得全部好友数据
 						send_friends_data(user,data);
-					}
+					else
+						send_friend_data(user,data);
 				}
 			}
 		}

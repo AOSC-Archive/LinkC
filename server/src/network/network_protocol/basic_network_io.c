@@ -15,6 +15,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 {
 	if(is_remain == 1)	// 若上次数据有剩余
 	{
+		printf("Data Remain\n");
 		if(((LMH*)recv_buffer)->MessageLength == Length)	// 若上次剩余的数据是一个完整的包
 		{
 			if(out_size < Length)						// 若输出缓冲小于现在的数据长度
@@ -42,7 +43,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 		}
 		else						// 若上次剩余的数据小于一个包[数据不完整]
 		{
-			while(!Length >= ((LMH*)recv_buffer)->MessageLength)			// 直到接收数据大于等于数据包长度
+			while(Length < ((LMH*)recv_buffer)->MessageLength)			// 直到接收数据大于等于数据包长度
 			{
 				tmp = recv(sockfd,recv_buffer+Length,STD_PACKAGE_SIZE,flag);
 				if(tmp <= 0)
@@ -73,7 +74,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 				is_remain	= 0;						// 设置为没有数据剩余
 				return LINKC_SUCCESS;						// 返回成功
 			}
-			else if(((LMH*)recv_buffer)->MessageLength > Length)		// 若本次接收的数据大于一个完整包
+			else if(((LMH*)recv_buffer)->MessageLength < Length)		// 若本次接收的数据大于一个完整包
 			{
 				if(out_size < Length)                           		// 若输出缓冲小于现在的数据长度
 				{
@@ -91,7 +92,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 	else		//若上次数据没有剩余
 	{
 		bzero(recv_buffer,MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1);
-		while(!Length >= ((LMH*)recv_buffer)->MessageLength)			// 直到接收数据大于等于数据包长度
+		while(1)			// 直到接收数据大于等于数据包长度
 		{
 			tmp = recv(sockfd,recv_buffer+Length,STD_PACKAGE_SIZE,flag);
 			if(tmp <= 0)
@@ -100,6 +101,8 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 				return LINKC_FAILURE;
 			}
 			Length += tmp;
+			if(Length >= ((LMH*)recv_buffer)->MessageLength)
+				break;
 			if(Length > STD_PACKAGE_SIZE)
 				fprintf(stderr,"This data is larger than Standard :: Now Size = %d\nNow Stop Rrcv\n",Length);
 			if(Length > MAX_BUFFER_SIZE)

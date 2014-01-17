@@ -83,8 +83,8 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 MainWindow::~MainWindow(){
-//    length = pack_message(EXIT,NULL,0,buffer);
-//    server.Send_msg(buffer,length,MSG_DONTWAIT);
+    length = pack_message(EXIT,NULL,0,buffer);
+    server.Send_msg(buffer,length,MSG_DONTWAIT);
     printf ("Debug >> Main_Window\t= [EXITED]\n");
 }
 
@@ -108,7 +108,7 @@ int MainWindow::NetworkInit(void){
     length = pack_message(CONNECTION,package,0,buffer);
     server.Send_msg(buffer,length,0);
     length = server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);
-    flag = check_message(buffer,length);
+    flag = get_message_header(buffer);
     if (flag == SYS_ACTION_STATUS){
         unpack_message(buffer,package);
         if(((LSS *)package)->Action == CONNECTION){
@@ -138,8 +138,8 @@ int MainWindow::Login(){
 			if (i == -1)continue;
             length = pack_message(LOGIN,(void *)&st,LUL_L,package);
             server.Send_msg(package,length,0);
-            length = server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);
-            flag = check_message(buffer,length);
+            server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);
+            flag = get_message_header(buffer);
             if (flag == SYS_ACTION_STATUS){
                 unpack_message(buffer,package);
                 if(((LSS *)package)->Action == LOGIN){
@@ -160,7 +160,7 @@ int MainWindow::Login(){
                     }
                 }
             }
-            printf("Debug >> Login\t\t= [Package Broken]\n");
+            printf("Debug >> Login\t\t= [MessageHeader Incorrect]\n");
             exit(0);
 		}
 		if (i == -1)exit(0);
@@ -182,8 +182,8 @@ int MainWindow::InitFriendList(){
     ((LUR *)package)->Flag = 0;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);     // Send for Getting Friend Data
-    length = server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);                // recv state
-    flag = check_message(buffer,length);
+    server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);                // recv state
+    flag = get_message_header(buffer);
     if(flag == SYS_ACTION_STATUS){
         unpack_message(buffer,package);
         if(((LSS *)package)->Action == USER_FRIEND_DATA){
@@ -221,9 +221,11 @@ void MainWindow::ChatWith(int UID){
     ((LUR*)package)->UID   =UID;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);
+    bzero(buffer,STD_PACKAGE_SIZE);
     server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);
 
     flag = get_message_header(buffer);
+    printf("Flag = %d\n",flag);
     if(flag == SYS_ACTION_STATUS){
         unpack_message(buffer,package);
         if(((LSS *)package)->Action == USER_FRIEND_DATA){
@@ -238,12 +240,17 @@ void MainWindow::ChatWith(int UID){
             }
         }
     }
-    server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);
-
+    else{
+        printf("Message Header Incrrect\n");
+        return ;
+    }
+    if(server.Is_remain() == 1)
+        server.Recv_Remain(buffer);
+    else
+        server.Recv_msg(buffer,STD_PACKAGE_SIZE,0);     // Do not Edit This Code!
     memcpy((void *)&MyFriend,buffer,sizeof(MyFriend));
     if(!ChatDialogMap.contains(UID)){
         log = new ChatDialog(MyFriend);
-        log->show();
         ChatDialogMap.insert(UID, log);
     }else{
         tmp = ChatDialogMap.find(UID);

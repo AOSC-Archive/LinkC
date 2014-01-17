@@ -17,6 +17,6 @@ extern int keep_connect (struct user_data* _user);
  */
 
 extern int send_friends_data	(struct user_data user,void *data);
-extern int send_friend_data	(struct user_data *user,void *data);
+extern int send_friend_data	(struct user_data user,void *data);
 
 #endif

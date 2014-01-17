@@ -31,6 +31,7 @@ public:
     int Send_msg(const void *Message, int maxbuf, int Flag);   // 接受信息
     int Send_msg(const char *Message, int Flag);    //发送信息
     int Send_msg(const void *Message, int Flag);    // 发送信息
+    int Recv_Remain(void *buffer);
 
     void Debug_Csocket_IP(void);
     void Debug_Csocket_Sockfd(void);
@@ -42,6 +43,7 @@ public:
     int GetSockfd();
     port_t GetPort();
     ip_t GetIP();
+    int Is_remain();
 
 protected:
     struct sockaddr_in DestAddr;

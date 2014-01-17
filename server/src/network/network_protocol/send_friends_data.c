@@ -43,24 +43,25 @@ int send_friends_data(struct user_data user,void *data)
 	return 0;
 }
 
-int send_friend_data(struct user_data *user,void *data)
+int send_friend_data(struct user_data user,void *data)
 {
 	struct friend_data *MyFriend;
 	int length;
 	int tmp;
 	char buffer[256];
-	tmp = get_friend_data (user->UID,((LUR*)data)->UID,&MyFriend);
+	tmp = get_friend_data (user.UID,((LUR*)data)->UID,&MyFriend);
 	((LSS*)data)->Action = USER_FRIEND_DATA;
 	if(tmp != LINKC_SUCCESS)
 	{
 		((LSS*)data)->Status = LINKC_FAILURE;
 		length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
-		TCP_Send(user->sockfd,buffer,length,0);
+		TCP_Send(user.sockfd,buffer,length,0);
 	}
 	((LSS*)data)->Status = LINKC_SUCCESS;
 	length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
-	TCP_Send (user->sockfd,buffer,length,0);	// 执行情况
-	TCP_Send (user->sockfd,MyFriend,sizeof(friend_data),0);
+	TCP_Send (user.sockfd,buffer,length,0);	// 执行情况
+	printf("Sended!\n");
+	TCP_Send (user.sockfd,MyFriend,sizeof(friend_data),0);
 	free (MyFriend);
 	return 0;
 }

@@ -96,9 +96,11 @@ int get_friend_data (int UID, int DestUID ,struct friend_data **_ffb)
 	struct friend_data* _friend;
 	_friend = (struct friend_data *) malloc (sizeof (struct friend_data));
 	sprintf (exec,"SELECT * FROM user WHERE id='%d'",DestUID);
+printf("Friend Data Get %s\n",exec);
 	result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
 	if( result == SQLITE_OK )
 	{
+		printf("OK\n");
 		if (nRow == 0)
 		{
 			sqlite3_free_table (dbResult);
@@ -131,6 +133,7 @@ int get_friend_data (int UID, int DestUID ,struct friend_data **_ffb)
 		errmsg = NULL;
 		return LINKC_SUCCESS;
 	}
+		printf("Not OK\n");
 	return LINKC_FAILURE;		// 返回错误
 }
 int get_friends_data (int UID,struct friend_data ** ffb)

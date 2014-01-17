@@ -15,38 +15,6 @@ QByteArray translate;
 
 ChatDialog::ChatDialog(struct friend_data MyFriend, QWidget *parent)
     :QWidget(parent){
-/*    MessageSize = sizeof(struct message_t);
-    SendButton = new QPushButton(this);
-    QuitButton = new QPushButton(this);
-    Layout = new QVBoxLayout(this);
-    Input = new QTextEdit;
-    History = new QTextEdit;
-    this->resize(300,300);
-    char title_tmp[20];
-    sprintf(title_tmp,"Chat With %s",MyFriend.name);
-    QString Title(title_tmp);
-    SendButton->setText(tr("Send"));
-    SendButton->show();
-    SendButton->setEnabled(false);
-    QuitButton->hide();
-
-    setWindowTitle(Title);
-    History->setText(tr("History"));
-    History->setReadOnly(TRUE);
-    Input->setText(tr("Input"));
-
-    Layout->addWidget(History,2);
-    Layout->addWidget(Input,1);
-    Layout->addSpacing(25);
-
-
-    timer = new QTimer(this);
-    timer->setInterval(5000);
-    connect(timer, SIGNAL(timeout()),this, SLOT(HeartBeats()) );; // 5秒单触发定时器
-    connect(SendButton,SIGNAL(clicked()),this,SLOT(Send()));
-    timer->start();
-    SendButton->setEnabled(true);
-    Recver();*/
 }
 
 ChatDialog::~ChatDialog(){

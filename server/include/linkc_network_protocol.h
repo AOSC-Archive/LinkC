@@ -36,6 +36,7 @@
 #define SYS_ACTION_STATUS	4	// 系统操作状态
 #define SYS_FRIEND_DATA		5	// 好友数据
 #define LOGIN		    	6	// 登录
+#define USER_REQUEST		7	// 用户请求 [以后扩展]
 
 /* 用户请求[LinkC_User_Request] */
 #define USER_LOGOUT		1	// 登出
@@ -45,7 +46,6 @@
 #define USER_CHAT		5	// 请求聊天
 #define USER_ADD_FRIEND		6	// 添加好友
 #define USER_DEL_FRIEND		7	// 删除好友
-#define USER_REQUEST		8	// 用户请求 [以后扩展]
 
 /* 以下是Error_Code 定义区 [LinkC_Sys_Status里面]*/
 /*      操作者 操作项目 状态*/

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <memory>
 #include <string.h>
 #include "Csocket.h"
 #include <string.h>
@@ -172,6 +173,17 @@ int socket_c::Recv_msg(void* Buffer,int maxbuf,int Flag){
     return byte;
 }
 
+int socket_c::Is_remain(){
+    return is_remain;
+}
+
+int socket_c::Recv_Remain(void *buffer){
+    memcpy(buffer,recv_buffer,Length);
+    is_remain = 0;
+    Length = 0;
+    return 0;
+}
+
 int socket_c::Send_msg(const char* Message,int Flag){
     int byte=0;
     if (type == TCP){
@@ -233,6 +245,7 @@ int TCP_csocket :: TCP_Recv(void *out, int out_size, int flag)
 {
     if(is_remain == 1)	// 若上次数据有剩余
     {
+        printf("Remian\n");
         if(((LMH*)recv_buffer)->MessageLength == Length)	// 若上次剩余的数据是一个完整的包
         {
             if(out_size < Length)						// 若输出缓冲小于现在的数据长度
@@ -260,7 +273,7 @@ int TCP_csocket :: TCP_Recv(void *out, int out_size, int flag)
         }
         else						// 若上次剩余的数据小于一个包[数据不完整]
         {
-            while(!Length >= ((LMH*)recv_buffer)->MessageLength)			// 直到接收数据大于等于数据包长度
+            while(1)			// 直到接收数据大于等于数据包长度
             {
                 tmp = recv(Sockfd,(char *)recv_buffer+Length,STD_PACKAGE_SIZE,flag);
                 if(tmp <= 0)
@@ -269,6 +282,8 @@ int TCP_csocket :: TCP_Recv(void *out, int out_size, int flag)
                     return LINKC_FAILURE;
                 }
                 Length += tmp;
+                if(Length >= ((LMH*)recv_buffer)->MessageLength)
+                                break;
                 if(Length > STD_PACKAGE_SIZE)
                     fprintf(stderr,"This data is larger than Standard :: Now Size = %d\nNow Stop Rrcv\n",Length);
                 if(Length > MAX_BUFFER_SIZE)
@@ -291,7 +306,7 @@ int TCP_csocket :: TCP_Recv(void *out, int out_size, int flag)
                 is_remain	= 0;						// 设置为没有数据剩余
                 return LINKC_SUCCESS;						// 返回成功
             }
-            else if(((LMH*)recv_buffer)->MessageLength > Length)		// 若本次接收的数据大于一个完整包
+            else if(((LMH*)recv_buffer)->MessageLength < Length)		// 若本次接收的数据大于一个完整包
             {
                 if(out_size < Length)                           		// 若输出缓冲小于现在的数据长度
                 {
@@ -308,6 +323,7 @@ int TCP_csocket :: TCP_Recv(void *out, int out_size, int flag)
     }
     else		//若上次数据没有剩余
     {
+        printf("Not Remain\n");
         bzero(recv_buffer,MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1);
         while(!Length >= ((LMH*)recv_buffer)->MessageLength)			// 直到接收数据大于等于数据包长度
         {
@@ -328,6 +344,7 @@ int TCP_csocket :: TCP_Recv(void *out, int out_size, int flag)
                 return LINKC_FAILURE;
             }
         }
+        printf("Flag = %d\n",((LMH*)recv_buffer)->MessageHeader);
         if(((LMH*)recv_buffer)->MessageLength == Length)		// 若本次接收的数据是一个完整的包
         {
             if(out_size < Length)						// 若输出缓冲小于现在的数据长度
@@ -340,7 +357,7 @@ int TCP_csocket :: TCP_Recv(void *out, int out_size, int flag)
             is_remain	= 0;						// 设置为没有数据剩余
             return LINKC_SUCCESS;						// 返回成功
         }
-        else if(((LMH*)recv_buffer)->MessageLength > Length)		// 若本次接收的数据大于一个完整包
+        else if(((LMH*)recv_buffer)->MessageLength < Length)		// 若本次接收的数据大于一个完整包
         {
             if(out_size < Length)                           		// 若输出缓冲小于现在的数据长度
             {
@@ -350,6 +367,9 @@ int TCP_csocket :: TCP_Recv(void *out, int out_size, int flag)
             memcpy(out,recv_buffer,((LMH*)recv_buffer)->MessageLength);		// 复制数据
             Length          = Length - ((LMH*)recv_buffer)->MessageLength;	// 重设长度
             is_remain       = 1;						// 设置为有数据剩余
+            char Tmp[Length-((LMH*)recv_buffer)->MessageLength+1];
+            memcpy(Tmp,(char *)recv_buffer+(((LMH*)recv_buffer)->MessageLength),Length-((LMH*)recv_buffer)->MessageLength);
+            memcpy(recv_buffer,Tmp,Length-((LMH*)recv_buffer)->MessageLength);
             return LINKC_SUCCESS;						// 返回成功
         }
     }
