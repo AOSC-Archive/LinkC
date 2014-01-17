@@ -13,5 +13,6 @@ Server_LDADD = $(top_builddir)/src/network/p2p/libP2P.a				\
 		$(top_builddir)/src/network/network_protocol/libLinkCProtocol.a	\
 		$(top_builddir)/src/utilities/user/libUser.a			\
 		-lsqlite3 -lpthread
+Server_CPPFLAGS = -ggdb
 AM_CPPFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
 Server_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/include/

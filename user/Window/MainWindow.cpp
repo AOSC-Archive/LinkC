@@ -1,9 +1,9 @@
 #include "MainWindow.h"
 #include "Csocket.h"
-#include "data_type.h"
+#include "linkc_types.h"
 #include "LinkC_Label.h"
 #include "LinkC_GUI.h"
-#include "LinkC_Protocol.h"
+#include "linkc_network_protocol.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -110,7 +110,7 @@ int MainWindow::NetworkInit(void){
     lenth = server.Recv_msg(buffer,STD_PACKAGE_SIZE,0);
     flag = check_message(buffer,lenth);
     if (flag == SYS_ACTION_STATUS){
-        unpack_message(buffer,lenth,package);
+        unpack_message(buffer,package);
         if(((LinkC_Sys_Status *)package)->Action == CONNECTION){
             if(((LinkC_Sys_Status *)package)->Status == LINKC_SUCCESS){
                 printf ("Debug >> Connect\t= [Success]\n");
@@ -136,12 +136,12 @@ int MainWindow::Login(){
 		if (i == 1){
 			i = s->GetLoginData(st);
 			if (i == -1)continue;
-            lenth = pack_message(LOGIN,(void *)&st,USER_LOGIN_LENTH,package);
+            lenth = pack_message(LOGIN,(void *)&st,LUL_L,package);
             server.Send_msg(package,lenth,0);
             lenth = server.Recv_msg(buffer,STD_PACKAGE_SIZE,0);
             flag = check_message(buffer,lenth);
             if (flag == SYS_ACTION_STATUS){
-                unpack_message(buffer,lenth,package);
+                unpack_message(buffer,package);
                 if(((LinkC_Sys_Status *)package)->Action == LOGIN){
                     if(((LinkC_Sys_Status *)package)->Status == LINKC_SUCCESS){
                         printf ("Debug >> Login\t\t= [Success]\n");
@@ -180,12 +180,12 @@ int MainWindow::InitFriendList(){
     int flag;
     ((LinkC_User_Request *)package)->Action = USER_FRIEND_DATA;
     ((LinkC_User_Request *)package)->Flag = 0;
-    lenth = pack_message(USER_REQUEST,package,USER_REQUEST_LENTH,buffer);
+    lenth = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,lenth,0);     // Send for Getting Friend Data
     lenth = server.Recv_msg(buffer,0);                // recv state
     flag = check_message(buffer,lenth);
     if(flag == SYS_ACTION_STATUS){
-        unpack_message(buffer,lenth,package);
+        unpack_message(buffer,package);
         if(((LinkC_Sys_Status *)package)->Action == USER_FRIEND_DATA){
             if(((LinkC_Sys_Status *)package)->Status == LINKC_SUCCESS)
                 printf("Debug >> State\t\t= [Success]\n");

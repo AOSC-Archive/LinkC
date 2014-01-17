@@ -8,7 +8,7 @@
 #include <sys/wait.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include "data_type.h"
+#include "linkc_types.h"
 #if _LINUX_
 #include<netdb.h>
 #elif _WIN32_

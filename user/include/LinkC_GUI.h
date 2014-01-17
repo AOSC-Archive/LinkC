@@ -1,7 +1,7 @@
 #ifndef LINKC_GUI_H
 #define LINKC_GUI_H
 #include "LinkC_Label.h"
-#include "data_type.h"
+#include "linkc_types.h"
 #include "p2p_client.h"
 #include <qt4/QtCore/QObject>
 #include <qt4/QtCore/QMap>
@@ -79,8 +79,6 @@ protected:
     QVBoxLayout *Layout;
     struct friend_data MyFriend;
     p2p_client  peer;
-    struct message_t message_recv;
-    struct message_t message_send;
     QTimer *timer;
     int MessageSize;
 };

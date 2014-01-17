@@ -1,5 +1,5 @@
 #include "MainWindow.h"
-#include "../include/data_type.h"
+#include "linkc_types.h"
 #include <unistd.h>
 #include <string.h>
 #include <qt4/QtGui/QtGui>

@@ -1,7 +1,7 @@
-#include "../include/LinkC_GUI.h"
-#include "data_type.h"
+#include "LinkC_GUI.h"
+#include "linkc_types.h"
 #include "p2p_client.h"
-#include "data_type.h"
+#include "linkc_types.h"
 #include <locale.h>
 #include <stdlib.h>
 #include <QString>
@@ -15,7 +15,7 @@ QByteArray translate;
 
 ChatDialog::ChatDialog(struct friend_data MyFriend, QWidget *parent)
     :QWidget(parent){
-    MessageSize = sizeof(struct message_t);
+/*    MessageSize = sizeof(struct message_t);
     SendButton = new QPushButton(this);
     QuitButton = new QPushButton(this);
     Layout = new QVBoxLayout(this);
@@ -45,20 +45,8 @@ ChatDialog::ChatDialog(struct friend_data MyFriend, QWidget *parent)
     connect(timer, SIGNAL(timeout()),this, SLOT(HeartBeats()) );; // 5秒单触发定时器
     connect(SendButton,SIGNAL(clicked()),this,SLOT(Send()));
     timer->start();
-
-    //NetWork Init
-/*    if(MyFriend.state == STATE_OFFLINE){
-        History->setText(tr("Friend is Offline!\nLinkC NOT Supports OFFLINE MESSAGE PUSHING"));
-        return;
-    }
-    if (ConnectToPeer() < 0){
-        History->setText(tr("Can Not Connect to Your Friend!\nTry Again..."));
-        if ((ConnectToPeer()) == 0)
-            History->setText(tr("Connect Success"));
-        else return;
-    }*/
     SendButton->setEnabled(true);
-    Recver();
+    Recver();*/
 }
 
 ChatDialog::~ChatDialog(){
@@ -77,7 +65,7 @@ void ChatDialog::resizeEvent(QResizeEvent *){
 }
 
 int ChatDialog::Send(void){
-    str = Input->toPlainText();
+/*    str = Input->toPlainText();
     if (str == "")
         return 0;
     message_send.header = MESSAGE;
@@ -85,19 +73,19 @@ int ChatDialog::Send(void){
     translate = str.toLatin1();
     sprintf(message_send.message,"%s",translate.data());
     for (i=0;i<5;i++)
-        peer.Send_msg((void *)&message_send,MessageSize,MSG_DONTWAIT);
+        peer.Send_msg((void *)&message_send,MessageSize,MSG_DONTWAIT);*/
     return 0;
 }
 
 int ChatDialog::HeartBeats(){
-    message_send.header = HEARTBEAT;
+/*    message_send.header = HEARTBEAT;
     for(i=0;i<5;i++)
-        peer.Send_msg((void *)&message_send,MessageSize,MSG_DONTWAIT);
+        peer.Send_msg((void *)&message_send,MessageSize,MSG_DONTWAIT);*/
     return 0;
 }
 
 void ChatDialog::Recver(void){
-    int error=0;
+/*    int error=0;
     time_t check_time = 0;
     while(1){
         if(error > MAX_ERROR)   // If There were so many errors has been coused
@@ -126,5 +114,5 @@ void ChatDialog::Recver(void){
             }
         }
         error = 0;
-    }
+    }*/
 }

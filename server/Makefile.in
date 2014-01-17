@@ -318,8 +318,8 @@ Server_LDADD = $(top_builddir)/src/network/p2p/libP2P.a				\
 		$(top_builddir)/src/utilities/user/libUser.a			\
 		-lsqlite3 -lpthread
 
-AM_CPPFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
 Server_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/include/
+AM_CPPFLAGS = -D_LINUX -DONLY_EPOLL -D_SERVER
 all: all-recursive
 
 .SUFFIXES:

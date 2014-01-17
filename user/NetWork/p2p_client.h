@@ -9,6 +9,11 @@
 
 #include "Csocket.h"
 #include <QTimer>
+struct conn_info_t
+{
+    struct sockaddr_in Src;
+    struct sockaddr_in Dest;
+};
 
 typedef struct conn_info_t conn_info;
 

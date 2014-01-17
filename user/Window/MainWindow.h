@@ -4,7 +4,7 @@
 
 #include "Csocket.h"
 #include "LinkC_GUI.h"
-#include "data_type.h"
+#include "linkc_types.h"
 #include <qt4/QtGui/QToolBox>
 #include <qt4/QtGui/QGroupBox>
 #include <qt4/QtGui/QLayout>

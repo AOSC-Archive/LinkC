@@ -8,15 +8,15 @@ DEPENDPATH += . Gui include NetWork Window
 INCLUDEPATH += . Window NetWork include
 
 # Input
-HEADERS += include/data_type.h \
-           include/LinkC_GUI.h \
-           include/LinkC_Label.h \
-           include/ListWidget.h \
-           include/MessageBox.h \
-	   include/LinkC_Protocol.h \
-           Window/MainWindow.h \
-    NetWork/p2p_client.h \
-    NetWork/Csocket.h
+HEADERS += include/LinkC_GUI.h		\
+           include/LinkC_Label.h	\
+           include/ListWidget.h		\
+           include/MessageBox.h		\
+           include/linkc_network_protocol.h	\
+           include/linkc_types.h	\
+           Window/MainWindow.h		\
+           NetWork/p2p_client.h		\
+           NetWork/Csocket.h
 SOURCES += main.cpp \
            Gui/ChatDialog.cpp \
            Gui/Friend.cpp \

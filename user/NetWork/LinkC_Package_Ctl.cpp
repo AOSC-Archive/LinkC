@@ -1,55 +1,54 @@
-#include "LinkC_Protocol.h"
+#include "linkc_network_protocol.h"
 #include "Csocket.h"
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
 
-int16_t check_message(void *Message,uint16_t Recv_Lenth)
+int16_t check_message(void *Message,uint16_t Recv_Length)
 {
-    if(Recv_Lenth < MESSAGE_HEADER_LENTH)
-        return NOT_MESSAGE;			// 检查数据长度是否小于8
-    if(Message == NULL)
-        return NOT_MESSAGE;			// 检查数据是否为空
-//    printf("MessageLenth = %d\nRecv_Lenth = %d\n",((LinkC_Message_Header*)Message)->MessageLenth,Recv_Lenth);
-    if(Recv_Lenth == ((LinkC_Message_Header*)Message)->MessageLenth)
-        return ((LinkC_Message_Header*)Message)->MessageHeader;
-    if(Recv_Lenth < ((LinkC_Message_Header*)Message)->MessageLenth)
-        return MESSAGE_INCOMPLETE;
-    return NOT_MESSAGE;
+    if(Message == NULL || Recv_Length == 0)	return LINKC_FAILURE;
+    return ((LMH*)Message)->MessageHeader;
 }
 
-int16_t pack_message(uint16_t Header,void *Data,uint16_t Lenth,void *Out)
+int16_t get_message_header(void *Message)
 {
-    if(Lenth > STD_PACKAGE_SIZE-MESSAGE_HEADER_LENTH){
-        return LINKC_FAILURE;
+    return ((LMH*)Message)->MessageHeader;
+}
+
+int16_t pack_message(uint16_t Header,void *Data,uint16_t Length,void *Out)
+{
+    ((LMH*)Out)->Version = LINKC_MESSAGE_VERSION;
+    ((LMH*)Out)->MessageHeader = Header;
+    time(&(((LMH*)Out)->Time));
+    ((LMH*)Out)->Totle = 1;
+    ((LMH*)Out)->Current = 1;
+    if(Length == 0)
+    {
+        ((LMH*)Out)->MessageLength  = LMH_L;
+        return LMH_L;
     }
-    ((LinkC_Message_Header*)Out)->Version = LINKC_MESSAGE_VERSION;
-    ((LinkC_Message_Header*)Out)->MessageHeader = Header;
-    ((LinkC_Message_Header*)Out)->MessageLenth  = Lenth + MESSAGE_HEADER_LENTH;
-    time(&(((LinkC_Message_Header*)Out)->Time));
-    ((LinkC_Message_Header*)Out)->Totle = 1;
-    ((LinkC_Message_Header*)Out)->Current = 1;
-    memcpy((char *)Out+MESSAGE_HEADER_LENTH,Data,Lenth);
-    return Lenth+MESSAGE_HEADER_LENTH;
+    ((LMH*)Out)->MessageLength  = Length + LMH_L;
+    memcpy((char *)Out+LMH_L,Data,Length);
+    return LMH_L+Length;
 }
 
-int16_t pack_m_message(uint16_t Header,void *Data,uint16_t Lenth,void *Out,uint16_t Totle,uint16_t Current)
+int16_t pack_m_message(uint16_t Header,void *Data,uint16_t Length,void *Out,uint16_t Totle,uint16_t Current)
 {
     if(Data == NULL)	return -1;
-    ((LinkC_Message_Header*)Out)->Version = LINKC_MESSAGE_VERSION;
-    ((LinkC_Message_Header*)Out)->MessageHeader = Header;
-    ((LinkC_Message_Header*)Out)->MessageLenth  = Lenth + MESSAGE_HEADER_LENTH;
-    time(&(((LinkC_Message_Header*)Out)->Time));
-    ((LinkC_Message_Header*)Out)->Totle = Totle;
-    ((LinkC_Message_Header*)Out)->Current = Current;
-    memcpy((char *)Out+MESSAGE_HEADER_LENTH,Data,Lenth);
-    return MESSAGE_HEADER_LENTH+Lenth;
+    ((LMH*)Out)->Version = LINKC_MESSAGE_VERSION;
+    ((LMH*)Out)->MessageHeader = Header;
+    ((LMH*)Out)->MessageLength  = Length + LMH_L;
+    time(&(((LMH*)Out)->Time));
+    ((LMH*)Out)->Totle = Totle;
+    ((LMH*)Out)->Current = Current;
+    memcpy((char *)Out+LMH_L,Data,Length);
+    return LMH_L+Length;
 }
 
 
-int16_t unpack_message(void *Message,uint16_t Recv_Lenth,void *Out)
+int16_t unpack_message(void *Message,void *Out)
 {
-    memcpy(Out,(char *)Message+MESSAGE_HEADER_LENTH,Recv_Lenth-MESSAGE_HEADER_LENTH);
+    memcpy(Out,(char *)Message + LMH_L,((LMH*)Message)->MessageLength - LMH_L);
     return 0;
 }
 
@@ -73,7 +72,7 @@ int16_t std_m_message_send(void *Message,int sockfd,uint16_t Lenth)
 
 int16_t non_std_m_message_send(void *Message,int sockfd,uint16_t Memb,uint16_t Each_Lenth,uint16_t Header,int Flag)
 {
-    void *data = new char(Each_Lenth + Memb + MESSAGE_HEADER_LENTH);
+    void *data = new char(Each_Lenth + Memb + LMH_L);
     uint16_t Totle,i,lenth;
     Totle =  Memb;
     for(i=1;i<=Totle;i++)
@@ -98,7 +97,7 @@ int16_t non_std_m_message_recv(int Sockfd,int Echo_Size,void *Out){
     }
     totle   = ((LinkC_Message_Header*)buff)->Totle;
     current = ((LinkC_Message_Header*)buff)->Current;
-    unpack_message(buff,lenth,data);
+    unpack_message(buff,data);
     memcpy((char *)Out+(current-1)*Echo_Size,data,Echo_Size);
     for(i=1;i<totle;i++){
         lenth = recv(Sockfd,buff,STD_PACKAGE_SIZE,0);
@@ -108,7 +107,7 @@ int16_t non_std_m_message_recv(int Sockfd,int Echo_Size,void *Out){
             return LINKC_FAILURE;
         }
         current = ((LinkC_Message_Header*)buff)->Current;
-        unpack_message(buff,lenth,data);
+        unpack_message(buff,data);
         memcpy((char *)Out+(current-1)*Echo_Size,data,Echo_Size);
     }
     delete (char *)buff;

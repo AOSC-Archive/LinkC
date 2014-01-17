@@ -1,9 +1,9 @@
 #ifndef CSOCKET_H
 #define CSOCKET_H
-#include "data_type.h"
+#include "linkc_types.h"
 #include <arpa/inet.h>
 #include <string.h>
-#include <data_type.h>
+#include <linkc_types.h>
 
 #define TCP  1
 #define UDP  2
