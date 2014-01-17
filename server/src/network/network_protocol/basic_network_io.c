@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 char	recv_buffer[MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1];	// 接收缓冲区
-char	send_buffer[MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1];	// 发送缓冲区
+char	Tmp[MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1];		// 临时缓冲区
 int	is_remain	= 0;	// 上次数据是否有剩余
 int	Length 		= 0;	// 接收到数据的长度
 int	tmp;
@@ -28,7 +28,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 			is_remain	= 0;						// 设置为没有数据剩余
 			return LINKC_SUCCESS;						// 返回成功
 		}
-		else if(((LMH*)recv_buffer)->MessageLength > Length)	// 若上次剩余的数据大于一个完整包
+		else if(((LMH*)recv_buffer)->MessageLength < Length)	// 若上次剩余的数据大于一个完整包
 		{
 			if(out_size < Length)                           		// 若输出缓冲小于现在的数据长度
 			{
@@ -36,9 +36,10 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 				return LINKC_FAILURE;
 			}
 			memcpy(out,recv_buffer,((LMH*)recv_buffer)->MessageLength);	// 复制数据
+			memcpy(Tmp,(char *)recv_buffer+(((LMH*)recv_buffer)->MessageLength),Length-((LMH*)recv_buffer)->MessageLength);
+			memcpy(recv_buffer,Tmp,Length-((LMH*)recv_buffer)->MessageLength);
 			Length          = Length - ((LMH*)recv_buffer)->MessageLength;	// 重设长度
 			is_remain       = 1;						// 设置为有数据剩余
-			bzero(recv_buffer+Length,MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1 - Length);	// 清空多余数据
 			return LINKC_SUCCESS;						// 返回成功
 		}
 		else						// 若上次剩余的数据小于一个包[数据不完整]
@@ -82,9 +83,10 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 					return LINKC_FAILURE;
 				}
 				memcpy(out,recv_buffer,((LMH*)recv_buffer)->MessageLength);		// 复制数据
+				memcpy(Tmp,(char *)recv_buffer+(((LMH*)recv_buffer)->MessageLength),Length-((LMH*)recv_buffer)->MessageLength);
+				memcpy(recv_buffer,Tmp,Length-((LMH*)recv_buffer)->MessageLength);
 				Length          = Length - ((LMH*)recv_buffer)->MessageLength;	// 重设长度
 				is_remain       = 1;						// 设置为有数据剩余
-				bzero(recv_buffer+Length,MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1 - Length);	// 清空多余数据
 				return LINKC_SUCCESS;						// 返回成功
 			}
 		}
@@ -133,6 +135,8 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 				return LINKC_FAILURE;
 			}
 			memcpy(out,recv_buffer,((LMH*)recv_buffer)->MessageLength);		// 复制数据
+			memcpy(Tmp,(char *)recv_buffer+(((LMH*)recv_buffer)->MessageLength),Length-((LMH*)recv_buffer)->MessageLength);
+			memcpy(recv_buffer,Tmp,Length-((LMH*)recv_buffer)->MessageLength);
 			Length          = Length - ((LMH*)recv_buffer)->MessageLength;	// 重设长度
 			is_remain       = 1;						// 设置为有数据剩余
 			return LINKC_SUCCESS;						// 返回成功
