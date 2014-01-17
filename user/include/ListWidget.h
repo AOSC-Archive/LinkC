@@ -1,7 +1,7 @@
 #ifndef LISTWIDGETITEM_H
 #define LISTWIDGETITEM_H
 
-#include <QListWidgetItem>
+#include <qt4/QtGui/QListWidgetItem>
 
 class ListWidgetItem : public QListWidgetItem
 {

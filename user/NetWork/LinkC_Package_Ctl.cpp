@@ -73,12 +73,12 @@ int16_t std_m_message_send(void *Message,int sockfd,uint16_t Lenth)
 int16_t non_std_m_message_send(void *Message,int sockfd,uint16_t Memb,uint16_t Each_Lenth,uint16_t Header,int Flag)
 {
     void *data = new char(Each_Lenth + Memb + LMH_L);
-    uint16_t Totle,i,lenth;
+    uint16_t Totle,i,length;
     Totle =  Memb;
     for(i=1;i<=Totle;i++)
     {
-        lenth = pack_m_message(Header,(char *)Message+(i-1)*Each_Lenth,Each_Lenth,data,Totle,i);
-        send(sockfd,data,lenth,Flag);
+        length = pack_m_message(Header,(char *)Message+(i-1)*Each_Lenth,Each_Lenth,data,Totle,i);
+        send(sockfd,data,length,Flag);
     }
     delete (char *)data;
     return LINKC_SUCCESS;
@@ -88,9 +88,9 @@ int16_t non_std_m_message_recv(int Sockfd,int Echo_Size,void *Out){
     void *buff = new char[STD_PACKAGE_SIZE];
     void *data = new char[STD_PACKAGE_SIZE];
     int i,totle,current;
-    int lenth;
-    lenth = recv(Sockfd,buff,STD_PACKAGE_SIZE,0);
-    if(check_message(buff,lenth) < 0){
+    int length;
+    length = recv(Sockfd,buff,STD_PACKAGE_SIZE,0);
+    if(check_message(buff,length) < 0){
         delete (char *)buff;
         delete (char *)data;
         return LINKC_FAILURE;
@@ -100,8 +100,8 @@ int16_t non_std_m_message_recv(int Sockfd,int Echo_Size,void *Out){
     unpack_message(buff,data);
     memcpy((char *)Out+(current-1)*Echo_Size,data,Echo_Size);
     for(i=1;i<totle;i++){
-        lenth = recv(Sockfd,buff,STD_PACKAGE_SIZE,0);
-        if(check_message(buff,lenth) < 0){
+        length = recv(Sockfd,buff,STD_PACKAGE_SIZE,0);
+        if(check_message(buff,length) < 0){
             delete (char *)buff;
             delete (char *)data;
             return LINKC_FAILURE;

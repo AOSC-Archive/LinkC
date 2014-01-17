@@ -20,7 +20,7 @@
 
 
 char buffer[MAXBUF];
-int lenth;
+int length;
 int flag;
 LoginWindow *s;
 
@@ -83,8 +83,8 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 MainWindow::~MainWindow(){
-//    lenth = pack_message(EXIT,NULL,0,buffer);
-//    server.Send_msg(buffer,lenth,MSG_DONTWAIT);
+//    length = pack_message(EXIT,NULL,0,buffer);
+//    server.Send_msg(buffer,length,MSG_DONTWAIT);
     printf ("Debug >> Main_Window\t= [EXITED]\n");
 }
 
@@ -105,18 +105,18 @@ int MainWindow::NetworkInit(void){
         return -1;
 	}
     server.Debug_Csocket_Sockfd();
-    lenth = pack_message(CONNECTION,package,0,buffer);
-    server.Send_msg(buffer,lenth,0);
-    lenth = server.Recv_msg(buffer,STD_PACKAGE_SIZE,0);
-    flag = check_message(buffer,lenth);
+    length = pack_message(CONNECTION,package,0,buffer);
+    server.Send_msg(buffer,length,0);
+    length = server.Recv_msg(buffer,STD_PACKAGE_SIZE,0);
+    flag = check_message(buffer,length);
     if (flag == SYS_ACTION_STATUS){
         unpack_message(buffer,package);
-        if(((LinkC_Sys_Status *)package)->Action == CONNECTION){
-            if(((LinkC_Sys_Status *)package)->Status == LINKC_SUCCESS){
+        if(((LSS *)package)->Action == CONNECTION){
+            if(((LSS *)package)->Status == LINKC_SUCCESS){
                 printf ("Debug >> Connect\t= [Success]\n");
                 return 0;
             }
-            else if(((LinkC_Sys_Status *)package)->Status == LINKC_FAILURE){
+            else if(((LSS *)package)->Status == LINKC_FAILURE){
                 printf ("Debug >> Connect\t= [Failure]\n");
                 return -1;
             }
@@ -136,24 +136,24 @@ int MainWindow::Login(){
 		if (i == 1){
 			i = s->GetLoginData(st);
 			if (i == -1)continue;
-            lenth = pack_message(LOGIN,(void *)&st,LUL_L,package);
-            server.Send_msg(package,lenth,0);
-            lenth = server.Recv_msg(buffer,STD_PACKAGE_SIZE,0);
-            flag = check_message(buffer,lenth);
+            length = pack_message(LOGIN,(void *)&st,LUL_L,package);
+            server.Send_msg(package,length,0);
+            length = server.Recv_msg(buffer,STD_PACKAGE_SIZE,0);
+            flag = check_message(buffer,length);
             if (flag == SYS_ACTION_STATUS){
                 unpack_message(buffer,package);
-                if(((LinkC_Sys_Status *)package)->Action == LOGIN){
-                    if(((LinkC_Sys_Status *)package)->Status == LINKC_SUCCESS){
+                if(((LSS *)package)->Action == LOGIN){
+                    if(((LSS *)package)->Status == LINKC_SUCCESS){
                         printf ("Debug >> Login\t\t= [Success]\n");
                         this->show();
                         return 0;
                     }
-                    else if(((LinkC_Sys_Status *)package)->Status == LINKC_FAILURE){
+                    else if(((LSS *)package)->Status == LINKC_FAILURE){
                         printf ("Debug >> Login\t\t= [Failure]\n");
                         QMessageBox::warning(0,"Waring","Login Faliure!",QMessageBox::Yes);
                         continue;
                     }
-                    else if(((LinkC_Sys_Status *)package)->Status == LINKC_LIMITED){
+                    else if(((LSS *)package)->Status == LINKC_LIMITED){
                         QMessageBox::warning(0,"Waring","Please Try later!",QMessageBox::Yes);
                         printf ("Debug >> Login\t\t= [Limited]\n");
                         exit(0);
@@ -178,19 +178,19 @@ void MainWindow::closeEvent(QCloseEvent *){
 
 int MainWindow::InitFriendList(){
     int flag;
-    ((LinkC_User_Request *)package)->Action = USER_FRIEND_DATA;
-    ((LinkC_User_Request *)package)->Flag = 0;
-    lenth = pack_message(USER_REQUEST,package,LUR_L,buffer);
-    server.Send_msg(buffer,lenth,0);     // Send for Getting Friend Data
-    lenth = server.Recv_msg(buffer,0);                // recv state
-    flag = check_message(buffer,lenth);
+    ((LUR *)package)->Action = USER_FRIEND_DATA;
+    ((LUR *)package)->Flag = 0;
+    length = pack_message(USER_REQUEST,package,LUR_L,buffer);
+    server.Send_msg(buffer,length,0);     // Send for Getting Friend Data
+    length = server.Recv_msg(buffer,0);                // recv state
+    flag = check_message(buffer,length);
     if(flag == SYS_ACTION_STATUS){
         unpack_message(buffer,package);
-        if(((LinkC_Sys_Status *)package)->Action == USER_FRIEND_DATA){
-            if(((LinkC_Sys_Status *)package)->Status == LINKC_SUCCESS)
+        if(((LSS *)package)->Action == USER_FRIEND_DATA){
+            if(((LSS *)package)->Status == LINKC_SUCCESS)
                 printf("Debug >> State\t\t= [Success]\n");
             else{
-                if(((LinkC_Sys_Status *)package)->Status == LINKC_FAILURE)
+                if(((LSS *)package)->Status == LINKC_FAILURE)
                     printf("Debug >> State\t\t= [Failure]\n");
                 else
                     printf("Debug >> Friend\t\t= [NULL]");
