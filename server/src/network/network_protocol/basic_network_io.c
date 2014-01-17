@@ -34,9 +34,10 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 				fprintf(stderr,"Out Buffer is too small to copy data!\nBuffer Size = %d\tData Size = %d\n",out_size,((LMH*)recv_buffer)->MessageLength);
 				return LINKC_FAILURE;
 			}
-			memcpy(out,recv_buffer,((LMH*)recv_buffer)->MessageLength);		// 复制数据
+			memcpy(out,recv_buffer,((LMH*)recv_buffer)->MessageLength);	// 复制数据
 			Length          = Length - ((LMH*)recv_buffer)->MessageLength;	// 重设长度
 			is_remain       = 1;						// 设置为有数据剩余
+			bzero(recv_buffer+Length,MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1 - Length);	// 清空多余数据
 			return LINKC_SUCCESS;						// 返回成功
 		}
 		else						// 若上次剩余的数据小于一个包[数据不完整]
@@ -82,6 +83,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 				memcpy(out,recv_buffer,((LMH*)recv_buffer)->MessageLength);		// 复制数据
 				Length          = Length - ((LMH*)recv_buffer)->MessageLength;	// 重设长度
 				is_remain       = 1;						// 设置为有数据剩余
+				bzero(recv_buffer+Length,MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1 - Length);	// 清空多余数据
 				return LINKC_SUCCESS;						// 返回成功
 			}
 		}
