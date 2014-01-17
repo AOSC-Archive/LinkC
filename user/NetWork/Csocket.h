@@ -1,6 +1,7 @@
 #ifndef CSOCKET_H
 #define CSOCKET_H
 #include "linkc_types.h"
+#include "linkc_network_protocol.h"
 #include <arpa/inet.h>
 #include <string.h>
 #include <linkc_types.h>
@@ -44,6 +45,10 @@ public:
 
 protected:
     struct sockaddr_in DestAddr;
+    void* recv_buffer;	// 接收缓冲区
+    int	is_remain;   	// 上次数据是否有剩余
+    int	Length;     	// 接收到数据的长度
+    int	tmp;
     ip_t IP;
     port_t Port;
     int Sockfd;
@@ -55,6 +60,7 @@ class TCP_csocket : public socket_c{
 public:
     TCP_csocket();
     ~TCP_csocket();      // 析构函数
+    int TCP_Recv(void *out, int out_size, int flag);
 
     void cls_buf(char *buffer,int size);    // 清理Buffer
 };

@@ -4,8 +4,8 @@
 #include "linkc_types.h"
 #include <locale.h>
 #include <stdlib.h>
-#include <QString>
 #include <stdio.h>
+#include <QString>
 
 #define MAX_ERROR   20
 

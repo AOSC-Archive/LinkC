@@ -23,7 +23,7 @@ SOURCES += main.cpp \
            Gui/LinkC_Label.cpp \
            Gui/MessageBox.cpp \
 	   NetWork/LinkC_Package_Ctl.cpp \
+           NetWork/Csocket.cpp	\
            Window/LoginWindow.cpp \
            Window/MainWindow.cpp \
-	   NetWork/p2p_client.cpp \
-    NetWork/Csocket.cpp
+	   NetWork/p2p_client.cpp

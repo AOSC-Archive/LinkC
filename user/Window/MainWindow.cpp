@@ -107,7 +107,7 @@ int MainWindow::NetworkInit(void){
     server.Debug_Csocket_Sockfd();
     length = pack_message(CONNECTION,package,0,buffer);
     server.Send_msg(buffer,length,0);
-    length = server.Recv_msg(buffer,STD_PACKAGE_SIZE,0);
+    length = server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);
     flag = check_message(buffer,length);
     if (flag == SYS_ACTION_STATUS){
         unpack_message(buffer,package);
@@ -138,7 +138,7 @@ int MainWindow::Login(){
 			if (i == -1)continue;
             length = pack_message(LOGIN,(void *)&st,LUL_L,package);
             server.Send_msg(package,length,0);
-            length = server.Recv_msg(buffer,STD_PACKAGE_SIZE,0);
+            length = server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);
             flag = check_message(buffer,length);
             if (flag == SYS_ACTION_STATUS){
                 unpack_message(buffer,package);
@@ -182,7 +182,7 @@ int MainWindow::InitFriendList(){
     ((LUR *)package)->Flag = 0;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);     // Send for Getting Friend Data
-    length = server.Recv_msg(buffer,0);                // recv state
+    length = server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);                // recv state
     flag = check_message(buffer,length);
     if(flag == SYS_ACTION_STATUS){
         unpack_message(buffer,package);
@@ -214,11 +214,32 @@ void MainWindow::check(){
 }
 
 void MainWindow::ChatWith(int UID){
-/*    ChatDialog *log;
-    server.Send_msg(LINKC_GET_FRIEND,0);
-    sprintf(buffer,"%d",UID);
-    server.Send_msg(buffer,MSG_DONTWAIT);
-    server.Recv_msg(buffer,0);
+    ChatDialog *log;
+    friend_data MyFriend;
+    ((LUR*)package)->Action=USER_FRIEND_DATA;
+    ((LUR*)package)->Flag  =1;
+    ((LUR*)package)->UID   =UID;
+    length = pack_message(USER_REQUEST,package,LUR_L,buffer);
+    server.Send_msg(buffer,length,0);
+    server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);
+
+    flag = get_message_header(buffer);
+    if(flag == SYS_ACTION_STATUS){
+        unpack_message(buffer,package);
+        if(((LSS *)package)->Action == USER_FRIEND_DATA){
+            if(((LSS *)package)->Status == LINKC_SUCCESS)
+                printf("Debug >> State\t\t= [Success]\n");
+            else{
+                if(((LSS *)package)->Status == LINKC_FAILURE)
+                    printf("Debug >> State\t\t= [Failure]\n");
+                else
+                    printf("Debug >> Friend\t\t= [NULL]");
+                return;
+            }
+        }
+    }
+    server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);
+
     memcpy((void *)&MyFriend,buffer,sizeof(MyFriend));
     if(!ChatDialogMap.contains(UID)){
         log = new ChatDialog(MyFriend);
@@ -228,5 +249,5 @@ void MainWindow::ChatWith(int UID){
         tmp = ChatDialogMap.find(UID);
         log = tmp.value();
         log->show();
-    }*/
+    }
 }
