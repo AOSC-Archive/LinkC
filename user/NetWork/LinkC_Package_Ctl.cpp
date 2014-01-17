@@ -52,32 +52,32 @@ int16_t unpack_message(void *Message,void *Out)
     return 0;
 }
 
-int16_t std_m_message_send(void *Message,int sockfd,uint16_t Lenth)
+int16_t std_m_message_send(void *Message,int sockfd,uint16_t Length)
 {
     uint16_t Totle,i;
-    if(Lenth < 8 || Message == NULL)	return -1;
-    if(Lenth <= STD_PACKAGE_SIZE)
+    if(Length < 8 || Message == NULL)	return -1;
+    if(Length <= STD_PACKAGE_SIZE)
     {
-        if(send(sockfd,Message,Lenth,MSG_DONTWAIT) < 0)
+        if(send(sockfd,Message,Length,MSG_DONTWAIT) < 0)
             return -1;
     }
     else
     {
-        Totle = Lenth / STD_PACKAGE_SIZE;
+        Totle = Length / STD_PACKAGE_SIZE;
         for(i=1;i<=Totle;i++)
             send(sockfd,(char *)Message+(i-1)*STD_PACKAGE_SIZE,STD_PACKAGE_SIZE,MSG_DONTWAIT);
     }
     return LINKC_SUCCESS;
 }
 
-int16_t non_std_m_message_send(void *Message,int sockfd,uint16_t Memb,uint16_t Each_Lenth,uint16_t Header,int Flag)
+int16_t non_std_m_message_send(void *Message,int sockfd,uint16_t Memb,uint16_t Each_Length,uint16_t Header,int Flag)
 {
-    void *data = new char(Each_Lenth + Memb + LMH_L);
+    void *data = new char(Each_Length + Memb + LMH_L);
     uint16_t Totle,i,length;
     Totle =  Memb;
     for(i=1;i<=Totle;i++)
     {
-        length = pack_m_message(Header,(char *)Message+(i-1)*Each_Lenth,Each_Lenth,data,Totle,i);
+        length = pack_m_message(Header,(char *)Message+(i-1)*Each_Length,Each_Length,data,Totle,i);
         send(sockfd,data,length,Flag);
     }
     delete (char *)data;
