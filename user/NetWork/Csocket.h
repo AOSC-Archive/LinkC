@@ -77,6 +77,7 @@ class UDP_csocket : public socket_c{
 public:
     UDP_csocket();
     ~UDP_csocket();      // 析构函数
+    int UDP_Recv(void *out, int out_size, int flag);
 };
 
 #endif // CSOCKET_H

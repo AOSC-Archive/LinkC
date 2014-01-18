@@ -8,12 +8,6 @@
 #include <qt4/QtGui/QLineEdit>
 #include <qt4/QtGui/QDialog>
 
-
-
-
-
-#define _LINIC_     1
-
 LoginWindow::LoginWindow(QWidget *parent) :
     QDialog(parent){
     QLabel* usrLabel = new QLabel(tr("UserName:"));

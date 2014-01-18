@@ -43,6 +43,7 @@ ChatDialog::ChatDialog(struct friend_data *_MyFriend, QWidget *parent)
     Layout->addSpacing(25);
 
     if(MyFriend.status == STATUS_ONLINE){
+        History->setText(tr("ONLINE"));
         this->ConnectToPeer();
     }
     else
@@ -55,9 +56,19 @@ ChatDialog::~ChatDialog(){
 
 int ChatDialog::ConnectToPeer(void){
     peer.Set_IP("127.0.0.1");
+    peer.Debug_Csocket_IP();
     peer.Set_Port(2342);
+    peer.Debug_Csocket_Port();
     peer.SetDestIP(MyFriend.ip);
-    return peer.inDirectConnect();
+    if(peer.WaitPeer() == LINKC_FAILURE){
+        History->setText(tr("ERROR"));
+        return -1;
+    }
+    if(peer.Is_server() == 1)
+        peer.inDirectAccept();
+    else
+        peer.inDirectConnect();
+    return 0;
 }
 
 void ChatDialog::resizeEvent(QResizeEvent *){

@@ -16,6 +16,12 @@ socklen_t len	= sizeof(struct sockaddr_in);
 
 int Network_init(int port);
 
+struct p2pinfo{
+    struct sockaddr_in Dest;
+    int is_server;
+};
+int info_size	= sizeof(struct p2pinfo);
+
 int p2p_helper(void)
 {
 	int sockfd;		// Sockfd
@@ -24,6 +30,7 @@ int p2p_helper(void)
 	conn_list_item item;	//
 	socklen_t len;		// Address's Length
 	struct sockaddr_in addr;// save addr
+	struct p2pinfo info;	// 
 	if ((sockfd = Network_init(2342)) < 0)			// Init Network
 		return ERROR_NETWORK_INIT;			// Return Error
 	CHECK_FAILED(conn_list_init(&(list)),ERROR_LIST_INIT);	// Init List
@@ -41,8 +48,12 @@ int p2p_helper(void)
 			conn_list_add(&list,item);							// Add item
 			continue;
 		}
-		sendto(sockfd,(void *)&(item.info.Dest),addr_size,0,(struct sockaddr *)&(item.info.Src),len);
-		sendto(sockfd,(void *)&(item.info.Src),addr_size,0,(struct sockaddr *)&(item.info.Dest),len);
+		info.Dest = item.info.Dest;
+		info.is_server = 1;
+		sendto(sockfd,(void *)&info,info_size,0,(struct sockaddr *)&(item.info.Src),len);
+		info.Dest = item.info.Src;
+		info.is_server = 0;
+		sendto(sockfd,(void *)&info,info_size,0,(struct sockaddr *)&(item.info.Dest),len);
 		conn_list_remove(&list,&item);							// remove item
 	}
 	exit(0);

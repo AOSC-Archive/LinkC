@@ -8,6 +8,7 @@
 #endif
 
 #include "Csocket.h"
+#include "def.h"
 #include <QTimer>
 struct conn_info_t
 {
@@ -16,6 +17,11 @@ struct conn_info_t
 };
 
 typedef struct conn_info_t conn_info;
+
+struct p2pinfo{
+    struct sockaddr_in Dest;
+    int is_server;
+};
 
 class p2p_client : public UDP_csocket{
     
@@ -29,12 +35,17 @@ public:
     int HeartBeats();
 
     int DirectConnect(void);
+    int WaitPeer(void);
     int inDirectConnect(void);
+    int inDirectAccept(void);
+    int Is_server(void);
 
 protected:
+    int flag;
     ip_t DestIP;
     int ip_size;
     char buffer[MAXBUF];
-    struct conn_info_t P2PInfo;
+    struct p2pinfo P2PInfo;
+    void *package;
 };
 #endif // P2P_CLIENT_H
