@@ -9,13 +9,13 @@ char	Tmp[MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1];		// 临时缓冲区
 int	is_remain	= 0;	// 上次数据是否有剩余
 int	Length 		= 0;	// 接收到数据的长度
 int	tmp;
+int	TmpLength;
 
 
 int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 {
 	if(is_remain == 1)	// 若上次数据有剩余
 	{
-		printf("Data Remain\n");
 		if(((LMH*)recv_buffer)->MessageLength == Length)	// 若上次剩余的数据是一个完整的包
 		{
 			if(out_size < Length)						// 若输出缓冲小于现在的数据长度
@@ -35,10 +35,12 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 				fprintf(stderr,"Out Buffer is too small to copy data!\nBuffer Size = %d\tData Size = %d\n",out_size,((LMH*)recv_buffer)->MessageLength);
 				return LINKC_FAILURE;
 			}
-			memcpy(out,recv_buffer,((LMH*)recv_buffer)->MessageLength);	// 复制数据
+			memcpy(out,recv_buffer,((LMH*)recv_buffer)->MessageLength);		// 复制数据
+			bzero(Tmp,MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1);
 			memcpy(Tmp,(char *)recv_buffer+(((LMH*)recv_buffer)->MessageLength),Length-((LMH*)recv_buffer)->MessageLength);
+			TmpLength = ((LMH*)recv_buffer)->MessageLength;
 			memcpy(recv_buffer,Tmp,Length-((LMH*)recv_buffer)->MessageLength);
-			Length          = Length - ((LMH*)recv_buffer)->MessageLength;	// 重设长度
+			Length          = Length - TmpLength;	// 重设长度
 			is_remain       = 1;						// 设置为有数据剩余
 			return LINKC_SUCCESS;						// 返回成功
 		}
@@ -83,11 +85,13 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 					return LINKC_FAILURE;
 				}
 				memcpy(out,recv_buffer,((LMH*)recv_buffer)->MessageLength);		// 复制数据
+				bzero(Tmp,MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1);
 				memcpy(Tmp,(char *)recv_buffer+(((LMH*)recv_buffer)->MessageLength),Length-((LMH*)recv_buffer)->MessageLength);
+				TmpLength = ((LMH*)recv_buffer)->MessageLength;
 				memcpy(recv_buffer,Tmp,Length-((LMH*)recv_buffer)->MessageLength);
-				Length          = Length - ((LMH*)recv_buffer)->MessageLength;	// 重设长度
+				Length          = Length - TmpLength;	// 重设长度
 				is_remain       = 1;						// 设置为有数据剩余
-				return LINKC_SUCCESS;						// 返回成功
+				return LINKC_SUCCESS;
 			}
 		}
 	}
@@ -135,9 +139,11 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
 				return LINKC_FAILURE;
 			}
 			memcpy(out,recv_buffer,((LMH*)recv_buffer)->MessageLength);		// 复制数据
+			bzero(Tmp,MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1);
 			memcpy(Tmp,(char *)recv_buffer+(((LMH*)recv_buffer)->MessageLength),Length-((LMH*)recv_buffer)->MessageLength);
+			TmpLength = ((LMH*)recv_buffer)->MessageLength;
 			memcpy(recv_buffer,Tmp,Length-((LMH*)recv_buffer)->MessageLength);
-			Length          = Length - ((LMH*)recv_buffer)->MessageLength;	// 重设长度
+			Length          = Length - TmpLength;	// 重设长度
 			is_remain       = 1;						// 设置为有数据剩余
 			return LINKC_SUCCESS;						// 返回成功
 		}

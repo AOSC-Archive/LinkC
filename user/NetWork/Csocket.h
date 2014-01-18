@@ -50,6 +50,8 @@ protected:
     void* recv_buffer;	// 接收缓冲区
     int	is_remain;   	// 上次数据是否有剩余
     int	Length;     	// 接收到数据的长度
+    char Tmp[MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1];
+    int TmpLength;
     int	tmp;
     ip_t IP;
     port_t Port;

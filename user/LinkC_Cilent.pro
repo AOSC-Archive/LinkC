@@ -3,7 +3,7 @@
 ######################################################################
 
 TEMPLATE = app
-TARGET = 
+TARGET = LinkC_Cilent
 DEPENDPATH += . Gui include NetWork Window
 INCLUDEPATH += . Window NetWork include
 
@@ -12,6 +12,7 @@ HEADERS += include/LinkC_GUI.h		\
            include/LinkC_Label.h	\
            include/ListWidget.h		\
            include/MessageBox.h		\
+           include/def.h		\
            include/linkc_network_protocol.h	\
            include/linkc_types.h	\
            Window/MainWindow.h		\

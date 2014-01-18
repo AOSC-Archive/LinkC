@@ -60,7 +60,6 @@ int send_friend_data(struct user_data user,void *data)
 	((LSS*)data)->Status = LINKC_SUCCESS;
 	length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
 	TCP_Send (user.sockfd,buffer,length,0);	// 执行情况
-	printf("Sended!\n");
 	TCP_Send (user.sockfd,MyFriend,sizeof(friend_data),0);
 	free (MyFriend);
 	return 0;

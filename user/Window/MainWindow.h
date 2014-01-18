@@ -55,6 +55,8 @@ private:
     QWidget    * MainWidget;
     _Map         ChatDialogMap;
     _Map::iterator tmp;
+
+    QWidget *k;
 };
 
 

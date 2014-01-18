@@ -43,11 +43,6 @@ extern int status_set (struct user_data *user,int _Flag);
  * 参数：2	int _Sockfd	连接该用户的网络连接句柄
  * 参数：3	int _Flag	操作参数
  */
-#define STATE_OK		3
-#define STATE_ONLINE		2
-#define STATE_HIDING		1
-#define STATE_OFFLINE		0
-#define STATE_ERROR		-1
 
 
 extern int get_info (int UID,int _Flag);

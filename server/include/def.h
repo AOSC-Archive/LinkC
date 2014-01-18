@@ -29,6 +29,12 @@ typedef uint16_t port_t;
 #define NOT_OK -1
 #define ERROR_TRACE
 
+#define STATUS_OK		3
+#define STATUS_ONLINE		2
+#define STATUS_HIDING		1
+#define STATUS_OFFLINE		0
+#define STATUS_ERROR		-1
+
 #define FLAG_NODE	1
 #define FLAG_ITEM	2
 

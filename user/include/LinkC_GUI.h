@@ -62,7 +62,7 @@ protected:
 class ChatDialog : public QWidget{
     Q_OBJECT
 public:
-    explicit ChatDialog(friend_data MyFriend, QWidget *parent = 0);
+    explicit ChatDialog(friend_data *MyFriend, QWidget *parent = 0);
     ~ChatDialog();
     void resizeEvent(QResizeEvent *);
     int ConnectToPeer(void);

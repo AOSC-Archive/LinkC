@@ -8,13 +8,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
-#include <qt4/Qt/qmessagebox.h>
-#include <qt4/Qt/qstring.h>
-#include <qt4/Qt/qgroupbox.h>
-#include <qt4/Qt/qtoolbox.h>
-#include <qt4/Qt/qwidget.h>
-#include <qt4/Qt/qpushbutton.h>
-#include <qt4/QtGui/QtGui>
+#include <qt4/QtGui/QMessageBox>
+#include <QString>
+#include <qt4/QtGui/QGroupBox>
+#include <qt4/QtGui/QToolBox>
+#include <qt4/QtGui/QWidget>
+#include <qt4/QtGui/QPushButton>
 #include <qt4/QtGui/QListView>
 #include <qt4/QtGui/QMainWindow>
 
@@ -215,7 +214,7 @@ void MainWindow::check(){
 
 void MainWindow::ChatWith(int UID){
     ChatDialog *log;
-    friend_data MyFriend;
+//    friend_data MyFriend;
     ((LUR*)package)->Action=USER_FRIEND_DATA;
     ((LUR*)package)->Flag  =1;
     ((LUR*)package)->UID   =UID;
@@ -225,7 +224,6 @@ void MainWindow::ChatWith(int UID){
     server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);
 
     flag = get_message_header(buffer);
-    printf("Flag = %d\n",flag);
     if(flag == SYS_ACTION_STATUS){
         unpack_message(buffer,package);
         if(((LSS *)package)->Action == USER_FRIEND_DATA){
@@ -248,13 +246,15 @@ void MainWindow::ChatWith(int UID){
         server.Recv_Remain(buffer);
     else
         server.Recv_msg(buffer,STD_PACKAGE_SIZE,0);     // Do not Edit This Code!
-    memcpy((void *)&MyFriend,buffer,sizeof(MyFriend));
+//    memcpy((void *)&MyFriend,buffer,sizeof(MyFriend));
     if(!ChatDialogMap.contains(UID)){
-        log = new ChatDialog(MyFriend);
+        log = new ChatDialog((friend_data *)buffer);
+        log->show();
         ChatDialogMap.insert(UID, log);
     }else{
         tmp = ChatDialogMap.find(UID);
         log = tmp.value();
         log->show();
     }
+    return;
 }

@@ -106,7 +106,6 @@ start:
 				continue;
 			}
 			flag = get_message_header(buffer);
-			printf("Flag = %d\n",flag);
 			unpack_message(buffer,data);
 			if(flag == HEART_BEATS)	continue;
 			if(flag == EXIT)
