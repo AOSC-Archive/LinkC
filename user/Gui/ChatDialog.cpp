@@ -61,7 +61,7 @@ ChatDialog::~ChatDialog(){
 }
 
 int ChatDialog::ConnectToPeer(void){
-    server.Set_IP("117.59.11.226");
+    peer.Set_IP("117.59.11.226");
     peer.Debug_Csocket_IP();
     peer.Set_Port(2342);
     peer.Debug_Csocket_Port();
