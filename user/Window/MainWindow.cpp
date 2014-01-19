@@ -93,7 +93,7 @@ void MainWindow::test_slot(int i){
 
 int MainWindow::NetworkInit(void){
 	int i;
-    server.Set_IP("127.0.0.1");
+    server.Set_IP("117.59.11.226");
     server.Debug_Csocket_IP();
 	server.Set_Port(2341);
 	server.Debug_Csocket_Port();

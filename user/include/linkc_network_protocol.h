@@ -37,6 +37,7 @@
 #define SYS_FRIEND_DATA		5	// 好友数据
 #define LOGIN		    	6	// 登录
 #define USER_REQUEST		7	// 用户请求 [以后扩展]
+#define USER_MESSAGE        8   // 好友之间的信息
 
 /* 用户请求[LinkC_User_Request] */
 #define USER_LOGOUT         1	// 登出
@@ -104,7 +105,7 @@ typedef struct friend_data              LinkC_Sys_Friend_Data;
 // 缩写 End
 
 int16_t	check_message		(void *Message,uint16_t Recv_Length);
-int16_t	pack_message		(uint16_t Header,void *Data,uint16_t Length,void *Out);
+int16_t	pack_message		(uint16_t Header, const void *Data, uint16_t Length, void *Out);
 int16_t pack_m_message		(uint16_t Header,void *Data,uint16_t Length,void *Out,uint16_t Totle,uint16_t Current);
 int16_t	unpack_message		(void *Message,void *Out);
 int16_t std_m_message_send	(void *Message,int sockfd,uint16_t Length);

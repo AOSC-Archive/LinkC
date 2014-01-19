@@ -46,6 +46,7 @@
 #define USER_CHAT		5	// 请求聊天
 #define USER_ADD_FRIEND		6	// 添加好友
 #define USER_DEL_FRIEND		7	// 删除好友
+#define USER_MESSAGE		8	// 好友之间的信息
 
 /* 以下是Error_Code 定义区 [LinkC_Sys_Status里面]*/
 /*      操作者 操作项目 状态*/

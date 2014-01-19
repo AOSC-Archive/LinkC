@@ -18,15 +18,26 @@ int p2p_client::DirectConnect(){
     return 0;
 }
 
+int p2p_client::SendP2PMessage(char *ch){
+    if(ch == NULL)
+        return -1;
+    tmp = strlen(ch);
+    if(tmp == 0)
+        return -1;
+    tmp = pack_message(MESSAGE,ch,tmp,buffer);
+    Send_msg(buffer,0);
+    return 0;
+}
+
 int p2p_client::WaitPeer(){
     this->Send_msg((void *)&DestIP,ip_size,0);
     if (this->Recv_msg((void *)&P2PInfo,sizeof(P2PInfo),0) == 0){
         return LINKC_FAILURE;
     }
     struct timeval tv;
-    tv.tv_sec = 6;                                          // 设置6妙超时
+/*    tv.tv_sec = 6;                                          // 设置6妙超时
     tv.tv_usec = 0;                                         //
-    this->SetTimedOut(tv);                                  //
+    this->SetTimedOut(tv);                                  //*/
     this->SetAddress(P2PInfo.Dest);                         // 设置为好友的IP地址
     printf("Wait Done\n");
     return LINKC_SUCCESS;

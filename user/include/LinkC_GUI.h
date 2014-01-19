@@ -68,6 +68,8 @@ public:
     int ConnectToPeer(void);
     void Recver(void);
     int UID;
+signals:
+    void Recved(const char *message);
 public slots:
     int Send(void);
     int HeartBeats(void);

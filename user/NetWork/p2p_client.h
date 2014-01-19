@@ -31,7 +31,7 @@ public:
     int SetDestIP(ip_t ip);
     int SetDestIP(const char* ip);
 
-    int SendP2PMessage();
+    int SendP2PMessage(char *ch);
     int HeartBeats();
 
     int DirectConnect(void);
