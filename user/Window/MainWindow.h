@@ -5,6 +5,7 @@
 #include "Csocket.h"
 #include "LinkC_GUI.h"
 #include "linkc_types.h"
+#include "MessageRecver.h"
 #include <qt4/QtGui/QToolBox>
 #include <qt4/QtGui/QGroupBox>
 #include <qt4/QtGui/QLayout>
@@ -40,6 +41,7 @@ private slots:
     void check(void);
     void test_slot(int i);
     void ChatWith(int UID);
+    void UserRequest(LUM *Message);
 signals:
     void test_signal(int i);
 private:
@@ -56,7 +58,7 @@ private:
     _Map         ChatDialogMap;
     _Map::iterator tmp;
 
-    QWidget *k;
+    TCP_MessageRecver *Recver;
 };
 
 

@@ -27,7 +27,6 @@
 #define MESSAGE_INCOMPLETE	1	// 数据不完整
 #define OVER_RECV		2	// 收到的数据大于一个包，并且前面的是一个完整的包
 
-
 /* 消息头[LinkC_Message_Header] */
 #define HEART_BEATS		0	// 心跳包
 #define EXIT			1	// 退出
@@ -36,30 +35,31 @@
 #define SYS_ACTION_STATUS	4	// 系统操作状态
 #define SYS_FRIEND_DATA		5	// 好友数据
 #define LOGIN		    	6	// 登录
-#define USER_REQUEST		7	// 用户请求 [以后扩展]
+//-------分割--------//
+#define USER_REQUEST		7	// 用户请求 [扩展中]
+#define USER_MESSAGE		8	// 好友之间的信息[扩展中]
 
 /* 用户请求[LinkC_User_Request] */
 #define USER_LOGOUT		1	// 登出
 #define USER_STATUS_HIDDEN	2	// 状态-隐身
 #define USER_STATUS_ONLINE	3	// 状态-在线
 #define USER_FRIEND_DATA	4	// 请求好友数据
-#define USER_CHAT		5	// 请求聊天
-#define USER_ADD_FRIEND		6	// 添加好友
-#define USER_DEL_FRIEND		7	// 删除好友
-#define USER_MESSAGE		8	// 好友之间的信息
 
-/* 以下是Error_Code 定义区 [LinkC_Sys_Status里面]*/
-/*      操作者 操作项目 状态*/
-
+/* 用户消息[LinkC_User_Message] */
+#define USER_CHAT		1	// 聊天
+#define USER_ACCEPT		2	// 接受
+#define USER_REFUSE		3	// 拒绝
+#define USER_ADD_FRIEND		4	// 添加好友
+#define USER_DEL_FRIEND		5	// 删除好友
 
 struct LinkC_Message_Header_t
 {
 	uint8_t  Version;		// 协议版本
 	uint8_t  Totle;			// 总包数
-	uint16_t MessageHeader;		// 服务类型
+	uint8_t  Current;		// 当前包标记
+	uint8_t MessageHeader;		// 服务类型
 	uint16_t MessageLength;		// 数据总长度
 	time_t	 Time;			// 时间戳
-	uint8_t  Current;		// 当前包标记
 };
 struct LinkC_User_Request_t{
 	uint16_t Action;
@@ -78,28 +78,41 @@ struct LinkC_Msg_Buf_t{
 	int offset;
 };
 
+struct LinkC_User_Message_t{
+	int SrcUID;
+	int Action;
+};
+
 typedef struct LinkC_Message_Header_t	LinkC_Message_Header;
 typedef struct LinkC_User_Request_t	LinkC_User_Request;
+typedef struct LinkC_User_Message_t	LinkC_User_Message;
 typedef struct login_data		LinkC_User_Login;
+typedef struct user_data		LinkC_User_Data;
 typedef struct LinkC_Sys_Status_t	LinkC_Sys_Status;
 typedef struct friend_data		LinkC_Sys_Friend_Data;
 
 #define MESSAGE_HEADER_LENGTH	sizeof(struct LinkC_Message_Header_t)
 #define USER_REQUEST_LENGTH	sizeof(struct LinkC_User_Request_t)
+#define USER_MESSAGE_LENGTH	sizeof(struct LinkC_User_Message_t)
 #define USER_LOGIN_LENGTH	sizeof(struct login_data)
+#define USER_DATA_LENGTH	sizeof(struct user_data)
 #define SYS_STATUS_LENGTH	sizeof(struct LinkC_Sys_Status_t)
 #define SYS_FRIEND_DATA_LENGTH	sizeof(struct friend_data)
 
 // 缩写一下，啊哈哈哈哈哈
 #define LMH	LinkC_Message_Header
 #define LUR	LinkC_User_Request
+#define LUM	LinkC_User_Message
 #define LUL	LinkC_User_Login
+#define LUD	LinkC_User_Data
 #define LSS	LinkC_Sys_Status
 #define LSF	LinkC_Sys_Friend_Data
 
 #define LMH_L	MESSAGE_HEADER_LENGTH
 #define LUR_L	USER_REQUEST_LENGTH
+#define LUM_L	USER_MESSAGE_LENGTH
 #define LUL_L	USER_LOGIN_LENGTH
+#define LUD_L	USER_DATA_LENGTH
 #define LSS_L	SYS_STATUS_LENGTH
 #define LSF_L	SYS_FRIEND_DATA_LENGTH
 // 缩写 End

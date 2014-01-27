@@ -127,6 +127,19 @@ start:
 					else
 						send_friend_data(user,data);
 				}
+				else if(((LUR *)data)->Action == USER_CHAT)
+				{
+					sned_friend_data(user,data);
+					tmp = get_info(((LUR*)data)->UID,STATUS_GET);
+					if(tmp > 0)
+					{
+						tmp = get_info(((LUR*)data)->UID,SOCKFD_GET);
+						((LUM *)data)->Action	= USER_CHAT;
+						((LUM *)data)->SrcUID	= user.UID;
+						length = pack_message(USER_MESSAGE,data,LUM_L,buffer);
+						send(tmp,buffer,length,0);
+					}
+				}
 			}
 		}
 	}

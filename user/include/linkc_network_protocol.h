@@ -56,12 +56,13 @@
 
 struct LinkC_Message_Header_t
 {
-	uint8_t  Version;		// 协议版本
-	uint8_t  Totle;			// 总包数
-    uint8_t  MessageHeader;		// 服务类型
-	uint16_t MessageLength;		// 数据总长度
-	time_t	 Time;			// 时间戳
-	uint8_t  Current;		// 当前包标记
+    uint8_t  Version;               // 协议版本
+    uint8_t  Totle;                 // 总包数
+    uint8_t  Current;               // 当前包标记
+    uint8_t  MessageHeader;          // 服务类型
+    uint16_t MessageLength;         // 数据总长度
+    time_t   Time;                  // 时间戳
+
 };
 struct LinkC_User_Request_t{
 	uint16_t Action;
@@ -81,8 +82,7 @@ struct LinkC_Msg_Buf_t{
 };
 struct LinkC_User_Message_t{
     int SrcUID;
-    int DestUID;
-    int ActionType;
+    int Action;
 };
 
 typedef struct LinkC_Message_Header_t	LinkC_Message_Header;

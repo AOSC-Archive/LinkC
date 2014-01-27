@@ -52,7 +52,7 @@ extern int get_info (int UID,int _Flag);
  * 参数：1	int UID		用户的UID
  * 参数：2	int _Flag	操作方式
  */
-#define STATE_GET	1
+#define STATUS_GET	1
 #define SOCKFD_GET	2
 
 extern int add_friend(int UID,int _who_ID,int _Flag);

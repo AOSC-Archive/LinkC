@@ -2,15 +2,15 @@
 #include "linkc_network_protocol.h"
 #include "linkc_types.h"
 
-TCP_MessageRecver::TCP_MessageRecver(class TCP_csocket *sk, QThread *parent){
+TCP_MessageRecver::TCP_MessageRecver(class TCP_csocket *sk){
     Server = *sk;
-    buffer = new void[MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1];
-   package = new void[MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1];
+    buffer = malloc(MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
+   package = malloc(MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
 }
 
 TCP_MessageRecver::~TCP_MessageRecver(){
-    delete buffer;
-    delete package;
+    free(buffer);
+    free(package);
 }
 
 void TCP_MessageRecver::run(){

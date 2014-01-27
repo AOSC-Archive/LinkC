@@ -11,7 +11,7 @@ class TCP_MessageRecver : public QThread
 {
     Q_OBJECT
 public:
-    explicit TCP_MessageRecver(TCP_csocket *sk, QThread *parent);
+    explicit TCP_MessageRecver(TCP_csocket *sk);
     ~TCP_MessageRecver();
     void run();
 

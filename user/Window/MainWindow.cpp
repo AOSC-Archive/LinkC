@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
     if(Connection_state == -1){
         exit(0);  // 如果链接失败，退出
     }
+    Recver      = new TCP_MessageRecver(&server);
     this->setCentralWidget(MainWidget); // 设置主widget
     MainWidget->setLayout(layout);      // 设置主layout
     layout->addLayout(MainLayout,0,0,1,1);
@@ -63,8 +64,10 @@ MainWindow::MainWindow(QWidget *parent) :
         QPixmap pic("01.jpg");
         head->setPixmap(pic);
         head->setGeometry(0,0,50,50);
+//############连接####################
         this->connect(head, SIGNAL(clicked()), this, SLOT(check()));
         this->connect(area, SIGNAL(ChatTo(int)),this, SLOT(ChatWith(int)));
+        this->connect(Recver,SIGNAL(UserMessage(const LinkC_User_Message*)),this,SLOT(UserRequest(LinkC_User_Message*)));
         head->show();
 //############顶部初始化完毕############
 
@@ -93,7 +96,7 @@ void MainWindow::test_slot(int i){
 
 int MainWindow::NetworkInit(void){
 	int i;
-    server.Set_IP("117.59.11.226");
+    server.Set_IP("127.0.0.1");
     server.Debug_Csocket_IP();
 	server.Set_Port(2341);
 	server.Debug_Csocket_Port();
@@ -215,7 +218,7 @@ void MainWindow::check(){
 void MainWindow::ChatWith(int UID){
     ChatDialog *log;
 //    friend_data MyFriend;
-    ((LUR*)package)->Action=USER_FRIEND_DATA;
+    ((LUR*)package)->Action=USER_CHAT;
     ((LUR*)package)->Flag  =1;
     ((LUR*)package)->UID   =UID;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
@@ -246,7 +249,6 @@ void MainWindow::ChatWith(int UID){
         server.Recv_Remain(buffer);
     else
         server.Recv_msg(buffer,STD_PACKAGE_SIZE,0);     // Do not Edit This Code!
-//    memcpy((void *)&MyFriend,buffer,sizeof(MyFriend));
     if(!ChatDialogMap.contains(UID)){
         log = new ChatDialog((friend_data *)buffer);
         log->show();
@@ -257,4 +259,16 @@ void MainWindow::ChatWith(int UID){
         log->show();
     }
     return;
+}
+
+void MainWindow::UserRequest(LUM *Message){
+    if(Message->Action == USER_CHAT){
+        char tmp[128];
+        snprintf(tmp,127,"用户UID为 %d 的好友想与你聊天",Message->SrcUID);
+        int answer = QMessageBox::question(0,"QUESTION",tr(tmp),QMessageBox::Yes|QMessageBox::No);
+        if(answer == QMessageBox::Yes){
+        }
+        else{
+        }
+    }
 }
