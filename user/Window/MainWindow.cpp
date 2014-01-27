@@ -67,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //############连接####################
         this->connect(head, SIGNAL(clicked()), this, SLOT(check()));
         this->connect(area, SIGNAL(ChatTo(int)),this, SLOT(ChatWith(int)));
-        this->connect(Recver,SIGNAL(UserMessage(const LinkC_User_Message*)),this,SLOT(UserRequest(LinkC_User_Message*)));
+        this->connect(Recver,SIGNAL(UserMessage(int,int)),this,SLOT(UserRequest(int,int)));
         head->show();
 //############顶部初始化完毕############
 
@@ -80,8 +80,7 @@ MainWindow::MainWindow(QWidget *parent) :
     Login();        //登录
     delete s;
     InitFriendList();
-
-
+    Recver->start();
 }
 
 MainWindow::~MainWindow(){
@@ -218,37 +217,11 @@ void MainWindow::check(){
 void MainWindow::ChatWith(int UID){
     ChatDialog *log;
 //    friend_data MyFriend;
-    ((LUR*)package)->Action=USER_CHAT;
-    ((LUR*)package)->Flag  =1;
+    ((LUR*)package)->Action=USER_CHAT_REQUEST;
     ((LUR*)package)->UID   =UID;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);
-    bzero(buffer,STD_PACKAGE_SIZE);
-    server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);
 
-    flag = get_message_header(buffer);
-    if(flag == SYS_ACTION_STATUS){
-        unpack_message(buffer,package);
-        if(((LSS *)package)->Action == USER_FRIEND_DATA){
-            if(((LSS *)package)->Status == LINKC_SUCCESS)
-                printf("Debug >> State\t\t= [Success]\n");
-            else{
-                if(((LSS *)package)->Status == LINKC_FAILURE)
-                    printf("Debug >> State\t\t= [Failure]\n");
-                else
-                    printf("Debug >> Friend\t\t= [NULL]");
-                return;
-            }
-        }
-    }
-    else{
-        printf("Message Header Incrrect\n");
-        return ;
-    }
-    if(server.Is_remain() == 1)
-        server.Recv_Remain(buffer);
-    else
-        server.Recv_msg(buffer,STD_PACKAGE_SIZE,0);     // Do not Edit This Code!
     if(!ChatDialogMap.contains(UID)){
         log = new ChatDialog((friend_data *)buffer);
         log->show();
@@ -261,14 +234,15 @@ void MainWindow::ChatWith(int UID){
     return;
 }
 
-void MainWindow::UserRequest(LUM *Message){
-    if(Message->Action == USER_CHAT){
+void MainWindow::UserRequest(int Action,int SrcUID){
+    if(Action == USER_CHAT){
         char tmp[128];
-        snprintf(tmp,127,"用户UID为 %d 的好友想与你聊天",Message->SrcUID);
+        snprintf(tmp,127,"Your Friend[Which UID is %d] Wants to chat with you",SrcUID);
         int answer = QMessageBox::question(0,"QUESTION",tr(tmp),QMessageBox::Yes|QMessageBox::No);
         if(answer == QMessageBox::Yes){
         }
-        else{
-        }
+    }
+    else{
+        printf("Action == %d\n",Action);
     }
 }

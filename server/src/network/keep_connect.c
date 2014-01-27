@@ -111,6 +111,7 @@ start:
 			if(flag == EXIT)
 			{
 				user_logout(&user);
+				printf("EXIT\n");
 				goto end;
 			}
 			else if(flag == USER_REQUEST)
@@ -118,6 +119,7 @@ start:
 				if(((LUR *)data)->Action == USER_LOGOUT)	// 注销
 				{
 					user_logout(&user);
+					printf("Logout\n");
 					goto end;
 				}
 				else if(((LUR *)data)->Action == USER_FRIEND_DATA)	// 好友数据
@@ -127,9 +129,9 @@ start:
 					else
 						send_friend_data(user,data);
 				}
-				else if(((LUR *)data)->Action == USER_CHAT)
+				else if(((LUR *)data)->Action == USER_CHAT_REQUEST)
 				{
-					sned_friend_data(user,data);
+					//send_friend_data(user,data);
 					tmp = get_info(((LUR*)data)->UID,STATUS_GET);
 					if(tmp > 0)
 					{

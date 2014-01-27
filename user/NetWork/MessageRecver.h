@@ -17,7 +17,7 @@ public:
 
 signals:
     void MessageRecved  (const void *data);
-    void UserMessage    (const LUM* Message);
+    void UserMessage    (int,int);
     void RecvError      ();
 
 public slots:
@@ -37,7 +37,7 @@ public:
     void run();
 
 signals:
-    void MessageRecved(const void *data);
+    void MessageRecved(const LinkC_User_Message *data);
 
 public slots:
     void MessageSend(const void *data, int legth, int flag);

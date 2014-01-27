@@ -279,7 +279,7 @@ int TCP_csocket::TCP_Recv(void *out, int out_size, int flag)
                 tmp = recv(Sockfd,(char *)recv_buffer+Length,STD_PACKAGE_SIZE,flag);
                 if(tmp <= 0)
                 {
-                    fprintf(stderr,"Recv Error!\n");
+                    perror("Recv");
                     return LINKC_FAILURE;
                 }
                 Length += tmp;
@@ -333,7 +333,7 @@ int TCP_csocket::TCP_Recv(void *out, int out_size, int flag)
             tmp = recv(Sockfd,(char *)recv_buffer+Length,STD_PACKAGE_SIZE,flag);
             if(tmp <= 0)
             {
-                fprintf(stderr,"Recv Error!\n");
+                perror("Recv");
                 return LINKC_FAILURE;
             }
             Length += tmp;

@@ -1,6 +1,7 @@
 #include "MessageRecver.h"
 #include "linkc_network_protocol.h"
 #include "linkc_types.h"
+#include <QMessageBox>
 
 TCP_MessageRecver::TCP_MessageRecver(class TCP_csocket *sk){
     Server = *sk;
@@ -26,7 +27,8 @@ void TCP_MessageRecver::run(){
         header = get_message_header(buffer);
         if(header == USER_MESSAGE){
             unpack_message(buffer,package);
-            emit UserMessage((LUM*)package);
+            printf("Action == %d\n",((LUM*)package)->Action);
+            emit UserMessage(((LUM*)package)->Action,((LUM*)package)->SrcUID);
             continue;
         }
         fprintf(stderr,"This Message Is Not Supposed!\n");

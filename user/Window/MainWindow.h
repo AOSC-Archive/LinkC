@@ -41,7 +41,7 @@ private slots:
     void check(void);
     void test_slot(int i);
     void ChatWith(int UID);
-    void UserRequest(LUM *Message);
+    void UserRequest(int,int);
 signals:
     void test_signal(int i);
 private:

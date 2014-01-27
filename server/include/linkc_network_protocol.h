@@ -44,6 +44,7 @@
 #define USER_STATUS_HIDDEN	2	// 状态-隐身
 #define USER_STATUS_ONLINE	3	// 状态-在线
 #define USER_FRIEND_DATA	4	// 请求好友数据
+#define USER_CHAT_REQUEST	5	// 聊天请求
 
 /* 用户消息[LinkC_User_Message] */
 #define USER_CHAT		1	// 聊天
