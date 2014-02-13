@@ -23,12 +23,14 @@ protected:
 class LinkcFriendItem : public QFrame{
     Q_OBJECT
 public:
-    explicit LinkcFriendItem(QWidget *parent = 0);
-    void setFriend(const friend_data *data);
+    explicit    LinkcFriendItem(QWidget *parent = 0);
+    void        setFriend(const friend_data data);
+    friend_data GetFriend(void);
 signals:
     void clicked();
 protected:
     QHBoxLayout *layout;
+    friend_data Friend;
     virtual void mousePressEvent(QMouseEvent *event);
 };
 

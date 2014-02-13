@@ -26,9 +26,15 @@ LinkcFriendItem::LinkcFriendItem(QWidget *parent)
     this->setLayout(layout);
     this->show();
 }
-void LinkcFriendItem::setFriend(const friend_data *data){
-    QLabel *label = new QLabel(tr(data->name));
+void LinkcFriendItem::setFriend(const friend_data data){
+    QLabel *label = new QLabel(tr(data.name));
+    Friend = data;
+    printf("Test\n");
     layout->addWidget(label);
+}
+
+friend_data LinkcFriendItem::GetFriend(){
+    return Friend;
 }
 
 void LinkcFriendItem::mousePressEvent(QMouseEvent *event){
@@ -42,19 +48,22 @@ void LinkcFriendItem::mousePressEvent(QMouseEvent *event){
 //##########################################
 FriendArea::FriendArea(QWidget *parent)
     :QWidget(parent){
-    list              = new QListWidget(this);
-    connect(list,SIGNAL(itemClicked(QListWidgetItem*)),this,SLOT(ItemClicked(QListWidgetItem*)));
+    FriendLayout = new QVBoxLayout;
+    this->setLayout(FriendLayout);
+//    list = new QListWidget(this);
+//    connect(list,SIGNAL(itemClicked(QListWidgetItem*)),this,SLOT(ItemClicked(QListWidgetItem*)));
 }
 
 void FriendArea::AddFriendToLayout(friend_data Myfriend){
-     QListWidgetItem *f = new QListWidgetItem;
-     f->setText(Myfriend.name);
-     list->addItem(f);
-     FriendMap[f]=Myfriend.UID;
+     LinkcFriendItem *f = new LinkcFriendItem(this);
+     f->setFriend(Myfriend);
+     FriendLayout->addWidget(f);
+//     list->addItem(f);
+//     FriendMap[f]=Myfriend.UID;
 }
 
 void FriendArea::resizeEvent(QResizeEvent *){
-    list->resize(this->width(),this->height());
+//    list->resize(this->width(),this->height());
 
 }
 

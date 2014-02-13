@@ -66,15 +66,15 @@ MainWindow::MainWindow(QWidget *parent) :
         head->setGeometry(0,0,50,50);
 //############连接####################
         this->connect(head, SIGNAL(clicked()), this, SLOT(check()));
-        this->connect(area, SIGNAL(ChatTo(int)),this, SLOT(ChatWith(int)));
+//        this->connect(area, SIGNAL(ChatTo(int)),this, SLOT(ChatWith(int)));
         this->connect(Recver,SIGNAL(UserMessage(int,int)),this,SLOT(UserRequest(int,int)));
         head->show();
 //############顶部初始化完毕############
 
 //############初始化中间部分############
     MainLayout->addSpacing(50);
-    MainLayout->addWidget(tab);
-    tab->addTab(area,QString("Friend"));
+    MainLayout->addWidget(area);
+//    tab->addTab(area,QString("Friend"));
 
 //############登录####################
     Login();        //登录
@@ -205,7 +205,9 @@ int MainWindow::InitFriendList(){
     friend_data *ffb = new friend_data[area->FriendCount()];    // new memory
     memcpy(ffb,package,area->FriendCount() * sizeof(friend_data));  // Save Friend Data
 
-    area->AddFriendToLayout(ffb[0]);
+    int i;
+    for(i=0;i<area->FriendCount();i++)
+        area->AddFriendToLayout(ffb[i]);
 
     return 0;
 }
@@ -237,7 +239,7 @@ void MainWindow::ChatWith(int UID){
 void MainWindow::UserRequest(int Action,int SrcUID){
     if(Action == USER_CHAT){
         char tmp[128];
-        snprintf(tmp,127,"Your Friend[Which UID is %d] Wants to chat with you",SrcUID);
+        snprintf(tmp,127,"Your Friend[Whose UID is %d] Wants to chat with you",SrcUID);
         int answer = QMessageBox::question(0,"QUESTION",tr(tmp),QMessageBox::Yes|QMessageBox::No);
         if(answer == QMessageBox::Yes){
         }
