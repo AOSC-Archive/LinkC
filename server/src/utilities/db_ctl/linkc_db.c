@@ -169,6 +169,7 @@ int get_friends_data (int UID,struct friend_data ** ffb)
 			strcpy (_friend[i].telephone,dbResult[user_c + 5 -1]);
 			strcpy (_friend[i].company,dbResult[user_c + 6 -1]);
 			strcpy (_friend[i].address,dbResult[user_c + 7 -1]);
+			_friend[i].ip=0;
 #if DEBUG
 printf ("The Data Get\t= [%s]\n\t---> %d|%s|%s|%s|%s|%s\n",exec,_friend[i].UID,_friend[i].name,_friend[i].nickname,_friend[i].telephone,_friend[i].company,_friend[i].address);
 #endif

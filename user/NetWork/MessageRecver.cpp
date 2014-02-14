@@ -25,13 +25,21 @@ void TCP_MessageRecver::run(){
             continue;
         }
         header = get_message_header(buffer);
-        if(header == USER_MESSAGE){
+        if(header == USER_MESSAGE){         // 如果是好友信息
             unpack_message(buffer,package);
             printf("Action == %d\n",((LUM*)package)->Action);
             emit UserMessage(((LUM*)package)->Action,((LUM*)package)->SrcUID);
             continue;
         }
-        fprintf(stderr,"This Message Is Not Supposed!\n");
+        else if(header == SYS_ACTION_STATUS){
+            unpack_message(buffer,package);
+            printf("Action == %d\nStatus == %d\n",((LSS *)package)->Action,((LSS *)package)->Status);
+            if(((LSS *)package)->Status != LINKC_SUCCESS){
+            }
+        }
+        else{
+            fprintf(stderr,"This Message Is Not Supposed!\n");
+        }
     }
 }
 
