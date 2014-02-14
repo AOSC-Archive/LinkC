@@ -20,17 +20,18 @@ FriendGroup::FriendGroup(QWidget *parent)
 
 //##########################################
 LinkcFriendItem::LinkcFriendItem(QWidget *parent)
-    :QFrame(parent){
-    this->setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
-    layout = new QHBoxLayout;
-    this->setLayout(layout);
+    :QLabel(parent){
+//    this->setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
+//    layout = new QHBoxLayout;
+//    this->setLayout(layout);
     this->show();
 }
 void LinkcFriendItem::setFriend(const friend_data data){
-    QLabel *label = new QLabel(tr(data.name));
+//    QLabel *label = new QLabel(tr(data.name));
     Friend = data;
-    printf("Test\n");
-    layout->addWidget(label);
+    this->setText(tr(data.name));
+
+//    layout->addWidget(label);
 }
 
 friend_data LinkcFriendItem::GetFriend(){
@@ -39,7 +40,7 @@ friend_data LinkcFriendItem::GetFriend(){
 
 void LinkcFriendItem::mousePressEvent(QMouseEvent *event){
     if (event->button() == Qt::LeftButton){
-        emit clicked();
+        emit clicked(Friend);
     }
     else
     QFrame::mousePressEvent(event);
@@ -49,22 +50,27 @@ void LinkcFriendItem::mousePressEvent(QMouseEvent *event){
 FriendArea::FriendArea(QWidget *parent)
     :QWidget(parent){
     FriendLayout = new QVBoxLayout;
-    this->setLayout(FriendLayout);
-//    list = new QListWidget(this);
-//    connect(list,SIGNAL(itemClicked(QListWidgetItem*)),this,SLOT(ItemClicked(QListWidgetItem*)));
+    FriendLabelArea = new QWidget(this);
+    FriendLabelArea->setLayout(FriendLayout);
+    FriendLabelArea->resize(1,1);
+    list = new QScrollArea(this);
+    list->setWidget(FriendLabelArea);
 }
 
 void FriendArea::AddFriendToLayout(friend_data Myfriend){
      LinkcFriendItem *f = new LinkcFriendItem(this);
      f->setFriend(Myfriend);
+     FriendLabelArea->resize(list->width()-20,_FRIEND_LABEL_HEIGTH*friendcount);
      FriendLayout->addWidget(f);
+     this->connect(f,SIGNAL(clicked(friend_data)),this,SLOT(ItemClicked(friend_data)));
+//     FriendLayout->addWidget(f);
 //     list->addItem(f);
 //     FriendMap[f]=Myfriend.UID;
 }
 
 void FriendArea::resizeEvent(QResizeEvent *){
-//    list->resize(this->width(),this->height());
-
+    list->resize(this->width(),this->height());
+    FriendLabelArea->resize(list->width()-20,_FRIEND_LABEL_HEIGTH*friendcount);
 }
 
 void FriendArea::setFriendCount(const char s[]){
@@ -79,7 +85,6 @@ int FriendArea::FriendCount(){
     return friendcount;
 }
 
-void FriendArea::ItemClicked(QListWidgetItem *item){
-    result = FriendMap.find(item);
-    emit ChatTo(result.value());
+void FriendArea::ItemClicked(struct friend_data data){
+    emit ChatTo(data);
 }

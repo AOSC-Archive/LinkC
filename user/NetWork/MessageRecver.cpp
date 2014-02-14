@@ -16,15 +16,18 @@ TCP_MessageRecver::~TCP_MessageRecver(){
 
 void TCP_MessageRecver::run(){
     int header;
+    printf("MessageRecver Started!\n");
     while(1){
         bzero(buffer,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
         bzero(package,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
         if(Server.TCP_Recv(buffer,MAX_BUFFER_SIZE,0) == LINKC_FAILURE){
             emit RecvError();
+            perror("Recv:");
             sleep(10);
             continue;
         }
         header = get_message_header(buffer);
+        printf("Heaer = %d\n",header);
         if(header == USER_MESSAGE){         // 如果是好友信息
             unpack_message(buffer,package);
             printf("Action == %d\n",((LUM*)package)->Action);

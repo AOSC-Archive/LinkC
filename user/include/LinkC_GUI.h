@@ -11,6 +11,8 @@
 #include <qt4/QtGui/QtGui>
 #include <qt4/QtGui/QListWidget>
 
+#define _FRIEND_LABEL_HEIGTH    30
+
 class FriendGroup : public QListWidget{
     Q_OBJECT
 public:
@@ -20,14 +22,14 @@ protected:
 
 
 
-class LinkcFriendItem : public QFrame{
+class LinkcFriendItem : public QLabel{
     Q_OBJECT
 public:
     explicit    LinkcFriendItem(QWidget *parent = 0);
     void        setFriend(const friend_data data);
     friend_data GetFriend(void);
 signals:
-    void clicked();
+    void clicked(struct friend_data);
 protected:
     QHBoxLayout *layout;
     friend_data Friend;
@@ -46,15 +48,15 @@ public:
     void setFriendCount(int n);
     int FriendCount(void);
 public slots:
-    void ItemClicked(QListWidgetItem *item);
+    void ItemClicked(struct friend_data);
 signals:
-    void ChatTo(int);
+    void ChatTo(struct friend_data);
 protected:
     int friendcount;
+    QWidget     *FriendLabelArea;
     typedef QMap<QListWidgetItem *,int>_Map;
     _Map::const_iterator Value;
-    QScrollArea *s;
-    QListWidget *list;
+    QScrollArea *list;
     QWidget     *FriendWidget;
     QVBoxLayout *FriendLayout;
     _Map         FriendMap;
@@ -64,7 +66,7 @@ protected:
 class ChatDialog : public QWidget{
     Q_OBJECT
 public:
-    explicit ChatDialog(friend_data *MyFriend, QWidget *parent = 0);
+    explicit ChatDialog(friend_data MyFriend, QWidget *parent = 0);
     ~ChatDialog();
     void resizeEvent(QResizeEvent *);
     int ConnectToPeer(void);

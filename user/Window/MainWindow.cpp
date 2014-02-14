@@ -66,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent) :
         head->setGeometry(0,0,50,50);
 //############连接####################
         this->connect(head, SIGNAL(clicked()), this, SLOT(check()));
-//        this->connect(area, SIGNAL(ChatTo(int)),this, SLOT(ChatWith(int)));
+        this->connect(area, SIGNAL(ChatTo(struct friend_data)),this, SLOT(ChatWith(struct friend_data)));
         this->connect(Recver,SIGNAL(UserMessage(int,int)),this,SLOT(UserRequest(int,int)));
         head->show();
 //############顶部初始化完毕############
@@ -164,7 +164,8 @@ int MainWindow::Login(){
             printf("Debug >> Login\t\t= [MessageHeader Incorrect]\n");
             exit(0);
 		}
-		if (i == -1)exit(0);
+        else
+            exit(0);
 	}
 }
 
@@ -216,20 +217,26 @@ void MainWindow::check(){
     printf ("ALl Right!\n");
 }
 
-void MainWindow::ChatWith(int UID){
+void MainWindow::ChatWith(friend_data data){
     ChatDialog *log;
 //    friend_data MyFriend;
-    ((LUR*)package)->Action=USER_CHAT_REQUEST;
-    ((LUR*)package)->UID   =UID;
+    if(data.status == STATUS_ONLINE){
+        ((LUR*)package)->Action=USER_CHAT_REQUEST;
+        ((LUR*)package)->UID   =data.UID;
+        length = pack_message(USER_REQUEST,package,LUR_L,buffer);
+        server.Send_msg(buffer,length,0);
+    }
+    ((LUR*)package)->Action = USER_FRIEND_DATA;
+    ((LUR*)package)->UID    = data.UID;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);
 
-    if(!ChatDialogMap.contains(UID)){
-        log = new ChatDialog((friend_data *)buffer);
+    if(!ChatDialogMap.contains(data.UID)){
+        log = new ChatDialog(data);
         log->show();
-        ChatDialogMap.insert(UID, log);
+        ChatDialogMap.insert(data.UID, log);
     }else{
-        tmp = ChatDialogMap.find(UID);
+        tmp = ChatDialogMap.find(data.UID);
         log = tmp.value();
         log->show();
     }

@@ -40,7 +40,7 @@ public:
 private slots:
     void check(void);
     void test_slot(int i);
-    void ChatWith(int UID);
+    void ChatWith(struct friend_data);
     void UserRequest(int,int);
 signals:
     void test_signal(int i);
