@@ -14,9 +14,9 @@ int i;
 QString str;
 QByteArray translate;
 
-ChatDialog::ChatDialog(friend_data _MyFriend, QWidget *parent)
+ChatDialog::ChatDialog(LinkC_Friend_Data _MyFriend, QWidget *parent)
     :QWidget(parent){
-    memcpy((void *)&MyFriend,(void *)&_MyFriend,sizeof(friend_data));
+    memcpy((void *)&MyFriend,(void *)&_MyFriend,sizeof(LinkC_Friend_Data));
     SendButton = new QPushButton(this);
     QuitButton = new QPushButton(this);
     Layout = new QVBoxLayout(this);

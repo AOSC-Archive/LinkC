@@ -40,8 +40,9 @@ public:
 private slots:
     void check(void);
     void test_slot(int i);
-    void ChatWith(struct friend_data);
-    void UserRequest(int,int);
+    void ChatWith(LinkC_Friend_Data);
+    void UserRequest(LinkC_User_Message);
+    void SysActionStatus(QVariant);
 signals:
     void test_signal(int i);
 private:

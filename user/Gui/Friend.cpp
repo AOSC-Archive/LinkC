@@ -26,7 +26,7 @@ LinkcFriendItem::LinkcFriendItem(QWidget *parent)
 //    this->setLayout(layout);
     this->show();
 }
-void LinkcFriendItem::setFriend(const friend_data data){
+void LinkcFriendItem::setFriend(const LinkC_Friend_Data data){
 //    QLabel *label = new QLabel(tr(data.name));
     Friend = data;
     this->setText(tr(data.name));
@@ -34,7 +34,7 @@ void LinkcFriendItem::setFriend(const friend_data data){
 //    layout->addWidget(label);
 }
 
-friend_data LinkcFriendItem::GetFriend(){
+LinkC_Friend_Data LinkcFriendItem::GetFriend(){
     return Friend;
 }
 
@@ -57,12 +57,13 @@ FriendArea::FriendArea(QWidget *parent)
     list->setWidget(FriendLabelArea);
 }
 
-void FriendArea::AddFriendToLayout(friend_data Myfriend){
+void FriendArea::AddFriendToLayout(LinkC_Friend_Data Myfriend){
      LinkcFriendItem *f = new LinkcFriendItem(this);
      f->setFriend(Myfriend);
      FriendLabelArea->resize(list->width()-20,_FRIEND_LABEL_HEIGTH*friendcount);
      FriendLayout->addWidget(f);
-     this->connect(f,SIGNAL(clicked(friend_data)),this,SLOT(ItemClicked(friend_data)));
+     this->connect(f,SIGNAL(clicked(LinkC_Friend_Data)),this,SLOT(ItemClicked(LinkC_Friend_Data)));
+     FriendMap[Myfriend.UID] = Myfriend;
 //     FriendLayout->addWidget(f);
 //     list->addItem(f);
 //     FriendMap[f]=Myfriend.UID;
@@ -85,6 +86,11 @@ int FriendArea::FriendCount(){
     return friendcount;
 }
 
-void FriendArea::ItemClicked(struct friend_data data){
+void FriendArea::ItemClicked(LinkC_Friend_Data data){
     emit ChatTo(data);
+}
+
+LinkC_Friend_Data FriendArea::GetFriendDataByUID(int UID){
+    result = FriendMap.find(UID);
+    return result.value();
 }

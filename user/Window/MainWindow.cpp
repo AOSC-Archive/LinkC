@@ -16,6 +16,7 @@
 #include <qt4/QtGui/QPushButton>
 #include <qt4/QtGui/QListView>
 #include <qt4/QtGui/QMainWindow>
+#include <qt4/QtCore/QVariant>      // 为了注册数据类型
 
 
 char buffer[MAXBUF];
@@ -45,6 +46,13 @@ MainWindow::MainWindow(QWidget *parent) :
     layout->addLayout(MainLayout,0,0,1,1);
     this->setMaximumSize(300,500);
     this->setMinimumSize(150,200);
+
+//############注册数据类型##########
+    LinkC_Sys_Status D1;
+    QVariant DataVar;
+    DataVar.setValue(D1);
+    qRegisterMetaType<QVariant>("QVariant");
+
 //############初始化顶部############
         Top->setGeometry(0,0,this->width(),50); //设置大小
         QHBoxLayout *line = new QHBoxLayout;
@@ -66,8 +74,9 @@ MainWindow::MainWindow(QWidget *parent) :
         head->setGeometry(0,0,50,50);
 //############连接####################
         this->connect(head, SIGNAL(clicked()), this, SLOT(check()));
-        this->connect(area, SIGNAL(ChatTo(struct friend_data)),this, SLOT(ChatWith(struct friend_data)));
-        this->connect(Recver,SIGNAL(UserMessage(int,int)),this,SLOT(UserRequest(int,int)));
+        this->connect(area, SIGNAL(ChatTo(LinkC_Friend_Data)),this, SLOT(ChatWith(LinkC_Friend_Data)));
+        this->connect(Recver,SIGNAL(UserMessage(LinkC_User_Message)),this,SLOT(UserRequest(LinkC_User_Message)));
+        this->connect(Recver,SIGNAL(SysActionStatus(QVariant)),this,SLOT(SysActionStatus(QVariant)));
         head->show();
 //############顶部初始化完毕############
 
@@ -200,11 +209,11 @@ int MainWindow::InitFriendList(){
             }
         }
     }
-    flag = non_std_m_message_recv(server.GetSockfd(),sizeof(friend_data),package);
+    flag = non_std_m_message_recv(server.GetSockfd(),sizeof(LinkC_Friend_Data),package);
     printf("Debug >> Friends Count\t= [%d]\n",flag);             // debug
     area->setFriendCount(flag);                       // save Friend count
-    friend_data *ffb = new friend_data[area->FriendCount()];    // new memory
-    memcpy(ffb,package,area->FriendCount() * sizeof(friend_data));  // Save Friend Data
+    LinkC_Friend_Data *ffb = new LinkC_Friend_Data[area->FriendCount()];    // new memory
+    memcpy(ffb,package,area->FriendCount() * sizeof(LinkC_Friend_Data));  // Save Friend Data
 
     int i;
     for(i=0;i<area->FriendCount();i++)
@@ -217,10 +226,9 @@ void MainWindow::check(){
     printf ("ALl Right!\n");
 }
 
-void MainWindow::ChatWith(friend_data data){
+void MainWindow::ChatWith(LinkC_Friend_Data data){
     ChatDialog *log;
-//    friend_data MyFriend;
-    if(data.status == STATUS_ONLINE){
+    if(data.status == STATUS_ONLINE){       // 发送连接请求
         ((LUR*)package)->Action=USER_CHAT_REQUEST;
         ((LUR*)package)->UID   =data.UID;
         length = pack_message(USER_REQUEST,package,LUR_L,buffer);
@@ -243,15 +251,21 @@ void MainWindow::ChatWith(friend_data data){
     return;
 }
 
-void MainWindow::UserRequest(int Action,int SrcUID){
-    if(Action == USER_CHAT){
+void MainWindow::UserRequest(struct LinkC_User_Message_t Message){
+    if(Message.Action == USER_CHAT){
         char tmp[128];
-        snprintf(tmp,127,"Your Friend[Whose UID is %d] Wants to chat with you",SrcUID);
+        snprintf(tmp,127,"Your Friend[Whose UID is %d] Wants to chat with you",Message.SrcUID);
         int answer = QMessageBox::question(0,"QUESTION",tr(tmp),QMessageBox::Yes|QMessageBox::No);
         if(answer == QMessageBox::Yes){
+            ChatWith(area->GetFriendDataByUID(Message.SrcUID));
         }
     }
     else{
-        printf("Action == %d\n",Action);
+        printf("Action == %d\n",Message.Action);
     }
+}
+
+void MainWindow::SysActionStatus(QVariant DataVariant){
+    LinkC_Sys_Status status = DataVariant.value<LinkC_Sys_Status>();
+    printf("Action == %d\nStatus == %d\n",status.Action,status.Status);
 }

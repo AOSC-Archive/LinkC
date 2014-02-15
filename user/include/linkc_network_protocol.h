@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <qt4/QtCore/QMetaType>
 #include <time.h>
 #include "def.h"
 #include "linkc_types.h"
@@ -91,7 +92,7 @@ typedef struct LinkC_User_Request_t     LinkC_User_Request;
 typedef struct LinkC_User_Message_t     LinkC_User_Message;
 typedef struct login_data               LinkC_User_Login;
 typedef struct LinkC_Sys_Status_t       LinkC_Sys_Status;
-typedef struct friend_data              LinkC_Sys_Friend_Data;
+typedef struct LinkC_Friend_Data_t      LinkC_Friend_Data;
 
 #define MESSAGE_HEADER_LENGTH	sizeof(struct LinkC_Message_Header_t)
 #define USER_REQUEST_LENGTH 	sizeof(struct LinkC_User_Request_t)
@@ -99,6 +100,8 @@ typedef struct friend_data              LinkC_Sys_Friend_Data;
 #define USER_LOGIN_LENGTH       sizeof(struct login_data)
 #define SYS_STATUS_LENGTH   	sizeof(struct LinkC_Sys_Status_t)
 #define SYS_FRIEND_DATA_LENGTH	sizeof(struct friend_data)
+
+Q_DECLARE_METATYPE(LinkC_Sys_Status)
 
 // 缩写一下，啊哈哈哈哈哈
 #define LMH	LinkC_Message_Header

@@ -26,13 +26,13 @@ class LinkcFriendItem : public QLabel{
     Q_OBJECT
 public:
     explicit    LinkcFriendItem(QWidget *parent = 0);
-    void        setFriend(const friend_data data);
-    friend_data GetFriend(void);
+    void        setFriend(const LinkC_Friend_Data data);
+    LinkC_Friend_Data GetFriend(void);
 signals:
-    void clicked(struct friend_data);
+    void clicked(LinkC_Friend_Data);
 protected:
     QHBoxLayout *layout;
-    friend_data Friend;
+    LinkC_Friend_Data Friend;
     virtual void mousePressEvent(QMouseEvent *event);
 };
 
@@ -42,19 +42,21 @@ class FriendArea : public QWidget{
     Q_OBJECT
 public:
     explicit FriendArea(QWidget *parent = 0);
-    void AddFriendToLayout(friend_data Myfriend);
+    void AddFriendToLayout(LinkC_Friend_Data Myfriend);
     void resizeEvent(QResizeEvent *);
     void setFriendCount(const char s[]);
     void setFriendCount(int n);
     int FriendCount(void);
+
+    LinkC_Friend_Data GetFriendDataByUID(int UID);
 public slots:
-    void ItemClicked(struct friend_data);
+    void ItemClicked(LinkC_Friend_Data);
 signals:
-    void ChatTo(struct friend_data);
+    void ChatTo(LinkC_Friend_Data);
 protected:
     int friendcount;
     QWidget     *FriendLabelArea;
-    typedef QMap<QListWidgetItem *,int>_Map;
+    typedef QMap<int,struct LinkC_Friend_Data_t>_Map;
     _Map::const_iterator Value;
     QScrollArea *list;
     QWidget     *FriendWidget;
@@ -66,7 +68,7 @@ protected:
 class ChatDialog : public QWidget{
     Q_OBJECT
 public:
-    explicit ChatDialog(friend_data MyFriend, QWidget *parent = 0);
+    explicit ChatDialog(LinkC_Friend_Data MyFriend, QWidget *parent = 0);
     ~ChatDialog();
     void resizeEvent(QResizeEvent *);
     int ConnectToPeer(void);
@@ -83,8 +85,8 @@ protected:
     QTextEdit   *History;
     QTextEdit   *Input;
     QVBoxLayout *Layout;
-    struct friend_data MyFriend;
-    p2p_client  peer;
+    LinkC_Friend_Data  MyFriend;
+    p2p_client   peer;
     QTimer *timer;
     int MessageSize;
 };

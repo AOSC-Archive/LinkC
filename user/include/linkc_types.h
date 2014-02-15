@@ -23,7 +23,7 @@ typedef struct user_data
 	struct login_data login;
 }user_data;
 
-typedef struct friend_data
+struct LinkC_Friend_Data_t
 {
 	id_t UID;
 	char name[20];
@@ -36,8 +36,7 @@ typedef struct friend_data
 	char last_login[25];
 	ip_t ip;
 	int status;
-}friend_data;
-
+};
 
 #endif
 

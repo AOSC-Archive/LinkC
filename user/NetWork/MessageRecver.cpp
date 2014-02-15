@@ -17,6 +17,7 @@ TCP_MessageRecver::~TCP_MessageRecver(){
 void TCP_MessageRecver::run(){
     int header;
     printf("MessageRecver Started!\n");
+    QVariant Variant;
     while(1){
         bzero(buffer,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
         bzero(package,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
@@ -31,14 +32,19 @@ void TCP_MessageRecver::run(){
         if(header == USER_MESSAGE){         // 如果是好友信息
             unpack_message(buffer,package);
             printf("Action == %d\n",((LUM*)package)->Action);
-            emit UserMessage(((LUM*)package)->Action,((LUM*)package)->SrcUID);
+            emit UserMessage(*(LUM*)package);
             continue;
         }
         else if(header == SYS_ACTION_STATUS){
             unpack_message(buffer,package);
-            printf("Action == %d\nStatus == %d\n",((LSS *)package)->Action,((LSS *)package)->Status);
-            if(((LSS *)package)->Status != LINKC_SUCCESS){
-            }
+            Variant.setValue(*(LSS *)package);
+            printf("Before\n");
+            emit SysActionStatus(Variant);
+            printf("After\n");
+        }
+        else if(header == SYS_FRIEND_DATA){
+            unpack_message(buffer,package);
+
         }
         else{
             fprintf(stderr,"This Message Is Not Supposed!\n");

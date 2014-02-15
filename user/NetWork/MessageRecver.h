@@ -1,7 +1,8 @@
 #ifndef MESSAGERECVER_H
 #define MESSAGERECVER_H
 
-#include <QThread>
+#include <qt4/QtCore/QThread>
+#include <qt4/QtCore/QVariant>
 #include "linkc_types.h"
 #include "Csocket.h"
 #include "linkc_network_protocol.h"
@@ -17,7 +18,9 @@ public:
 
 signals:
     void MessageRecved  (const void *data);
-    void UserMessage    (int,int);
+    void UserMessage    (LinkC_User_Message);
+    void SysActionStatus(QVariant);
+    void SysFriendData  (LinkC_Friend_Data);
     void RecvError      ();
 
 public slots:
