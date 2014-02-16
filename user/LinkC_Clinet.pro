@@ -18,6 +18,7 @@ HEADERS += include/def.h \
            NetWork/Csocket.h \
            NetWork/MessageRecver.h \
            NetWork/p2p_client.h \
+	   NetWork/HeartBeats.h \
            Window/MainWindow.h
 SOURCES += main.cpp \
            Gui/ChatDialog.cpp \
@@ -28,5 +29,6 @@ SOURCES += main.cpp \
            NetWork/LinkC_Package_Ctl.cpp \
            NetWork/MessageRecver.cpp \
            NetWork/p2p_client.cpp \
+	   NetWork/HeartBeats.cpp \
            Window/LoginWindow.cpp \
            Window/MainWindow.cpp

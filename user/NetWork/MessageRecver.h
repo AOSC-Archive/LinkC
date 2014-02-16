@@ -12,7 +12,7 @@ class TCP_MessageRecver : public QThread
 {
     Q_OBJECT
 public:
-    explicit TCP_MessageRecver(TCP_csocket *sk);
+    explicit TCP_MessageRecver(TCP_csocket *sk, QThread *parent = 0);
     ~TCP_MessageRecver();
     void run();
 
@@ -23,11 +23,8 @@ signals:
     void SysFriendData  (LinkC_Friend_Data);
     void RecvError      ();
 
-public slots:
-    void MessageSend(const void *data, int legth, int flag);
-
 protected:
-    TCP_csocket Server;
+    TCP_csocket Dest;
     void *buffer;
     void *package;
 };
@@ -40,13 +37,13 @@ public:
     void run();
 
 signals:
-    void MessageRecved(const LinkC_User_Message *data);
-
-public slots:
-    void MessageSend(const void *data, int legth, int flag);
+    void UserChatMessage(QString);
+    void RecvError();
 
 protected:
-    UDP_csocket Server;
+    UDP_csocket Dest;
+    void *buffer;
+    void *package;
 };
 
 #endif // MESSAGERECVER_H

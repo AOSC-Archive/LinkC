@@ -21,6 +21,7 @@
 #define END_OF_LINKC_MESSAGE	0X011B	// Esc键 汗!
 #define LINKC_MESSAGE_VERSION	1	// 协议版本
 #define ALL_FRIEND              0
+#define HEART_BEATS_TIME    5   // 心跳时间[感觉有歧义]
 
 /* Error_Code 定义区 [Check_Message里]*/
 #define DIFF_VERSION		-3	// 协议版本不一致
@@ -41,6 +42,7 @@
 //-------分割--------//
 #define USER_REQUEST		7	// 用户请求 [扩展中]
 #define USER_MESSAGE        8   // 好友之间的信息[扩展中]
+#define USER_CHAT_MESSAGE   9   // 好于聊天信息
 
 /* 用户请求[LinkC_User_Request] */
 #define USER_LOGOUT         1	// 登出
@@ -83,8 +85,8 @@ struct LinkC_Msg_Buf_t{
 	int offset;
 };
 struct LinkC_User_Message_t{
-    int SrcUID;
-    int Action;
+    uint32_t SrcUID;
+    uint16_t Action;
 };
 
 typedef struct LinkC_Message_Header_t	LinkC_Message_Header;

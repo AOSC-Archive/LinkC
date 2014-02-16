@@ -16,7 +16,7 @@ int16_t get_message_header(void *Message)
 	return ((LMH*)Message)->MessageHeader;
 }
 
-int16_t pack_message(uint16_t Header,void *Data,uint16_t Length,void *Out)
+int16_t pack_message(uint16_t Header,const void *Data,uint16_t Length,void *Out)
 {
 	((LMH*)Out)->Version = LINKC_MESSAGE_VERSION;
 	((LMH*)Out)->MessageHeader = Header;

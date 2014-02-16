@@ -239,6 +239,7 @@ void MainWindow::ChatWith(LinkC_Friend_Data data){
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);
 
+
     if(!ChatDialogMap.contains(data.UID)){
         log = new ChatDialog(data);
         log->show();
