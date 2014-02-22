@@ -63,7 +63,6 @@ void UDP_MessageRecver::run(){
         if(Dest.UDP_Recv(buffer,MAX_BUFFER_SIZE,0) == LINKC_FAILURE){
             emit RecvError();
             perror("Recv:");
-            sleep(10);
             continue;
         }
         header = get_message_header(buffer);
