@@ -1,18 +1,21 @@
 #include "HeartBeats.h"
 
-HeartBeats::HeartBeats(int sockfd,QThread *parent):
+HeartBeats::HeartBeats(UDP_csocket sk, QThread *parent):
     QThread(parent){
-    ConnFd = sockfd;
+    Dest = sk;
     SendBuffer = new char[128];
 }
 
 void HeartBeats::run(){
+    printf("Heart Beats Started!\n");
     int length = pack_message(HEART_BEATS,NULL,0,SendBuffer);
     int status;
     while(1){
-        status = send(ConnFd,SendBuffer,length,0);
-        if(status <= 0)
+        status = Dest.Send_msg(SendBuffer,length,0);
+        if(status == LINKC_FAILURE){
+            printf("Heart Beats Error\n");
             emit SendError(status);
+        }
         sleep(HEART_BEATS_TIME);
     }
 }

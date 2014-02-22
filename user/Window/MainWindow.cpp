@@ -50,11 +50,14 @@ MainWindow::MainWindow(QWidget *parent) :
 //############注册数据类型##########
     LinkC_Sys_Status D1;
     LinkC_Friend_Data D2;
+    LinkC_User_Message D3;
     QVariant DataVar;
     DataVar.setValue(D1);
     qRegisterMetaType<LinkC_Sys_Status>("LinkC_Sys_Status");
     DataVar.setValue(D2);
     qRegisterMetaType<LinkC_Friend_Data>("LinkC_Friend_Data");
+    DataVar.setValue(D3);
+    qRegisterMetaType<LinkC_User_Message>("LinkC_User_Message");
 
 //############初始化顶部############
         Top->setGeometry(0,0,this->width(),50); //设置大小
@@ -107,7 +110,7 @@ void MainWindow::test_slot(int i){
 
 int MainWindow::NetworkInit(void){
 	int i;
-    server.Set_IP("127.0.0.1");
+    server.Set_IP(SERVER_IP);
     server.Debug_Csocket_IP();
 	server.Set_Port(2341);
 	server.Debug_Csocket_Port();
@@ -120,6 +123,7 @@ int MainWindow::NetworkInit(void){
     server.Debug_Csocket_Sockfd();
     length = pack_message(CONNECTION,package,0,buffer);
     server.Send_msg(buffer,length,0);
+    bzero(buffer,STD_PACKAGE_SIZE);
     length = server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);
     flag = get_message_header(buffer);
     if (flag == SYS_ACTION_STATUS){
@@ -193,7 +197,7 @@ void MainWindow::closeEvent(QCloseEvent *){
 int MainWindow::InitFriendList(){
     int flag;
     ((LUR *)package)->Action = USER_FRIEND_DATA;
-    ((LUR *)package)->Flag = 0;
+    ((LUR *)package)->UID = 0;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);     // Send for Getting Friend Data
     server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);                // recv state
@@ -240,7 +244,6 @@ void MainWindow::ChatWith(LinkC_Friend_Data data){
     ((LUR*)package)->Action = USER_FRIEND_DATA;
     ((LUR*)package)->UID    = data.UID;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
-    server.Send_msg(buffer,length,0);
 
 
     if(!ChatDialogMap.contains(data.UID)){
@@ -253,6 +256,7 @@ void MainWindow::ChatWith(LinkC_Friend_Data data){
         log = tmp.value();
         log->show();
     }
+    server.Send_msg(buffer,length,0);
 }
 
 void MainWindow::UserRequest(struct LinkC_User_Message_t Message){
@@ -270,5 +274,4 @@ void MainWindow::UserRequest(struct LinkC_User_Message_t Message){
 }
 
 void MainWindow::SysActionStatus(LinkC_Sys_Status status){
-    printf("Action == %d\nStatus == %d\n",status.Action,status.Status);
 }

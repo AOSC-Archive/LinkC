@@ -3,6 +3,8 @@
 #include "LinkC_Label.h"
 #include "linkc_types.h"
 #include "p2p_client.h"
+#include "HeartBeats.h"
+#include "MessageRecver.h"
 #include <qt4/QtCore/QObject>
 #include <qt4/QtCore/QMap>
 #include <qt4/QtGui/QLabel>
@@ -72,14 +74,15 @@ public:
     ~ChatDialog();
     void resizeEvent(QResizeEvent *);
     int ConnectToPeer(void);
-    void Recver(void);
     int UID;
 signals:
     void Recved(const char *message);
+    void StartP2PConnecting(void);
 public slots:
     int Send(void);
-    int HeartBeats(void);
+    void ComeAHeartBeats();
     void GetFriendData(LinkC_Friend_Data);
+    void P2PConnectDone(bool);
 protected:
     QPushButton *SendButton;
     QPushButton *QuitButton;
@@ -87,7 +90,9 @@ protected:
     QTextEdit   *Input;
     QVBoxLayout *Layout;
     LinkC_Friend_Data  MyFriend;
-    p2p_client   peer;
+    p2p_client   *peer;
+    UDP_MessageRecver *Recver;
+    HeartBeats        *HeartBeater;
     QTimer *timer;
     int MessageSize;
 };

@@ -107,17 +107,15 @@ printf("Friend Data Get %s\n",exec);
 			errmsg = NULL;
 			return LINKC_FAILURE;
 		}
-		strcpy (_friend[0].name,dbResult[user_c + 4 -1]);		// 获得名字
+		_friend[0].UID = DestUID;
+		strcpy (_friend[0].name,dbResult[user_c + 2 - 1]);	// 
+		strcpy (_friend[0].nickname,dbResult[user_c + 4 -1]);	// 获得名字
 		strcpy (_friend[0].telephone,dbResult[user_c + 5 -1]);	// 获得电话
 		strcpy (_friend[0].company,dbResult[user_c + 6 -1]);	// 获得公司
 		strcpy (_friend[0].address,dbResult[user_c + 7 -1]);	// 获得地址
 		_friend[0].status = atoi(dbResult[user_c +11 -1]);
-			_friend[0].ip=inet_addr(dbResult[user_c +10-1]);
-		if (_friend[0].status == STATUS_ONLINE)	// 如果在线
-		{
-			_friend[0].status = STATUS_ONLINE;			// 设置成在线
-		}
-		else	_friend[0].status = STATUS_OFFLINE;	// 否者设置为不在线
+		_friend[0].ip=inet_addr(dbResult[user_c +10-1]);
+			printf("Ip = %d\n",_friend[0].ip);
 		sprintf (exec,"SELECT * FROM id%d WHERE id='%d'",UID,DestUID);
 		result = sqlite3_get_table( friend_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
 		if (nRow == 0)						// 如果不是好友

@@ -9,7 +9,7 @@
 #define TCP  1
 #define UDP  2
 
-#define MAXBUF  512
+#define SERVER_IP   "127.0.0.1"
 
 
 class socket_c{
@@ -50,14 +50,14 @@ protected:
     void* recv_buffer;	// 接收缓冲区
     int	is_remain;   	// 上次数据是否有剩余
     int	Length;     	// 接收到数据的长度
-    char Tmp[MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1];
-    int TmpLength;
-    int	tmp;
     ip_t IP;
     port_t Port;
     int Sockfd;
     int type;
+    char Tmp[STD_PACKAGE_SIZE];
     socklen_t AddrLen;
+    int TmpLength;
+    int tmp;
 };
 
 class TCP_csocket : public socket_c{

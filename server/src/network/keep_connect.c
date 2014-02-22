@@ -124,7 +124,7 @@ start:
 				}
 				else if(((LUR *)data)->Action == USER_FRIEND_DATA)	// 好友数据
 				{
-					if(((LUR *)data)->Flag == 0)		// 若是获得全部好友数据
+					if(((LUR *)data)->UID == 0)		// 若是获得全部好友数据
 						send_friends_data(user,data);
 					else
 						send_friend_data(user,data);

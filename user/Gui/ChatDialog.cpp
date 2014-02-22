@@ -22,6 +22,7 @@ ChatDialog::ChatDialog(LinkC_Friend_Data _MyFriend, QWidget *parent)
     Layout = new QVBoxLayout(this);
     Input = new QTextEdit;
     History = new QTextEdit;
+    peer    = new p2p_client;
     this->resize(300,300);
 
     char title_tmp[20];
@@ -32,7 +33,10 @@ ChatDialog::ChatDialog(LinkC_Friend_Data _MyFriend, QWidget *parent)
     SendButton->show();
 //    SendButton->setEnabled(false);
     QuitButton->hide();
-    connect(SendButton,SIGNAL(clicked()),this,SLOT(Send()));
+    this->connect(SendButton,SIGNAL(clicked()),this,SLOT(Send()));
+    this->connect(this,SIGNAL(StartP2PConnecting()),peer,SLOT(ConnectToPeer()));
+    this->connect(peer,SIGNAL(ConnectToPeerDone(bool)),this,SLOT(P2PConnectDone(bool)));
+    this->connect(Recver,SIGNAL(HeartBeats()),this,SLOT(ComeAHeartBeats()));
 
     setWindowTitle(Title);
 
@@ -44,14 +48,8 @@ ChatDialog::ChatDialog(LinkC_Friend_Data _MyFriend, QWidget *parent)
     Layout->addWidget(Input,1);
     Layout->addSpacing(25);
 
-    if(MyFriend.status == STATUS_ONLINE){
+    if(MyFriend.status == STATUS_ONLINE)
         History->setText(tr("ONLINE"));
-        this->ConnectToPeer();
-        pid_t pid;
-        pid = fork();
-        if(pid == 0)
-            this->Recver();
-    }
     else
         History->setText(tr("OFFLINE"));
 }
@@ -61,19 +59,6 @@ ChatDialog::~ChatDialog(){
 }
 
 int ChatDialog::ConnectToPeer(void){
-    peer.Set_IP("127.0.0.1");
-    peer.Debug_Csocket_IP();
-    peer.Set_Port(2342);
-    peer.Debug_Csocket_Port();
-    peer.SetDestIP(MyFriend.ip);
-    if(peer.WaitPeer() == LINKC_FAILURE){
-        History->setText(tr("ERROR"));
-        return -1;
-    }
-    if(peer.Is_server() == 1)
-        peer.inDirectAccept();
-    else
-        peer.inDirectConnect();
     return 0;
 }
 
@@ -86,37 +71,23 @@ int ChatDialog::Send(void){
     if (str == "")
         return 0;
     char buffer[STD_PACKAGE_SIZE];
-    printf("Hei!\n");
-    translate = str.toLatin1();
-    int tmp = pack_message(USER_MESSAGE,translate.data(),strlen(translate.data()),buffer);
-    peer.Send_msg(buffer,tmp,0);
+    translate = str.toUtf8();
+    int tmp = pack_message(USER_CHAT_MESSAGE,translate.data(),strlen(translate.data()),buffer);
+    peer->GetCsocket().Send_msg(buffer,tmp,0);
+    printf("CLIENT:MessageSended!\n");
     return 0;
-}
-
-int ChatDialog::HeartBeats(){
-/*    message_send.header = HEARTBEAT;
-    for(i=0;i<5;i++)
-        peer.Send_msg((void *)&message_send,MessageSize,MSG_DONTWAIT);*/
-    return 0;
-}
-
-void ChatDialog::Recver(void){
-    char buffer[STD_PACKAGE_SIZE];
-    char buf[STD_PACKAGE_SIZE];
-    while(1){
-        bzero(buffer,STD_PACKAGE_SIZE);
-        peer.UDP_Recv(buffer,STD_PACKAGE_SIZE,0);
-        unpack_message(buffer,buf);
-        printf("Peer Said = %s\n",buf);
-        sleep(1);
-    }
 }
 
 void ChatDialog::GetFriendData(LinkC_Friend_Data Data){
     if(Data.UID != MyFriend.UID)    return;
-    printf("Data Get!\n");
-    int OldStatus = MyFriend.status;
+    printf("Data Get!\nName = %s\n",Data.name);
+    peer->SetDestIP(Data.ip);
     MyFriend=Data;
+    int OldStatus = MyFriend.status;
+    if(Data.status == STATUS_ONLINE){
+        if(peer->IsPeerConnected() == false)
+            emit StartP2PConnecting();
+    }
     if(OldStatus == STATUS_OFFLINE){
         char title_tmp[20];
         sprintf(title_tmp,"[%s] ONLINE",MyFriend.name);
@@ -124,4 +95,19 @@ void ChatDialog::GetFriendData(LinkC_Friend_Data Data){
         this->setWindowTitle(Title);
         History->setText(tr("ONLINE"));
     }
+}
+
+void ChatDialog::P2PConnectDone(bool status){
+    if(status == true){
+        printf("Chat Message Recver Started!\n");
+        Recver = new UDP_MessageRecver(peer->GetCsocket());
+        Recver->start();
+        HeartBeater = new HeartBeats(peer->GetCsocket());
+        HeartBeater->start();
+    }else
+        printf("Connect Error!\n");
+}
+
+void ChatDialog::ComeAHeartBeats(){
+    printf("Heart Beats!\n");
 }

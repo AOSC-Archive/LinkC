@@ -3,6 +3,7 @@
 #include "linkc_network_protocol.h"
 #include <string.h>
 
+#define DEBUG	1
 int send_friends_data(struct user_data user,void *data)
 {
 	char buffer[MAXBUF];
@@ -59,8 +60,9 @@ int send_friend_data(struct user_data user,void *data)
 	}
 	((LSS*)data)->Status = LINKC_SUCCESS;
 	length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
-	TCP_Send (user.sockfd,buffer,length,0);	// 执行情况
-	TCP_Send (user.sockfd,MyFriend,sizeof(friend_data),0);
+	send (user.sockfd,buffer,length,0);	// 执行情况
+	non_std_m_message_send(MyFriend,user.sockfd,1,sizeof(friend_data),SYS_FRIEND_DATA,0);
 	free (MyFriend);
+	MyFriend = NULL;
 	return 0;
 }

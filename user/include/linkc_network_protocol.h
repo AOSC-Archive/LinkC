@@ -105,6 +105,7 @@ typedef struct LinkC_Friend_Data_t      LinkC_Friend_Data;
 
 Q_DECLARE_METATYPE(LinkC_Sys_Status)
 Q_DECLARE_METATYPE(LinkC_Friend_Data)
+Q_DECLARE_METATYPE(LinkC_User_Message)
 
 // 缩写一下，啊哈哈哈哈哈
 #define LMH	LinkC_Message_Header

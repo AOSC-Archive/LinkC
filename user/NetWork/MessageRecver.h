@@ -25,19 +25,19 @@ signals:
 
 protected:
     TCP_csocket Dest;
-    void *buffer;
-    void *package;
 };
 
 //-------UDP-------//
 class UDP_MessageRecver : public QThread{
     Q_OBJECT
 public:
-    explicit UDP_MessageRecver(UDP_csocket *sk, QThread *parent);
+    explicit UDP_MessageRecver(UDP_csocket sk, QThread *parent = 0);
+    explicit UDP_MessageRecver(struct sockaddr_in Add,QThread *parent = 0);
     void run();
 
 signals:
     void UserChatMessage(QString);
+    void HeartBeats(void);
     void RecvError();
 
 protected:

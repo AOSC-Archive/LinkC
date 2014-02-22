@@ -12,7 +12,11 @@ int16_t check_message(void *Message,uint16_t Recv_Length)
 
 int16_t get_message_header(void *Message)
 {
-    return ((LMH*)Message)->MessageHeader;
+    if(Message != NULL)
+        return ((LMH*)Message)->MessageHeader;
+    else
+        printf("Argument is NULL!\n");
+    return -1;
 }
 
 int16_t pack_message(uint16_t Header,const void *Data,uint16_t Length,void *Out)

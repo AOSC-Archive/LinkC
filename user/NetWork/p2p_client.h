@@ -10,6 +10,7 @@
 #include "Csocket.h"
 #include "def.h"
 #include <QTimer>
+#include <qt4/QtCore/QObject>
 struct conn_info_t
 {
     struct sockaddr_in Src;
@@ -23,10 +24,10 @@ struct p2pinfo{
     int is_server;
 };
 
-class p2p_client : public UDP_csocket{
-    
+class p2p_client : public QObject{
+    Q_OBJECT
 public:
-    p2p_client();
+    explicit p2p_client(QObject *parent = 0);
     ~p2p_client();
     int SetDestIP(ip_t ip);
     int SetDestIP(const char* ip);
@@ -35,17 +36,30 @@ public:
     int HeartBeats();
 
     int DirectConnect(void);
-    int WaitPeer(void);
-    int inDirectConnect(void);
-    int inDirectAccept(void);
-    int Is_server(void);
+    void inDirectConnect(void);
+    void inDirectAccept(void);
+    int IsServer(void);
+    bool IsPeerConnected(void);
+
+    p2pinfo GetP2PInfo(void);
+    UDP_csocket GetCsocket(void);
+
+    void SetPeerIP(ip_t ip);
+
+signals:
+    void ConnectToPeerDone(bool);
+
+public slots:
+    void ConnectToPeer(void);
 
 protected:
+    UDP_csocket Dest;
     int flag;
     ip_t DestIP;
     int ip_size;
     char buffer[MAXBUF];
     struct p2pinfo P2PInfo;
     void *package;
+    bool isPeerConnected;
 };
 #endif // P2P_CLIENT_H
