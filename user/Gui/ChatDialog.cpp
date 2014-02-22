@@ -79,12 +79,14 @@ int ChatDialog::Send(void){
 
 void ChatDialog::GetFriendData(LinkC_Friend_Data Data){
     if(Data.UID != MyFriend.UID)    return;
-    printf("Data Get!\nName = %s\n",Data.name);
     peer->SetDestIP(Data.ip);
     MyFriend=Data;
     if(Data.status == STATUS_ONLINE){
-        if(peer->IsPeerConnected() == false)
+        if(peer->IsPeerConnected() == false){
+            this->History->setText(tr("正在连接中......"));
             emit StartP2PConnecting();
+
+        }
         char title_tmp[20];
         sprintf(title_tmp,"[%s] ONLINE",MyFriend.name);
         QString Title(title_tmp);
@@ -95,7 +97,6 @@ void ChatDialog::GetFriendData(LinkC_Friend_Data Data){
 
 void ChatDialog::P2PConnectDone(bool status){
     if(status == true){
-        printf("Chat Message Recver Started!\n");
         Recver = new UDP_MessageRecver(peer->GetCsocket());
         Recver->start();
         this->connect(Recver,SIGNAL(HeartBeats()),this,SLOT(ComeAHeartBeats()));

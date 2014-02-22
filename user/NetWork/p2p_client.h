@@ -11,6 +11,7 @@
 #include "def.h"
 #include <QTimer>
 #include <QObject>
+#include <QThread>
 struct conn_info_t
 {
     struct sockaddr_in Src;
@@ -24,11 +25,12 @@ struct p2pinfo{
     int is_server;
 };
 
-class p2p_client : public QObject{
+class p2p_client : public QThread{
     Q_OBJECT
 public:
-    explicit p2p_client(QObject *parent = 0);
+    explicit p2p_client(QThread *parent = 0);
     ~p2p_client();
+    void run();
     int SetDestIP(ip_t ip);
     int SetDestIP(const char* ip);
 
