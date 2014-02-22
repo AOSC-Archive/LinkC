@@ -2,11 +2,6 @@
 #include "linkc_types.h"
 #include <unistd.h>
 #include <string.h>
-#include <qt4/QtGui/QtGui>
-#include <qt4/QtGui/QMessageBox>
-#include <qt4/QtCore/QString>
-#include <qt4/QtGui/QLineEdit>
-#include <qt4/QtGui/QDialog>
 
 LoginWindow::LoginWindow(QWidget *parent) :
     QDialog(parent){

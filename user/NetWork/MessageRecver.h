@@ -1,8 +1,8 @@
 #ifndef MESSAGERECVER_H
 #define MESSAGERECVER_H
 
-#include <qt4/QtCore/QThread>
-#include <qt4/QtCore/QVariant>
+#include <QThread>
+#include <QVariant>
 #include "linkc_types.h"
 #include "Csocket.h"
 #include "linkc_network_protocol.h"

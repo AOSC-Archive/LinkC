@@ -14,11 +14,11 @@
 #define MESSAGEBOX_H
 
 
-#include <qt4/QtCore/QTimeLine>
-#include <qt4/QtCore/QEventLoop>
-#include <qt4/QtGui/QLabel>
-#include <qt4/QtGui/QWidget>
-#include <qt4/QtGui/QLayout>
+#include <QTimeLine>
+#include <QEventLoop>
+#include <QLabel>
+#include <QWidget>
+#include <QLayout>
 
 
 

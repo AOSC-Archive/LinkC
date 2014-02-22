@@ -5,13 +5,13 @@
 #include "p2p_client.h"
 #include "HeartBeats.h"
 #include "MessageRecver.h"
-#include <qt4/QtCore/QObject>
-#include <qt4/QtCore/QMap>
-#include <qt4/QtGui/QLabel>
-#include <qt4/QtGui/QGridLayout>
-#include <qt4/QtGui/QScrollArea>
-#include <qt4/QtGui/QtGui>
-#include <qt4/QtGui/QListWidget>
+#include <QObject>
+#include <QMap>
+#include <QLabel>
+#include <QGridLayout>
+#include <QScrollArea>
+#include <QtGui>
+#include <QListWidget>
 
 #define _FRIEND_LABEL_HEIGTH    30
 

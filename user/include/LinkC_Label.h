@@ -1,8 +1,9 @@
 #ifndef LINKC_LABEL_H
 #define LINKC_LABEL_H
 
-#include <qt4/QtGui/QLabel>
-#include <qt4/QtCore/QObject>
+#include <QLabel>
+#include <QObject>
+#include <QMouseEvent>
 
 class LinkC_Label : public QLabel{
     Q_OBJECT

@@ -7,16 +7,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string>
-#include <qt4/QtGui/QMessageBox>
-#include <QString>
-#include <qt4/QtGui/QGroupBox>
-#include <qt4/QtGui/QToolBox>
-#include <qt4/QtGui/QWidget>
-#include <qt4/QtGui/QPushButton>
-#include <qt4/QtGui/QListView>
-#include <qt4/QtGui/QMainWindow>
-#include <qt4/QtCore/QVariant>      // 为了注册数据类型
+#include <QVariant>      // 为了注册数据类型
 
 
 char buffer[MAXBUF];

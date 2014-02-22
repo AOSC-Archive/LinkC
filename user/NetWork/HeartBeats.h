@@ -1,6 +1,6 @@
 #include "linkc_network_protocol.h"
 #include "Csocket.h"
-#include <qt4/QtCore/QThread>
+#include <QThread>
 
 class HeartBeats : public QThread{
     Q_OBJECT

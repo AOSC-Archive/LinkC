@@ -1,16 +1,16 @@
 #include "LinkC_GUI.h"
 #include "LinkC_Label.h"
 #include <stdio.h>
-#include <qt4/QtGui/QToolBox>
-#include <qt4/QtGui/QListWidget>
-#include <qt4/QtGui/QLabel>
-#include <qt4/QtGui/QtGui>
-#include <qt4/QtGui/QListView>
-#include <qt4/QtGui/QFrame>
-#include <qt4/QtGui/QScrollArea>
-#include <qt4/QtCore/QMap>
-#include <qt4/QtCore/QDebug>
-#include <qt4/QtCore/QObject>
+#include <QToolBox>
+#include <QListWidget>
+#include <QLabel>
+#include <QtGui>
+#include <QListView>
+#include <QFrame>
+#include <QScrollArea>
+#include <QMap>
+#include <QDebug>
+#include <QObject>
 
 //#########################################
 FriendGroup::FriendGroup(QWidget *parent)

@@ -10,7 +10,7 @@
 #include "Csocket.h"
 #include "def.h"
 #include <QTimer>
-#include <qt4/QtCore/QObject>
+#include <QObject>
 struct conn_info_t
 {
     struct sockaddr_in Src;

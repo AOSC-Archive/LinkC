@@ -6,17 +6,23 @@
 #include "LinkC_GUI.h"
 #include "linkc_types.h"
 #include "MessageRecver.h"
-#include <qt4/QtGui/QToolBox>
-#include <qt4/QtGui/QGroupBox>
-#include <qt4/QtGui/QLayout>
-#include <qt4/QtGui/QVBoxLayout>
-#include <qt4/QtGui/QMainWindow>
-#include <qt4/QtGui/QInputDialog>
-#include <qt4/QtGui/QToolButton>
-#include <qt4/QtGui/QLabel>
-#include <qt4/QtGui/QWidget>
-#include <qt4/QtGui/QListWidget>
-#include <qt4/QtGui/QScrollArea>
+#include <QToolBox>
+#include <QGroupBox>
+#include <QLayout>
+#include <QVBoxLayout>
+#include <QMainWindow>
+#include <QInputDialog>
+#include <QToolButton>
+#include <QLabel>
+#include <QWidget>
+#include <QListWidget>
+#include <QScrollArea>
+#include <QPushButton>
+#include <QListView>
+#include <QMessageBox>
+#include <QLineEdit>
+#include <QDialog>
+#include <QString>
 
 namespace Ui {
 class MainWindow;
