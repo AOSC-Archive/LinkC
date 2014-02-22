@@ -3,7 +3,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <qt4/QtCore/QMetaType>
+#include <QMetaType>
 #include <time.h>
 #include "def.h"
 #include "linkc_types.h"
