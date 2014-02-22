@@ -69,7 +69,7 @@ void UDP_MessageRecver::run(){
         header = get_message_header(buffer);
         unpack_message(buffer,package);
         if(header == USER_CHAT_MESSAGE){
-            cout << (char *)package << endl;
+            printf("CLIENT MESSAGE : %s\n",(char *)package);
         }else if(header == HEART_BEATS){
             emit HeartBeats();
         }

@@ -36,7 +36,6 @@ ChatDialog::ChatDialog(LinkC_Friend_Data _MyFriend, QWidget *parent)
     this->connect(SendButton,SIGNAL(clicked()),this,SLOT(Send()));
     this->connect(this,SIGNAL(StartP2PConnecting()),peer,SLOT(ConnectToPeer()));
     this->connect(peer,SIGNAL(ConnectToPeerDone(bool)),this,SLOT(P2PConnectDone(bool)));
-    this->connect(Recver,SIGNAL(HeartBeats()),this,SLOT(ComeAHeartBeats()));
 
     setWindowTitle(Title);
 
@@ -83,12 +82,9 @@ void ChatDialog::GetFriendData(LinkC_Friend_Data Data){
     printf("Data Get!\nName = %s\n",Data.name);
     peer->SetDestIP(Data.ip);
     MyFriend=Data;
-    int OldStatus = MyFriend.status;
     if(Data.status == STATUS_ONLINE){
         if(peer->IsPeerConnected() == false)
             emit StartP2PConnecting();
-    }
-    if(OldStatus == STATUS_OFFLINE){
         char title_tmp[20];
         sprintf(title_tmp,"[%s] ONLINE",MyFriend.name);
         QString Title(title_tmp);
@@ -102,6 +98,7 @@ void ChatDialog::P2PConnectDone(bool status){
         printf("Chat Message Recver Started!\n");
         Recver = new UDP_MessageRecver(peer->GetCsocket());
         Recver->start();
+        this->connect(Recver,SIGNAL(HeartBeats()),this,SLOT(ComeAHeartBeats()));
         HeartBeater = new HeartBeats(peer->GetCsocket());
         HeartBeater->start();
     }else
@@ -109,5 +106,5 @@ void ChatDialog::P2PConnectDone(bool status){
 }
 
 void ChatDialog::ComeAHeartBeats(){
-    printf("Heart Beats!\n");
+
 }

@@ -9,7 +9,7 @@
 #define TCP  1
 #define UDP  2
 
-#define SERVER_IP   "117.59.11.226"
+#define SERVER_IP   "127.0.0.1"
 
 
 class socket_c{
