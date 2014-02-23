@@ -14,6 +14,7 @@
 #include <QListWidget>
 
 #define _FRIEND_LABEL_HEIGTH    30
+#define _MESSAGE_HISTORY_HEIGTH 40
 
 class FriendGroup : public QListWidget{
     Q_OBJECT
@@ -67,6 +68,24 @@ protected:
     _Map::iterator result;
 };
 
+
+class ChatHistoryView : public QWidget{
+    Q_OBJECT
+public:
+    explicit ChatHistoryView(char *Name, QWidget *parent = 0);
+    void AddChatMessage(QString Msg);
+    void AddChatMessage(QString Msg,QString Name);
+    int  GetMesageCount(void);
+    void resizeEvent(QResizeEvent *);
+protected:
+    int MessageCount;
+    QWidget     *MessageBase;
+    QScrollArea *List;
+    QVBoxLayout *MessageLayout;
+    QString     FriendName;
+};
+
+
 class ChatDialog : public QWidget{
     Q_OBJECT
 public:
@@ -83,10 +102,11 @@ public slots:
     void ComeAHeartBeats();
     void GetFriendData(LinkC_Friend_Data);
     void P2PConnectDone(bool);
+    void RecvedP2PMessage(QString);
 protected:
     QPushButton *SendButton;
     QPushButton *QuitButton;
-    QTextEdit   *History;
+    ChatHistoryView *History;
     QTextEdit   *Input;
     QVBoxLayout *Layout;
     LinkC_Friend_Data  MyFriend;

@@ -36,7 +36,7 @@ public:
     void run();
 
 signals:
-    void UserChatMessage(QString);
+    void RecvedP2PMessage(QString);
     void HeartBeats(void);
     void RecvError();
 

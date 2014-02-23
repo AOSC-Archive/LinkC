@@ -18,7 +18,7 @@ void TCP_MessageRecver::run(){
     int header;
    void* buffer = malloc(MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
    void* package = malloc(MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
-    printf("TCP MessageRecver Started!\n");
+    printf("Debug >> TCP Recver\t= [STARTED]\n");
     while(1){
         bzero(buffer,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
         bzero(package,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
@@ -40,7 +40,6 @@ void TCP_MessageRecver::run(){
         }
         else if(header == SYS_FRIEND_DATA){
             emit SysFriendData(*(LSF *)package);
-            printf("UID = %d\n",((LSF *)package)->UID);
         }
         else{
             fprintf(stderr,"This Message Is Not Supposed!\n");
@@ -56,7 +55,9 @@ UDP_MessageRecver::UDP_MessageRecver(UDP_csocket sk, QThread *parent):
 }
 void UDP_MessageRecver::run(){
     int header;
-    printf("UDP MessageRecver Started!\n");
+    int MsgLength;
+    QString Message;
+    printf("Debug >> UDP Recver\t= [STARTED]\n");
     while(1){
         bzero(buffer,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
         bzero(package,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
@@ -68,7 +69,10 @@ void UDP_MessageRecver::run(){
         header = get_message_header(buffer);
         unpack_message(buffer,package);
         if(header == USER_CHAT_MESSAGE){
-            printf("CLIENT MESSAGE : %s\n",(char *)package);
+            MsgLength = strlen((const char *)package);
+            ((char *)package)[MsgLength] = 0;
+            Message = (const char *)package;
+            emit RecvedP2PMessage(Message);
         }else if(header == HEART_BEATS){
             emit HeartBeats();
         }

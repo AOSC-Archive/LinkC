@@ -38,7 +38,7 @@ void p2p_client::ConnectToPeer(void){
     Dest.Debug_Csocket_Port();
 
     Dest.Send_msg((void *)&DestIP,ip_size,0);
-    printf("Waiting For peer's Address!\n");
+    printf("Debug >> P2P Connection\t= [STARTING]\n");
     this->start();
 
 }
@@ -48,7 +48,7 @@ void p2p_client::run(){
         return;
     }
     Dest.SetAddress(P2PInfo.Dest);                         // 设置为好友的IP地址
-    printf("Get Peer's Address Success\n");
+    printf("Debug >> P2P Connection\t= [ADDRESS GOT]\n");
     if(P2PInfo.is_server == 1)
         this->inDirectAccept();
     else
@@ -62,13 +62,13 @@ void p2p_client::inDirectAccept(){
     Dest.Recv_msg(buffer,LMH_L,MSG_WAITALL);
     flag = get_message_header(buffer);
     if(flag != CONNECTION){
-        fprintf(stderr,"Message Header Increect!\n");
+    printf("Debug >> P2P Connection\t= [FAILURE]\n");
         emit ConnectToPeerDone(false);
         return;
     }
     tmp = pack_message(CONNECTION,NULL,0,buffer);
     Dest.Send_msg(buffer,tmp,0);
-    printf("InDirectAccept Success!!!!!!!!!!!!!\n");
+    printf("Debug >> P2P Connection\t= [SUCCESS]\n");
     isPeerConnected = true;
     emit ConnectToPeerDone(true);
 }
@@ -84,11 +84,11 @@ void p2p_client::inDirectConnect(){
     Dest.Recv_msg(buffer,STD_PACKAGE_SIZE,0);
     flag = get_message_header(buffer);
     if(flag != CONNECTION){
-        fprintf(stderr,"Message Header Incrrect!\n");
+    printf("Debug >> P2P Connection\t= [FAILURE]\n");
         emit ConnectToPeerDone(false);
         return;
     }
-    printf("InDirectConnect Success!!!!!!!!!!!!!\n");
+    printf("Debug >> P2P Connection\t= [SUCCESS]\n");
     isPeerConnected = true;
     emit ConnectToPeerDone(true);
 }

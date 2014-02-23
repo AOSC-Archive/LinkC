@@ -10,18 +10,14 @@
 
 #define MAX_ERROR   20
 
-int i;
-QString str;
-QByteArray translate;
-
 ChatDialog::ChatDialog(LinkC_Friend_Data _MyFriend, QWidget *parent)
     :QWidget(parent){
     memcpy((void *)&MyFriend,(void *)&_MyFriend,sizeof(LinkC_Friend_Data));
     SendButton = new QPushButton(this);
     QuitButton = new QPushButton(this);
     Layout = new QVBoxLayout(this);
+    History    = new ChatHistoryView(MyFriend.name);
     Input = new QTextEdit;
-    History = new QTextEdit;
     peer    = new p2p_client;
     this->resize(300,300);
 
@@ -31,7 +27,7 @@ ChatDialog::ChatDialog(LinkC_Friend_Data _MyFriend, QWidget *parent)
 
     SendButton->setText(tr("Send"));
     SendButton->show();
-//    SendButton->setEnabled(false);
+    SendButton->setEnabled(false);
     QuitButton->hide();
     this->connect(SendButton,SIGNAL(clicked()),this,SLOT(Send()));
     this->connect(this,SIGNAL(StartP2PConnecting()),peer,SLOT(ConnectToPeer()));
@@ -39,18 +35,12 @@ ChatDialog::ChatDialog(LinkC_Friend_Data _MyFriend, QWidget *parent)
 
     setWindowTitle(Title);
 
-    History->setText(tr("History"));
-    History->setReadOnly(true);
     Input->setText(tr("Input"));
 
     Layout->addWidget(History,2);
     Layout->addWidget(Input,1);
     Layout->addSpacing(25);
 
-    if(MyFriend.status == STATUS_ONLINE)
-        History->setText(tr("ONLINE"));
-    else
-        History->setText(tr("OFFLINE"));
 }
 
 ChatDialog::~ChatDialog(){
@@ -66,6 +56,8 @@ void ChatDialog::resizeEvent(QResizeEvent *){
 }
 
 int ChatDialog::Send(void){
+    QString str;
+    QByteArray translate;
     str = Input->toPlainText();
     if (str == "")
         return 0;
@@ -73,7 +65,8 @@ int ChatDialog::Send(void){
     translate = str.toUtf8();
     int tmp = pack_message(USER_CHAT_MESSAGE,translate.data(),strlen(translate.data()),buffer);
     peer->GetCsocket().Send_msg(buffer,tmp,0);
-    printf("CLIENT:MessageSended!\n");
+    History->AddChatMessage(str,tr("Me"));
+    Input->setText(tr(""));
     return 0;
 }
 
@@ -81,17 +74,16 @@ void ChatDialog::GetFriendData(LinkC_Friend_Data Data){
     if(Data.UID != MyFriend.UID)    return;
     peer->SetDestIP(Data.ip);
     MyFriend=Data;
+    char title_tmp[32];
+    QString Title;
     if(Data.status == STATUS_ONLINE){
         if(peer->IsPeerConnected() == false){
-            this->History->setText(tr("正在连接中......"));
             emit StartP2PConnecting();
-
-        }
-        char title_tmp[20];
-        sprintf(title_tmp,"[%s] ONLINE",MyFriend.name);
-        QString Title(title_tmp);
+            sprintf(title_tmp,"[%s] CONNECTING",MyFriend.name);
+        }else
+            sprintf(title_tmp,"[%s] ONLINE",MyFriend.name);
+        Title = title_tmp;
         this->setWindowTitle(Title);
-        History->setText(tr("ONLINE"));
     }
 }
 
@@ -100,12 +92,74 @@ void ChatDialog::P2PConnectDone(bool status){
         Recver = new UDP_MessageRecver(peer->GetCsocket());
         Recver->start();
         this->connect(Recver,SIGNAL(HeartBeats()),this,SLOT(ComeAHeartBeats()));
+        this->connect(Recver,SIGNAL(RecvedP2PMessage(QString)),this,SLOT(RecvedP2PMessage(QString)));
         HeartBeater = new HeartBeats(peer->GetCsocket());
         HeartBeater->start();
+        char title_tmp[32];
+        sprintf(title_tmp,"[%s] CONNECTED",MyFriend.name);
+        this->setWindowTitle(tr(title_tmp));
+        this->SendButton->setEnabled(true);
     }else
         printf("Connect Error!\n");
 }
 
 void ChatDialog::ComeAHeartBeats(){
 
+}
+
+void ChatDialog::RecvedP2PMessage(QString Message){
+    History->AddChatMessage(Message);
+}
+
+
+ChatHistoryView::ChatHistoryView(char *Name,QWidget *parent):
+    QWidget(parent){
+    MessageCount = 0;
+    MessageBase  = new QWidget(this);
+    MessageLayout= new QVBoxLayout;
+    List         = new QScrollArea(this);
+
+//    MessageBase->setLayout(MessageLayout);
+    MessageBase->resize(1,1);
+    List->setWidget(MessageBase);
+
+    FriendName = Name;
+
+}
+
+int ChatHistoryView::GetMesageCount(){return MessageCount;}
+
+void ChatHistoryView::resizeEvent(QResizeEvent *){
+    List->resize(this->width(),this->height());
+    MessageBase->resize(List->width()-15,_MESSAGE_HISTORY_HEIGTH*MessageCount);
+}
+
+void ChatHistoryView::AddChatMessage(QString Msg){
+    QWidget *Histroy    = new QWidget(MessageBase);
+    QLabel  *L1         = new QLabel(Histroy);
+    QLabel  *L2         = new QLabel(Histroy);
+    L1->setGeometry(5,0,500,15);
+    L2->setGeometry(10,15,500,15);
+    L1->setText(FriendName);
+    L2->setText(Msg);
+    Histroy->resize(this->width()-15,_MESSAGE_HISTORY_HEIGTH);
+    MessageCount++;
+    MessageBase->resize(List->width()-15,_MESSAGE_HISTORY_HEIGTH*MessageCount);
+    Histroy->setGeometry(0,_MESSAGE_HISTORY_HEIGTH*(MessageCount-1),500,_MESSAGE_HISTORY_HEIGTH);
+    Histroy->show();
+}
+
+void ChatHistoryView::AddChatMessage(QString Msg, QString Name){
+    QWidget *Histroy    = new QWidget(MessageBase);
+    QLabel  *L1         = new QLabel(Histroy);
+    QLabel  *L2         = new QLabel(Histroy);
+    L1->setGeometry(5,0,500,15);
+    L2->setGeometry(10,15,500,15);
+    L1->setText(Name);
+    L2->setText(Msg);
+    Histroy->resize(this->width()-15,_MESSAGE_HISTORY_HEIGTH);
+    MessageCount++;
+    MessageBase->resize(List->width()-15,_MESSAGE_HISTORY_HEIGTH*MessageCount);
+    Histroy->setGeometry(0,_MESSAGE_HISTORY_HEIGTH*(MessageCount-1),500,_MESSAGE_HISTORY_HEIGTH);
+    Histroy->show();
 }

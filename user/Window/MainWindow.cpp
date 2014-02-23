@@ -265,4 +265,5 @@ void MainWindow::UserRequest(struct LinkC_User_Message_t Message){
 }
 
 void MainWindow::SysActionStatus(LinkC_Sys_Status status){
+    if(status.Status == 0) return;
 }

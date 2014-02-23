@@ -64,9 +64,6 @@ void FriendArea::AddFriendToLayout(LinkC_Friend_Data Myfriend){
      FriendLayout->addWidget(f);
      this->connect(f,SIGNAL(clicked(LinkC_Friend_Data)),this,SLOT(ItemClicked(LinkC_Friend_Data)));
      FriendMap[Myfriend.UID] = Myfriend;
-//     FriendLayout->addWidget(f);
-//     list->addItem(f);
-//     FriendMap[f]=Myfriend.UID;
 }
 
 void FriendArea::resizeEvent(QResizeEvent *){

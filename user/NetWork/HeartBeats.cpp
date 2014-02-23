@@ -7,13 +7,13 @@ HeartBeats::HeartBeats(UDP_csocket sk, QThread *parent):
 }
 
 void HeartBeats::run(){
-    printf("Heart Beats Started!\n");
     int length = pack_message(HEART_BEATS,NULL,0,SendBuffer);
     int status;
+    printf("Debug >> Heart Beats\t= [STARTED]\n");
     while(1){
         status = Dest.Send_msg(SendBuffer,length,0);
         if(status == LINKC_FAILURE){
-            printf("Heart Beats Error\n");
+            printf("Debug >> Heart Beats\t= [ERROR]\n");
             emit SendError(status);
         }
         sleep(HEART_BEATS_TIME);
