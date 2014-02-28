@@ -40,57 +40,21 @@ void p2p_client::ConnectToPeer(void){
     Dest.Send_msg((void *)&DestIP,ip_size,0);
     printf("Debug >> P2P Connection\t= [STARTING]\n");
     this->start();
-
 }
 
 void p2p_client::run(){
     if (Dest.Recv_msg((void *)&P2PInfo,sizeof(P2PInfo),0) == 0){
+        printf("Debug >> P2P Connection\t= [ADDRESS GOT FAILURE]\n");
         return;
     }
     Dest.SetAddress(P2PInfo.Dest);                         // 设置为好友的IP地址
     printf("Debug >> P2P Connection\t= [ADDRESS GOT]\n");
-    if(P2PInfo.is_server == 1)
-        this->inDirectAccept();
-    else
-        this->inDirectConnect();
-}
-
-void p2p_client::inDirectAccept(){
-    int tmp;
-    Dest.Send_msg("The packet will be discarded NAT device",MSG_DONTWAIT);
-    bzero(buffer,STD_PACKAGE_SIZE);
-    Dest.Recv_msg(buffer,LMH_L,MSG_WAITALL);
-    flag = get_message_header(buffer);
-    if(flag != CONNECTION){
-    printf("Debug >> P2P Connection\t= [FAILURE]\n");
-        emit ConnectToPeerDone(false);
-        return;
+    Connecter = new P2PConnecter(Dest,P2PInfo.is_server);
+    this->connect(Connecter,SIGNAL(ConnectReady()),this,SLOT(ConnectReady()));
+    this->connect(Connecter,SIGNAL(ConnectToPeerDone(bool)),this,SLOT(ConnectDone(bool)));
+    if(P2PInfo.is_server == 1){
+        Connecter->start();
     }
-    tmp = pack_message(CONNECTION,NULL,0,buffer);
-    Dest.Send_msg(buffer,tmp,0);
-    printf("Debug >> P2P Connection\t= [SUCCESS]\n");
-    isPeerConnected = true;
-    emit ConnectToPeerDone(true);
-}
-
-void p2p_client::inDirectConnect(){
-    int tmp;
-    sleep(2);
-    tmp = pack_message(CONNECTION,NULL,0,buffer);
-    Dest.Send_msg(buffer,tmp,0);
-    Dest.Recv_msg(buffer,LMH_L,MSG_WAITALL);
-
-    bzero (buffer,STD_PACKAGE_SIZE);
-    Dest.Recv_msg(buffer,STD_PACKAGE_SIZE,0);
-    flag = get_message_header(buffer);
-    if(flag != CONNECTION){
-    printf("Debug >> P2P Connection\t= [FAILURE]\n");
-        emit ConnectToPeerDone(false);
-        return;
-    }
-    printf("Debug >> P2P Connection\t= [SUCCESS]\n");
-    isPeerConnected = true;
-    emit ConnectToPeerDone(true);
 }
 
 int p2p_client::IsServer(){
@@ -127,4 +91,71 @@ UDP_csocket p2p_client::GetCsocket(){
 
 void p2p_client::SetPeerIP(ip_t ip){
     Dest.Set_IP(ip);
+}
+
+void p2p_client::ConnectReady(){
+    emit P2PConnectReady();
+}
+
+void p2p_client::ConnectDone(bool k){
+    emit ConnectToPeerDone(k);
+}
+
+void p2p_client::inDirectConnectStart(){
+    printf("Connect Start\n");
+    Connecter->start();
+}
+
+P2PConnecter::P2PConnecter(UDP_csocket k, int s, QThread *parent):
+    QThread(parent){
+    Dest = k;
+    is_server = s;
+    package = new char[MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1];
+}
+
+void P2PConnecter::run(){
+    if(is_server == 0){
+        inDirectConnect();
+    }else{
+        inDirectAccept();
+    }
+}
+
+
+void P2PConnecter::inDirectAccept(){
+    int tmp;
+    int flag;
+    Dest.Send_msg("The packet will be discarded by NAT device",MSG_DONTWAIT);
+    emit ConnectReady();
+    bzero(buffer,STD_PACKAGE_SIZE);
+    Dest.Recv_msg(buffer,LMH_L,0);
+    flag = get_message_header(buffer);
+    if(flag != CONNECTION){
+    printf("Debug >> P2P Connection\t= [FAILURE]\n");
+        emit ConnectToPeerDone(false);
+        return;
+    }
+    tmp = pack_message(CONNECTION,NULL,0,buffer);
+    Dest.Send_msg(buffer,tmp,0);
+    printf("Debug >> P2P Connection\t= [SUCCESS]\n");
+    emit ConnectToPeerDone(true);
+}
+
+void P2PConnecter::inDirectConnect(){
+    int tmp;
+    int flag;
+    tmp = pack_message(CONNECTION,NULL,0,buffer);
+    Dest.Send_msg(buffer,tmp,0);
+    Dest.Recv_msg(buffer,LMH_L,0);
+
+    bzero (buffer,STD_PACKAGE_SIZE);
+    Dest.Recv_msg(buffer,STD_PACKAGE_SIZE,0);
+    flag = get_message_header(buffer);
+    if(flag != CONNECTION){
+    printf("Debug >> P2P Connection\t= [FAILURE]\n");
+        emit ConnectToPeerDone(false);
+        return;
+    }
+    printf("Debug >> P2P Connection\t= [SUCCESS]\n");
+    emit ConnectToPeerDone(true);
 }

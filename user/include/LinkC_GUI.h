@@ -93,12 +93,15 @@ public:
     ~ChatDialog();
     void resizeEvent(QResizeEvent *);
     int ConnectToPeer(void);
+    void P2PConnectReady(void);
     int UID;
 signals:
     void Recved(const char *message);
     void StartP2PConnecting(void);
+    void SendMessageToServer(LinkC_User_Request);
 public slots:
     int Send(void);
+    void ReadyToAccept(void);
     void ComeAHeartBeats();
     void GetFriendData(LinkC_Friend_Data);
     void P2PConnectDone(bool);

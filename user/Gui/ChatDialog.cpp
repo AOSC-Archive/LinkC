@@ -32,6 +32,7 @@ ChatDialog::ChatDialog(LinkC_Friend_Data _MyFriend, QWidget *parent)
     this->connect(SendButton,SIGNAL(clicked()),this,SLOT(Send()));
     this->connect(this,SIGNAL(StartP2PConnecting()),peer,SLOT(ConnectToPeer()));
     this->connect(peer,SIGNAL(ConnectToPeerDone(bool)),this,SLOT(P2PConnectDone(bool)));
+    this->connect(peer,SIGNAL(P2PConnectReady()),this,SLOT(ReadyToAccept()));
 
     setWindowTitle(Title);
 
@@ -45,6 +46,13 @@ ChatDialog::ChatDialog(LinkC_Friend_Data _MyFriend, QWidget *parent)
 
 ChatDialog::~ChatDialog(){
 
+}
+
+void ChatDialog::ReadyToAccept(){
+    LinkC_User_Request Message;
+    Message.Action = USER_CONNECT_READY;
+    Message.UID    = MyFriend.UID;
+    emit SendMessageToServer(Message);
 }
 
 int ChatDialog::ConnectToPeer(void){
@@ -109,6 +117,10 @@ void ChatDialog::ComeAHeartBeats(){
 
 void ChatDialog::RecvedP2PMessage(QString Message){
     History->AddChatMessage(Message);
+}
+
+void ChatDialog::P2PConnectReady(){
+    peer->inDirectConnectStart();
 }
 
 

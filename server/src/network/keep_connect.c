@@ -92,7 +92,7 @@ start:
 		error_count = 0;	/* 初始化错误个数 */
 		while (1)
 		{
-			if (error_count > MAX_ERROR)		// 如果超过最大错误允许范围
+			if (error_count >= MAX_ERROR)		// 如果超过最大错误允许范围
 			{
 #if DEBUG
 				printf ("UID = %d cause so much errors!\n",user.UID);
@@ -131,9 +131,7 @@ start:
 				}
 				else if(((LUR *)data)->Action == USER_CHAT_REQUEST)
 				{
-					//send_friend_data(user,data);
-					tmp = get_info(((LUR*)data)->UID,STATUS_GET);
-					if(tmp > 0)
+					if(get_info(((LUR*)data)->UID,STATUS_GET) > 0)
 					{
 						tmp = get_info(((LUR*)data)->UID,SOCKFD_GET);
 						((LUM *)data)->Action	= USER_CHAT;
@@ -142,6 +140,29 @@ start:
 						send(tmp,buffer,length,0);
 					}
 				}
+				else if(((LUR *)data)->Action == USER_CONNECT_READY)
+				{
+					if(get_info(((LUR*)data)->UID,STATUS_GET) > 0)
+					{
+						tmp = get_info(((LUR*)data)->UID,SOCKFD_GET);
+						if(tmp == LINKC_FAILURE)
+						{
+							error_count ++;
+							printf("Get Sockfd Error!\n");
+							continue;
+						}
+						((LUM *)data)->Action	= USER_CONNECT_READY;
+						((LUM *)data)->SrcUID	= user.UID;
+						length = pack_message(USER_MESSAGE,data,LUM_L,buffer);
+						send(tmp,buffer,length,0);
+					}
+				}
+				continue;
+			}
+			else
+			{
+				printf("Message Header Incorrect!\nForce Disconnect!\n");
+				error_count = MAX_ERROR;
 			}
 		}
 	}

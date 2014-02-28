@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
     LinkC_Sys_Status D1;
     LinkC_Friend_Data D2;
     LinkC_User_Message D3;
+    LinkC_User_Request D4;
     QVariant DataVar;
     DataVar.setValue(D1);
     qRegisterMetaType<LinkC_Sys_Status>("LinkC_Sys_Status");
@@ -49,6 +50,8 @@ MainWindow::MainWindow(QWidget *parent) :
     qRegisterMetaType<LinkC_Friend_Data>("LinkC_Friend_Data");
     DataVar.setValue(D3);
     qRegisterMetaType<LinkC_User_Message>("LinkC_User_Message");
+    DataVar.setValue(D4);
+    qRegisterMetaType<LinkC_User_Message>("LinkC_User_Request");
 
 //############初始化顶部############
         Top->setGeometry(0,0,this->width(),50); //设置大小
@@ -71,8 +74,8 @@ MainWindow::MainWindow(QWidget *parent) :
         head->setGeometry(0,0,50,50);
 //############连接####################
         this->connect(head, SIGNAL(clicked()), this, SLOT(check()));
-        this->connect(area, SIGNAL(ChatTo(LinkC_Friend_Data)),this, SLOT(ChatWith(LinkC_Friend_Data)));
-        this->connect(Recver,SIGNAL(UserMessage(LinkC_User_Message)),this,SLOT(UserRequest(LinkC_User_Message)));
+        this->connect(area, SIGNAL(ChatTo(LinkC_Friend_Data)),this, SLOT(FriendLabelClicked(LinkC_Friend_Data)));
+        this->connect(Recver,SIGNAL(UserMessage(LinkC_User_Message)),this,SLOT(UserMessage(LinkC_User_Message)));
         this->connect(Recver,SIGNAL(SysActionStatus(LinkC_Sys_Status)),this,SLOT(SysActionStatus(LinkC_Sys_Status)));
         head->show();
 //############顶部初始化完毕############
@@ -181,8 +184,8 @@ void MainWindow::resizeEvent(QResizeEvent *){
 }
 
 void MainWindow::closeEvent(QCloseEvent *){
-    for ( tmp = ChatDialogMap.begin(); tmp != ChatDialogMap.end(); ++tmp )
-                tmp.value()->~ChatDialog();
+    for ( ChatDialogiterator = ChatDialogMap.begin(); ChatDialogiterator != ChatDialogMap.end(); ++ChatDialogiterator )
+                ChatDialogiterator.value()->~ChatDialog();
 }
 
 int MainWindow::InitFriendList(){
@@ -226,12 +229,6 @@ void MainWindow::check(){
 
 void MainWindow::ChatWith(LinkC_Friend_Data data){
     ChatDialog *log;
-    if(data.status == STATUS_ONLINE){       // 发送连接请求
-        ((LUR*)package)->Action=USER_CHAT_REQUEST;
-        ((LUR*)package)->UID   =data.UID;
-        length = pack_message(USER_REQUEST,package,LUR_L,buffer);
-        server.Send_msg(buffer,length,0);
-    }
     ((LUR*)package)->Action = USER_FRIEND_DATA;
     ((LUR*)package)->UID    = data.UID;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
@@ -240,23 +237,60 @@ void MainWindow::ChatWith(LinkC_Friend_Data data){
     if(!ChatDialogMap.contains(data.UID)){
         log = new ChatDialog(data);
         this->connect(Recver,SIGNAL(SysFriendData(LinkC_Friend_Data)),log,SLOT(GetFriendData(LinkC_Friend_Data)));
+        this->connect(log,SIGNAL(SendMessageToServer(LinkC_User_Request)),this,SLOT(SendMessageToServer(LinkC_User_Request)));
         log->show();
         ChatDialogMap.insert(data.UID, log);
     }else{
-        tmp = ChatDialogMap.find(data.UID);
-        log = tmp.value();
+        ChatDialogiterator = ChatDialogMap.find(data.UID);
+        log = ChatDialogiterator.value();
         log->show();
     }
     server.Send_msg(buffer,length,0);
 }
 
-void MainWindow::UserRequest(struct LinkC_User_Message_t Message){
+void MainWindow::FriendLabelClicked(LinkC_Friend_Data data){
+    ChatDialog *log;
+
+    if(!ChatDialogMap.contains(data.UID)){
+        log = new ChatDialog(data);
+        //  发送连接请求
+        ((LUR*)package)->Action=USER_CHAT_REQUEST;
+        ((LUR*)package)->UID   =data.UID;
+        length = pack_message(USER_REQUEST,package,LUR_L,buffer);
+        server.Send_msg(buffer,length,0);
+        //  end
+        this->connect(Recver,SIGNAL(SysFriendData(LinkC_Friend_Data)),log,SLOT(GetFriendData(LinkC_Friend_Data)));
+        this->connect(log,SIGNAL(SendMessageToServer(LinkC_User_Request)),this,SLOT(SendMessageToServer(LinkC_User_Request)));
+        log->show();
+        ChatDialogMap.insert(data.UID, log);
+    }else{
+        ChatDialogiterator = ChatDialogMap.find(data.UID);
+        log = ChatDialogiterator.value();
+        log->show();
+    }
+    ((LUR*)package)->Action = USER_FRIEND_DATA;
+    ((LUR*)package)->UID    = data.UID;
+    length = pack_message(USER_REQUEST,package,LUR_L,buffer);
+    server.Send_msg(buffer,length,0);
+}
+
+void MainWindow::UserMessage(struct LinkC_User_Message_t Message){
     if(Message.Action == USER_CHAT){
         char tmp[128];
         snprintf(tmp,127,"Your Friend[Whose UID is %d] Wants to chat with you",Message.SrcUID);
         int answer = QMessageBox::question(0,"QUESTION",tr(tmp),QMessageBox::Yes|QMessageBox::No);
         if(answer == QMessageBox::Yes){
             ChatWith(area->GetFriendDataByUID(Message.SrcUID));
+        }
+    }
+    else if(Message.Action == USER_CONNECT_READY){
+        printf("MessageGet\n");
+        if(!ChatDialogMap.contains(Message.SrcUID)){
+        }else{
+            ChatDialog *log;
+            ChatDialogiterator = ChatDialogMap.find(Message.SrcUID);
+            log = ChatDialogiterator.value();
+            log->P2PConnectReady();
         }
     }
     else{
@@ -266,4 +300,9 @@ void MainWindow::UserRequest(struct LinkC_User_Message_t Message){
 
 void MainWindow::SysActionStatus(LinkC_Sys_Status status){
     if(status.Status == 0) return;
+}
+
+void MainWindow::SendMessageToServer(LinkC_User_Request Message){
+    length = pack_message(USER_REQUEST,(void *)&Message,LUM_L,package);
+    server.Send_msg(package,length,0);
 }

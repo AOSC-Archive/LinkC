@@ -15,6 +15,8 @@ int user_login(struct user_data* user)
 	user->UID = check_pass(user->login);
 	if(user->UID == LINKC_FAILURE)
 		return LINKC_FAILURE;
+	if(get_info(user->UID,STATUS_GET) != STATUS_OFFLINE)
+		return LINKC_FAILURE;
 	status_set(user,STATUS_ONLINE);
 	return LINKC_SUCCESS;
 }

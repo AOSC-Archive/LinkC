@@ -57,6 +57,7 @@
 #define USER_REFUSE         3   // 拒绝
 #define USER_ADD_FRIEND		4	// 添加好友
 #define USER_DEL_FRIEND		5	// 删除好友
+#define USER_CONNECT_READY  6   // P2P连接准备好了
 
 struct LinkC_Message_Header_t
 {
@@ -106,6 +107,7 @@ typedef struct LinkC_Friend_Data_t      LinkC_Friend_Data;
 Q_DECLARE_METATYPE(LinkC_Sys_Status)
 Q_DECLARE_METATYPE(LinkC_Friend_Data)
 Q_DECLARE_METATYPE(LinkC_User_Message)
+Q_DECLARE_METATYPE(LinkC_User_Request)
 
 // 缩写一下，啊哈哈哈哈哈
 #define LMH	LinkC_Message_Header

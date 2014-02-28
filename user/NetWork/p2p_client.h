@@ -25,6 +25,24 @@ struct p2pinfo{
     int is_server;
 };
 
+class P2PConnecter : public QThread{
+    Q_OBJECT
+public:
+    explicit P2PConnecter(UDP_csocket k,int s,QThread *parent = 0);
+    void run();
+    void inDirectConnect(void);
+    void inDirectAccept(void);
+signals:
+    void ConnectToPeerDone(bool);
+    void ConnectReady(void);
+protected:
+    UDP_csocket Dest;
+    int is_server;
+    char buffer[MAXBUF];
+    struct p2pinfo P2PInfo;
+    void *package;
+};
+
 class p2p_client : public QThread{
     Q_OBJECT
 public:
@@ -38,8 +56,6 @@ public:
     int HeartBeats();
 
     int DirectConnect(void);
-    void inDirectConnect(void);
-    void inDirectAccept(void);
     int IsServer(void);
     bool IsPeerConnected(void);
 
@@ -47,12 +63,16 @@ public:
     UDP_csocket GetCsocket(void);
 
     void SetPeerIP(ip_t ip);
+    void inDirectConnectStart(void);
 
 signals:
+    void P2PConnectReady(void);
     void ConnectToPeerDone(bool);
 
 public slots:
     void ConnectToPeer(void);
+    void ConnectReady(void);
+    void ConnectDone(bool);
 
 protected:
     UDP_csocket Dest;
@@ -63,5 +83,9 @@ protected:
     struct p2pinfo P2PInfo;
     void *package;
     bool isPeerConnected;
+    P2PConnecter *Connecter;
 };
+
+
+
 #endif // P2P_CLIENT_H

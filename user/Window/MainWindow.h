@@ -47,8 +47,10 @@ private slots:
     void check(void);
     void test_slot(int i);
     void ChatWith(LinkC_Friend_Data);
-    void UserRequest(LinkC_User_Message);
+    void FriendLabelClicked(LinkC_Friend_Data);
+    void UserMessage(LinkC_User_Message);
     void SysActionStatus(LinkC_Sys_Status);
+    void SendMessageToServer(LinkC_User_Request);
 signals:
     void test_signal(int i);
 private:
@@ -63,7 +65,7 @@ private:
     QWidget    * Top;
     QWidget    * MainWidget;
     _Map         ChatDialogMap;
-    _Map::iterator tmp;
+    _Map::iterator ChatDialogiterator;
 
     TCP_MessageRecver *Recver;
 };
