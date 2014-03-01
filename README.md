@@ -1,7 +1,7 @@
 
 LinkC
 =====
-An simple IM client with CSocket and WebQQ Protocol, based on Qt.
+An simple IM client based on Qt and use POSIX socket.
 
 Start Date: March 6, 2013
 
