@@ -36,7 +36,7 @@ LoginWindow::LoginWindow(QWidget *parent) :
 }
 
 LoginWindow::~LoginWindow(){
-    printf ("Debug >> Login_Window\t= [EXITED]!\n");
+    LinkC_Debug("Login_Window\t= [EXITED]");
 }
 
 void LoginWindow::QuitClick(void){

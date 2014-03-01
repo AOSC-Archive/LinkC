@@ -28,16 +28,17 @@ struct p2pinfo{
 class P2PConnecter : public QThread{
     Q_OBJECT
 public:
-    explicit P2PConnecter(UDP_csocket k,int s,QThread *parent = 0);
+    explicit P2PConnecter(UDP_csocket k, p2pinfo info, QThread *parent = 0);
     void run();
     void inDirectConnect(void);
     void inDirectAccept(void);
+
+    bool IsConnected(void);
 signals:
     void ConnectToPeerDone(bool);
-    void ConnectReady(void);
+    void ReadyToAccept(void);
 protected:
     UDP_csocket Dest;
-    int is_server;
     char buffer[MAXBUF];
     struct p2pinfo P2PInfo;
     void *package;
@@ -66,12 +67,12 @@ public:
     void inDirectConnectStart(void);
 
 signals:
-    void P2PConnectReady(void);
+    void AcceptReady(void);
     void ConnectToPeerDone(bool);
 
 public slots:
     void ConnectToPeer(void);
-    void ConnectReady(void);
+    void ReadyToAccept(void);
     void ConnectDone(bool);
 
 protected:

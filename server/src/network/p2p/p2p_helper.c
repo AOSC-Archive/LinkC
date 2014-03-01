@@ -28,7 +28,6 @@ int p2p_helper(void)
 	int i;			// Tmp
 	conn_list list;		// Connection List
 	conn_list_item item;	//
-	socklen_t len;		// Address's Length
 	struct sockaddr_in addr;// save addr
 	struct p2pinfo info;	// 
 	if ((sockfd = Network_init(2342)) < 0)			// Init Network
@@ -38,6 +37,7 @@ int p2p_helper(void)
 
 	while(1)
 	{
+		bzero((void *)&addr,addr_size);
 		recvfrom(sockfd,(void *)&(item.info.Dest.sin_addr.s_addr),ip_size,0,(struct sockaddr *)&addr,&len);	// Recv Dest IP
 		item.info.Src=addr;									// Save Src Addr
 		printf("DestIP=%s\n",inet_ntoa(item.info.Dest.sin_addr));				// Debug

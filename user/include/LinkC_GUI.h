@@ -75,7 +75,7 @@ public:
     explicit ChatHistoryView(char *Name, QWidget *parent = 0);
     void AddChatMessage(QString Msg);
     void AddChatMessage(QString Msg,QString Name);
-    int  GetMesageCount(void);
+    int  GetMessageCount(void);
     void resizeEvent(QResizeEvent *);
 protected:
     int MessageCount;

@@ -32,7 +32,7 @@ ChatDialog::ChatDialog(LinkC_Friend_Data _MyFriend, QWidget *parent)
     this->connect(SendButton,SIGNAL(clicked()),this,SLOT(Send()));
     this->connect(this,SIGNAL(StartP2PConnecting()),peer,SLOT(ConnectToPeer()));
     this->connect(peer,SIGNAL(ConnectToPeerDone(bool)),this,SLOT(P2PConnectDone(bool)));
-    this->connect(peer,SIGNAL(P2PConnectReady()),this,SLOT(ReadyToAccept()));
+    this->connect(peer,SIGNAL(AcceptReady()),this,SLOT(ReadyToAccept()));
 
     setWindowTitle(Title);
 
@@ -52,7 +52,7 @@ void ChatDialog::ReadyToAccept(){
     LinkC_User_Request Message;
     Message.Action = USER_CONNECT_READY;
     Message.UID    = MyFriend.UID;
-    emit SendMessageToServer(Message);
+    emit SendMessageToServer(Message);  // to Tell peer that you have been ready for this P2P Connect
 }
 
 int ChatDialog::ConnectToPeer(void){
@@ -139,7 +139,7 @@ ChatHistoryView::ChatHistoryView(char *Name,QWidget *parent):
 
 }
 
-int ChatHistoryView::GetMesageCount(){return MessageCount;}
+int ChatHistoryView::GetMessageCount(){return MessageCount;}
 
 void ChatHistoryView::resizeEvent(QResizeEvent *){
     List->resize(this->width(),this->height());

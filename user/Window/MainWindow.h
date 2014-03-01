@@ -6,6 +6,7 @@
 #include "LinkC_GUI.h"
 #include "linkc_types.h"
 #include "MessageRecver.h"
+#include "Utilities/LinkC_Utilities.h"
 #include <QToolBox>
 #include <QGroupBox>
 #include <QLayout>
@@ -44,15 +45,12 @@ public:
     FriendArea *friendArea;
     void *package;
 private slots:
-    void check(void);
-    void test_slot(int i);
     void ChatWith(LinkC_Friend_Data);
     void FriendLabelClicked(LinkC_Friend_Data);
     void UserMessage(LinkC_User_Message);
     void SysActionStatus(LinkC_Sys_Status);
     void SendMessageToServer(LinkC_User_Request);
 signals:
-    void test_signal(int i);
 private:
     typedef QMap<int,ChatDialog *> _Map;
     TCP_csocket server;

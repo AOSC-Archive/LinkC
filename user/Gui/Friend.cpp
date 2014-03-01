@@ -21,17 +21,11 @@ FriendGroup::FriendGroup(QWidget *parent)
 //##########################################
 LinkcFriendItem::LinkcFriendItem(QWidget *parent)
     :QLabel(parent){
-//    this->setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
-//    layout = new QHBoxLayout;
-//    this->setLayout(layout);
     this->show();
 }
 void LinkcFriendItem::setFriend(const LinkC_Friend_Data data){
-//    QLabel *label = new QLabel(tr(data.name));
     Friend = data;
     this->setText(tr(data.name));
-
-//    layout->addWidget(label);
 }
 
 LinkC_Friend_Data LinkcFriendItem::GetFriend(){

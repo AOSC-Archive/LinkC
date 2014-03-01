@@ -20,7 +20,8 @@ HEADERS += include/def.h \
            NetWork/HeartBeats.h \
            NetWork/MessageRecver.h \
            NetWork/p2p_client.h \
-           Window/MainWindow.h
+           Window/MainWindow.h \
+    Utilities/LinkC_Utilities.h
 SOURCES += main.cpp \
            Gui/ChatDialog.cpp \
            Gui/Friend.cpp \
@@ -32,4 +33,5 @@ SOURCES += main.cpp \
            NetWork/MessageRecver.cpp \
            NetWork/p2p_client.cpp \
            Window/LoginWindow.cpp \
-           Window/MainWindow.cpp
+           Window/MainWindow.cpp \
+	   Utilities/LinkC_Debug.cpp

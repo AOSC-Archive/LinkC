@@ -73,7 +73,6 @@ MainWindow::MainWindow(QWidget *parent) :
         head->setPixmap(pic);
         head->setGeometry(0,0,50,50);
 //############连接####################
-        this->connect(head, SIGNAL(clicked()), this, SLOT(check()));
         this->connect(area, SIGNAL(ChatTo(LinkC_Friend_Data)),this, SLOT(FriendLabelClicked(LinkC_Friend_Data)));
         this->connect(Recver,SIGNAL(UserMessage(LinkC_User_Message)),this,SLOT(UserMessage(LinkC_User_Message)));
         this->connect(Recver,SIGNAL(SysActionStatus(LinkC_Sys_Status)),this,SLOT(SysActionStatus(LinkC_Sys_Status)));
@@ -95,11 +94,8 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow(){
     length = pack_message(EXIT,NULL,0,buffer);
     server.Send_msg(buffer,length,MSG_DONTWAIT);
-    printf ("Debug >> Main_Window\t= [EXITED]\n");
-}
 
-void MainWindow::test_slot(int i){
-    printf("%d\n",i);
+    LinkC_Debug("Main_Window\t= [EXITED]");
 }
 
 int MainWindow::NetworkInit(void){
@@ -155,23 +151,23 @@ int MainWindow::Login(){
                 unpack_message(buffer,package);
                 if(((LSS *)package)->Action == LOGIN){
                     if(((LSS *)package)->Status == LINKC_SUCCESS){
-                        printf ("Debug >> Login\t\t= [Success]\n");
+                        LinkC_Debug("Login\t\t= [Success]");
                         this->show();
                         return 0;
                     }
                     else if(((LSS *)package)->Status == LINKC_FAILURE){
-                        printf ("Debug >> Login\t\t= [Failure]\n");
+                        LinkC_Debug("Login\t\t= [Failure]");
                         QMessageBox::warning(0,"Waring","Login Faliure!",QMessageBox::Yes);
                         continue;
                     }
                     else if(((LSS *)package)->Status == LINKC_LIMITED){
                         QMessageBox::warning(0,"Waring","Please Try later!",QMessageBox::Yes);
-                        printf ("Debug >> Login\t\t= [Limited]\n");
+                        LinkC_Debug("Login\t\t= [Limited]");
                         exit(0);
                     }
                 }
             }
-            printf("Debug >> Login\t\t= [MessageHeader Incorrect]\n");
+            LinkC_Debug("Login\t\t= [MessageHeader Incorrect]");
             exit(0);
 		}
         else
@@ -200,18 +196,17 @@ int MainWindow::InitFriendList(){
         unpack_message(buffer,package);
         if(((LSS *)package)->Action == USER_FRIEND_DATA){
             if(((LSS *)package)->Status == LINKC_SUCCESS)
-                printf("Debug >> State\t\t= [Success]\n");
+                LinkC_Debug("State\t\t= [Success]");
             else{
                 if(((LSS *)package)->Status == LINKC_FAILURE)
-                    printf("Debug >> State\t\t= [Failure]\n");
+                    LinkC_Debug("State\t\t= [Failure]");
                 else
-                    printf("Debug >> Friend\t\t= [NULL]");
+                    LinkC_Debug("Friend\t\t= [NULL]");
                 return 0;
             }
         }
     }
     flag = non_std_m_message_recv(server.GetSockfd(),sizeof(LinkC_Friend_Data),package);
-    printf("Debug >> Friends Count\t= [%d]\n",flag);             // debug
     area->setFriendCount(flag);                       // save Friend count
     LinkC_Friend_Data *ffb = new LinkC_Friend_Data[area->FriendCount()];    // new memory
     memcpy(ffb,package,area->FriendCount() * sizeof(LinkC_Friend_Data));  // Save Friend Data
@@ -223,16 +218,9 @@ int MainWindow::InitFriendList(){
     return 0;
 }
 
-void MainWindow::check(){
-    printf ("ALl Right!\n");
-}
 
 void MainWindow::ChatWith(LinkC_Friend_Data data){
     ChatDialog *log;
-    ((LUR*)package)->Action = USER_FRIEND_DATA;
-    ((LUR*)package)->UID    = data.UID;
-    length = pack_message(USER_REQUEST,package,LUR_L,buffer);
-
 
     if(!ChatDialogMap.contains(data.UID)){
         log = new ChatDialog(data);
@@ -245,6 +233,9 @@ void MainWindow::ChatWith(LinkC_Friend_Data data){
         log = ChatDialogiterator.value();
         log->show();
     }
+    ((LUR*)package)->Action = USER_FRIEND_DATA;
+    ((LUR*)package)->UID    = data.UID;
+    length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);
 }
 
@@ -284,7 +275,6 @@ void MainWindow::UserMessage(struct LinkC_User_Message_t Message){
         }
     }
     else if(Message.Action == USER_CONNECT_READY){
-        printf("MessageGet\n");
         if(!ChatDialogMap.contains(Message.SrcUID)){
         }else{
             ChatDialog *log;
@@ -294,7 +284,6 @@ void MainWindow::UserMessage(struct LinkC_User_Message_t Message){
         }
     }
     else{
-        printf("Action == %d\n",Message.Action);
     }
 }
 
