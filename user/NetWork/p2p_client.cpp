@@ -54,6 +54,9 @@ void p2p_client::run(){
     this->connect(Connecter,SIGNAL(ConnectToPeerDone(bool)),this,SLOT(ConnectDone(bool)));
     if(P2PInfo.is_server == 1){
         Connecter->start();
+        LinkC_Debug("I Am Server!");
+    }else{
+        LinkC_Debug("I Am Client!");
     }
 }
 
@@ -128,6 +131,7 @@ void P2PConnecter::inDirectAccept(){
     Dest.Send_msg("The packet will be discarded by NAT device",MSG_DONTWAIT);
     emit ReadyToAccept();
     bzero(buffer,STD_PACKAGE_SIZE);
+    LinkC_Debug("Useless Message Sended!");
     Dest.Recv_msg(buffer,LMH_L,0);
     flag = get_message_header(buffer);
     if(flag != CONNECTION){
@@ -144,10 +148,12 @@ void P2PConnecter::inDirectAccept(){
 void P2PConnecter::inDirectConnect(){
     int length;
     int flag;
+#ifdef _LOCAL_NETWORK_P2P_TEST_
+    Dest.Recv_msg(buffer,LMH_L,0);      // 因为这里接收的数据在有NAT设备的情况下是不会到达的
+    LinkC_Debug("Useless Message Recved!");
+#endif
     length = pack_message(CONNECTION,NULL,0,buffer);
-    Dest.Send_msg(buffer,length,0);
-    Dest.Recv_msg(buffer,LMH_L,0);
-
+    Dest.Send_msg(buffer,length,0);     // 发送连接请求
     bzero (buffer,STD_PACKAGE_SIZE);
     Dest.Recv_msg(buffer,STD_PACKAGE_SIZE,0);
     flag = get_message_header(buffer);

@@ -12,6 +12,9 @@
 #include <QTimer>
 #include <QObject>
 #include <QThread>
+
+#define _LOCAL_NETWORK_P2P_TEST_    1
+
 struct conn_info_t
 {
     struct sockaddr_in Src;
