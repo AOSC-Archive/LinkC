@@ -79,6 +79,7 @@ signals:
 public slots:
     int Send(void);
     int HeartBeats(void);
+    void GetFriendData(LinkC_Friend_Data);
 protected:
     QPushButton *SendButton;
     QPushButton *QuitButton;

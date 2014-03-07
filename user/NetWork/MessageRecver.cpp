@@ -18,7 +18,6 @@ TCP_MessageRecver::~TCP_MessageRecver(){
 void TCP_MessageRecver::run(){
     int header;
     printf("TCP MessageRecver Started!\n");
-    QVariant Variant;
     while(1){
         bzero(buffer,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
         bzero(package,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
@@ -35,11 +34,10 @@ void TCP_MessageRecver::run(){
             continue;
         }
         else if(header == SYS_ACTION_STATUS){
-            Variant.setValue(*(LSS *)package);
-            emit SysActionStatus(Variant);
+            emit SysActionStatus(*(LSS *)package);
         }
         else if(header == SYS_FRIEND_DATA){
-
+            emit SysFriendData(*(LSF *)package);
         }
         else{
             fprintf(stderr,"This Message Is Not Supposed!\n");

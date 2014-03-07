@@ -49,9 +49,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
 //############注册数据类型##########
     LinkC_Sys_Status D1;
+    LinkC_Friend_Data D2;
     QVariant DataVar;
     DataVar.setValue(D1);
-    qRegisterMetaType<QVariant>("QVariant");
+    qRegisterMetaType<LinkC_Sys_Status>("LinkC_Sys_Status");
+    DataVar.setValue(D2);
+    qRegisterMetaType<LinkC_Friend_Data>("LinkC_Friend_Data");
 
 //############初始化顶部############
         Top->setGeometry(0,0,this->width(),50); //设置大小
@@ -76,7 +79,7 @@ MainWindow::MainWindow(QWidget *parent) :
         this->connect(head, SIGNAL(clicked()), this, SLOT(check()));
         this->connect(area, SIGNAL(ChatTo(LinkC_Friend_Data)),this, SLOT(ChatWith(LinkC_Friend_Data)));
         this->connect(Recver,SIGNAL(UserMessage(LinkC_User_Message)),this,SLOT(UserRequest(LinkC_User_Message)));
-        this->connect(Recver,SIGNAL(SysActionStatus(QVariant)),this,SLOT(SysActionStatus(QVariant)));
+        this->connect(Recver,SIGNAL(SysActionStatus(LinkC_Sys_Status)),this,SLOT(SysActionStatus(LinkC_Sys_Status)));
         head->show();
 //############顶部初始化完毕############
 
@@ -242,6 +245,7 @@ void MainWindow::ChatWith(LinkC_Friend_Data data){
 
     if(!ChatDialogMap.contains(data.UID)){
         log = new ChatDialog(data);
+        this->connect(Recver,SIGNAL(SysFriendData(LinkC_Friend_Data)),log,SLOT(GetFriendData(LinkC_Friend_Data)));
         log->show();
         ChatDialogMap.insert(data.UID, log);
     }else{
@@ -249,7 +253,6 @@ void MainWindow::ChatWith(LinkC_Friend_Data data){
         log = tmp.value();
         log->show();
     }
-    return;
 }
 
 void MainWindow::UserRequest(struct LinkC_User_Message_t Message){
@@ -266,7 +269,6 @@ void MainWindow::UserRequest(struct LinkC_User_Message_t Message){
     }
 }
 
-void MainWindow::SysActionStatus(QVariant DataVariant){
-    LinkC_Sys_Status status = DataVariant.value<LinkC_Sys_Status>();
+void MainWindow::SysActionStatus(LinkC_Sys_Status status){
     printf("Action == %d\nStatus == %d\n",status.Action,status.Status);
 }

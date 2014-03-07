@@ -104,6 +104,7 @@ typedef struct LinkC_Friend_Data_t      LinkC_Friend_Data;
 #define SYS_FRIEND_DATA_LENGTH	sizeof(struct friend_data)
 
 Q_DECLARE_METATYPE(LinkC_Sys_Status)
+Q_DECLARE_METATYPE(LinkC_Friend_Data)
 
 // 缩写一下，啊哈哈哈哈哈
 #define LMH	LinkC_Message_Header
@@ -111,7 +112,7 @@ Q_DECLARE_METATYPE(LinkC_Sys_Status)
 #define LUM LinkC_User_Message
 #define LUL	LinkC_User_Login
 #define LSS	LinkC_Sys_Status
-#define LSF	LinkC_Sys_Friend_Data
+#define LSF	LinkC_Friend_Data
 
 #define LMH_L	MESSAGE_HEADER_LENGTH
 #define LUR_L	USER_REQUEST_LENGTH

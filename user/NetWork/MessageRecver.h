@@ -19,7 +19,7 @@ public:
 signals:
     void MessageRecved  (const void *data);
     void UserMessage    (LinkC_User_Message);
-    void SysActionStatus(QVariant);
+    void SysActionStatus(LinkC_Sys_Status);
     void SysFriendData  (LinkC_Friend_Data);
     void RecvError      ();
 

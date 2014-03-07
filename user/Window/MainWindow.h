@@ -42,7 +42,7 @@ private slots:
     void test_slot(int i);
     void ChatWith(LinkC_Friend_Data);
     void UserRequest(LinkC_User_Message);
-    void SysActionStatus(QVariant);
+    void SysActionStatus(LinkC_Sys_Status);
 signals:
     void test_signal(int i);
 private:

@@ -25,7 +25,7 @@ ChatDialog::ChatDialog(LinkC_Friend_Data _MyFriend, QWidget *parent)
     this->resize(300,300);
 
     char title_tmp[20];
-    sprintf(title_tmp,"Chat With %s",MyFriend.name);
+    sprintf(title_tmp,"[%s] OFFLINE",MyFriend.name);
     QString Title(title_tmp);
 
     SendButton->setText(tr("Send"));
@@ -109,5 +109,19 @@ void ChatDialog::Recver(void){
         unpack_message(buffer,buf);
         printf("Peer Said = %s\n",buf);
         sleep(1);
+    }
+}
+
+void ChatDialog::GetFriendData(LinkC_Friend_Data Data){
+    if(Data.UID != MyFriend.UID)    return;
+    printf("Data Get!\n");
+    int OldStatus = MyFriend.status;
+    MyFriend=Data;
+    if(OldStatus == STATUS_OFFLINE){
+        char title_tmp[20];
+        sprintf(title_tmp,"[%s] ONLINE",MyFriend.name);
+        QString Title(title_tmp);
+        this->setWindowTitle(Title);
+        History->setText(tr("ONLINE"));
     }
 }
