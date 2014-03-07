@@ -47,7 +47,7 @@ int keep_connect (struct user_data* _user)
 	if(get_message_header(buffer) == CONNECTION)
 		((LinkC_Sys_Status *)data)->Status = LINKC_SUCCESS;
 	else
-		((LinkC_Sys_Status *)data)->Status = LINKC_FAILURE;
+		goto end;
 	length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
 	TCP_Send (user.sockfd,buffer,length,0);
 #if DEBUG
@@ -156,6 +156,9 @@ start:
 						length = pack_message(USER_MESSAGE,data,LUM_L,buffer);
 						send(tmp,buffer,length,0);
 					}
+				}
+				else if(((LUR *)data)->Action == USER_DATA_REQUEST)
+				{
 				}
 				continue;
 			}

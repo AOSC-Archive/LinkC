@@ -111,7 +111,7 @@ int MainWindow::NetworkInit(void){
         return -1;
 	}
     server.Debug_Csocket_Sockfd();
-    length = pack_message(CONNECTION,package,0,buffer);
+    length = pack_message(CONNECTION,NULL,0,buffer);
     server.Send_msg(buffer,length,0);
     bzero(buffer,STD_PACKAGE_SIZE);
     length = server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);

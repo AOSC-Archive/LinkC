@@ -55,7 +55,10 @@ extern int get_info (int UID,int _Flag);
 #define STATUS_GET	1
 #define SOCKFD_GET	2
 
-extern int add_friend(int UID,int _who_ID,int _Flag);
+extern int add_friend(int UID, int _who_ID,int _Flag);
+
+//extern int get_user_data(int UID, struct *user_data data);
+
 #define LINKC_FRIEND_ADD			1
 #define LINKC_FRIEND_ADD_WITH_NICKNAME		2
 #define LINKC_FRIEND_DELETE			3

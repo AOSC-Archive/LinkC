@@ -2931,7 +2931,6 @@ END
     as_fn_error $? "Your 'rm' program is bad, sorry." "$LINENO" 5
   fi
 fi
-
 #AC_CONFIG_SRCDIR(src/main.c)
 #AC_CONFIG_HEADERS(config.h)
 
