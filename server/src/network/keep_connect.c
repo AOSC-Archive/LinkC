@@ -158,8 +158,17 @@ start:
 						send(tmp,buffer,length,0);
 					}
 				}
-				else if(((LUR *)data)->Action == USER_DATA_REQUEST)
+				else if(((LUR *)data)->Action == USER_DATA_REQUEST)	// get self information
 				{
+					((LSS *)data)->Action = USER_DATA_REQUEST;
+					if(get_user_info(user.UID,(struct user_info *)&(user.info)) == LINKC_SUCCESS)
+						((LSS *)data)->Status = LINKC_SUCCESS;
+					else
+						((LSS *)data)->Status = LINKC_FAILURE;
+					length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
+					send(user.sockfd,buffer,length,0);
+					length = pack_message(SYS_USER_DATA,(void *)&(user.info),LUD_L,buffer);
+					sned(user.sockfd,buffer,length,0);
 				}
 				continue;
 			}

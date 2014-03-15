@@ -195,7 +195,6 @@ void linkc_free_data (struct friend_data ** ffb,int _count)
 
 int get_info(int UID,int _Flag)
 {
-
 	char exec[MAXBUF];
 	char * errmsg = NULL;
 	char **dbResult;
@@ -281,6 +280,23 @@ int friend_ctl(int local_UID,int target_ID,int _Flag)
 
 int get_user_info(int UID, struct user_info *info)
 {
-	
-	return LINKC_SUCCESS;
+	char exec[MAXBUF];
+	char * errmsg = NULL;
+	char **dbResult;
+	int nRow, nColumn;
+	int result;
+	sprintf (exec,"SELECT * FROM id%d",UID);
+	result = sqlite3_get_table( friend_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
+	if( result == SQLITE_OK )
+	{
+		strcpy (info->username,dbResult[user_c  +	USER_USERNAME]);
+		strcpy (info->telephone,dbResult[user_c +	USER_TEL]);
+		strcpy (info->company,dbResult[user_c   +	USER_COMPANY]);
+		strcpy (info->address,dbResult[user_c   +	USER_ADDRESS]);
+		strcpy (info->join_time,dbResult[user_c +	USER_JOIN_TIME]);
+		strcpy (info->last_login,dbResult[user_c+	USER_LAST_LOGIN]);
+		info->status = atoi(dbResult[user_c	+	USER_STATUS]);
+		return LINKC_SUCCESS;
+	}
+	return LINKC_FAILURE;
 }

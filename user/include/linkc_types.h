@@ -1,3 +1,8 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 15, 2014
+ */
+
 #ifndef LINKC_TYPES_H
 #define LINKC_TYPES_H
 #define MAXBUF		512
@@ -15,14 +20,6 @@ typedef struct login_data
         char pass_word[20];
 }login_data;
 
-typedef struct user_data	// 之在Server内部使用
-{
-	id_t UID;
-	int sockfd;
-	struct sockaddr_in addr;
-	struct login_data login;
-}user_data;
-
 typedef struct user_info		// 用户信息，用于发回数据
 {
 	id_t UID;
@@ -37,13 +34,12 @@ typedef struct user_info		// 用户信息，用于发回数据
 	ip_t ip;			// 现在IP地址
 }user_info;
 
-struct LinkC_Friend_Data_t
+typedef struct LinkC_Friend_Data_t
 {
 	char nickname[20];
 	int group;
 	struct user_info info;
-};
-
+}friend_data;
 
 #endif
 

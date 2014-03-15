@@ -20,14 +20,6 @@ typedef struct login_data
         char pass_word[20];
 }login_data;
 
-typedef struct user_data	// 之在Server内部使用
-{
-	id_t UID;
-	int sockfd;
-	struct sockaddr_in addr;
-	struct login_data login;
-}user_data;
-
 typedef struct user_info		// 用户信息，用于发回数据
 {
 	id_t UID;
@@ -42,13 +34,21 @@ typedef struct user_info		// 用户信息，用于发回数据
 	ip_t ip;			// 现在IP地址
 }user_info;
 
+typedef struct user_data	// 之在Server内部使用
+{
+	id_t UID;
+	int sockfd;
+	struct sockaddr_in addr;
+	struct login_data login;
+	struct user_info info;
+}user_data;
+
 typedef struct friend_data
 {
 	char nickname[20];
 	int group;
 	struct user_info info;
 }friend_data;
-
 
 #endif
 

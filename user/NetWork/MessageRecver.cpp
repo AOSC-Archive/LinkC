@@ -39,7 +39,7 @@ void TCP_MessageRecver::run(){
             emit SysActionStatus(*(LSS *)package);
         }
         else if(header == SYS_FRIEND_DATA){
-            emit SysFriendData(*(LSF *)package);
+            emit SysFriendData(*(LFD *)package);
         }
         else{
             fprintf(stderr,"This Message Is Not Supposed!\n");
