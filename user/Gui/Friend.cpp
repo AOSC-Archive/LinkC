@@ -25,7 +25,7 @@ LinkcFriendItem::LinkcFriendItem(QWidget *parent)
 }
 void LinkcFriendItem::setFriend(const LinkC_Friend_Data data){
     Friend = data;
-    this->setText(tr(data.name));
+    this->setText(tr(data.info.username));
 }
 
 LinkC_Friend_Data LinkcFriendItem::GetFriend(){
@@ -57,7 +57,7 @@ void FriendArea::AddFriendToLayout(LinkC_Friend_Data Myfriend){
      FriendLabelArea->resize(list->width()-20,_FRIEND_LABEL_HEIGTH*friendcount);
      FriendLayout->addWidget(f);
      this->connect(f,SIGNAL(clicked(LinkC_Friend_Data)),this,SLOT(ItemClicked(LinkC_Friend_Data)));
-     FriendMap[Myfriend.UID] = Myfriend;
+     FriendMap[Myfriend.info.UID] = Myfriend;
 }
 
 void FriendArea::resizeEvent(QResizeEvent *){

@@ -1,3 +1,8 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 15, 2014
+ */
+
 #include "def.h"
 #include "linkc_network.h"
 #include "linkc_network_protocol.h"
@@ -34,7 +39,7 @@ int send_friends_data(struct user_data user,void *data)
 #if DEBUG
 		printf ("UID = %d\nHave %d friend(s)\n",user.UID,friend_count);
 		printf ("------Friends------\n");
-		for (tmp=0;tmp<friend_count;tmp++)	printf ("\tUID\t= %d\tNAME\t= %s\n",My_friend[tmp].UID,My_friend[tmp].name);
+		for (tmp=0;tmp<friend_count;tmp++)	printf ("\tUID\t= %d\tNAME\t= %s\n",My_friend[tmp].info.UID,My_friend[tmp].info.username);
 		printf ("------End----------\n");
 #endif
 		non_std_m_message_send(My_friend,user.sockfd,friend_count,sizeof(friend_data),SYS_FRIEND_DATA,0);

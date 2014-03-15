@@ -16,13 +16,13 @@ ChatDialog::ChatDialog(LinkC_Friend_Data _MyFriend, QWidget *parent)
     SendButton = new QPushButton(this);
     QuitButton = new QPushButton(this);
     Layout = new QVBoxLayout(this);
-    History    = new ChatHistoryView(MyFriend.name);
+    History    = new ChatHistoryView(MyFriend.info.username);
     Input = new QTextEdit;
     peer    = new p2p_client;
     this->resize(300,300);
 
     char title_tmp[20];
-    sprintf(title_tmp,"[%s] OFFLINE",MyFriend.name);
+    sprintf(title_tmp,"[%s] OFFLINE",MyFriend.info.username);
     QString Title(title_tmp);
 
     SendButton->setText(tr("Send"));
@@ -51,7 +51,7 @@ ChatDialog::~ChatDialog(){
 void ChatDialog::ReadyToAccept(){
     LinkC_User_Request Message;
     Message.Action = USER_CONNECT_READY;
-    Message.UID    = MyFriend.UID;
+    Message.UID    = MyFriend.info.UID;
     emit SendMessageToServer(Message);  // to Tell peer that you have been ready for this P2P Connect
 }
 
@@ -79,17 +79,17 @@ int ChatDialog::Send(void){
 }
 
 void ChatDialog::GetFriendData(LinkC_Friend_Data Data){
-    if(Data.UID != MyFriend.UID)    return;
-    peer->SetDestIP(Data.ip);
+    if(Data.info.UID != MyFriend.info.UID)    return;
+    peer->SetDestIP(Data.info.ip);
     MyFriend=Data;
     char title_tmp[32];
     QString Title;
-    if(Data.status == STATUS_ONLINE){
+    if(Data.info.status == STATUS_ONLINE){
         if(peer->IsPeerConnected() == false){
             emit StartP2PConnecting();
-            sprintf(title_tmp,"[%s] CONNECTING",MyFriend.name);
+            sprintf(title_tmp,"[%s] CONNECTING",MyFriend.info.username);
         }else
-            sprintf(title_tmp,"[%s] ONLINE",MyFriend.name);
+            sprintf(title_tmp,"[%s] ONLINE",MyFriend.info.username);
         Title = title_tmp;
         this->setWindowTitle(Title);
     }
@@ -104,7 +104,7 @@ void ChatDialog::P2PConnectDone(bool status){
         HeartBeater = new HeartBeats(peer->GetCsocket());
         HeartBeater->start();
         char title_tmp[32];
-        sprintf(title_tmp,"[%s] CONNECTED",MyFriend.name);
+        sprintf(title_tmp,"[%s] CONNECTED",MyFriend.info.username);
         this->setWindowTitle(tr(title_tmp));
         this->SendButton->setEnabled(true);
     }else

@@ -1,3 +1,8 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 15, 2014
+ */
+
 #include "list.h"
 #include "conn_list.h"
 #include "def.h"

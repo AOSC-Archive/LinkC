@@ -1,10 +1,31 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 15, 2014
+ */
+
 #ifndef _LINKC_DB_H_
 #define _LINKC_DB_H_
 
 #include <sqlite3.h>
 #include "linkc_types.h"
 
-
+//##########用户数据库结构#############
+#define USER_UID	0
+#define USER_USERNAME	1
+#define USER_PASSWORD	2
+#define USER_NAME	3
+#define USER_TEL	4
+#define USER_COMPANY	5
+#define USER_ADDRESS	6
+#define USER_JOIN_TIME	7
+#define USER_LAST_LOGIN	8
+#define USER_LAST_IP	9
+#define USER_STATUS	10
+#define USER_SOCKFD	11
+//#########好友数据库结构#############
+#define FRIEND_UID	0
+#define FRIEND_NICKNAME	1
+//#########完毕          #############
 extern int init_sqlite3_db (void);
 /* 打开数据库，并且设置全局变量 */
 
@@ -57,7 +78,12 @@ extern int get_info (int UID,int _Flag);
 
 extern int add_friend(int UID, int _who_ID,int _Flag);
 
-//extern int get_user_data(int UID, struct *user_data data);
+extern int get_user_info(int UID, struct user_info *info);
+/*
+ * 获得目标UID用户的资料	返回[LINKC_SUCCESS / LINKC_FAILURE]
+ * 参数：1	int UID		用户的UID
+ * 参数：2	user_info结构体指针
+ */
 
 #define LINKC_FRIEND_ADD			1
 #define LINKC_FRIEND_ADD_WITH_NICKNAME		2

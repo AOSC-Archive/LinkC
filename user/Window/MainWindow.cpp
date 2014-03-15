@@ -222,19 +222,19 @@ int MainWindow::InitFriendList(){
 void MainWindow::ChatWith(LinkC_Friend_Data data){
     ChatDialog *log;
 
-    if(!ChatDialogMap.contains(data.UID)){
+    if(!ChatDialogMap.contains(data.info.UID)){
         log = new ChatDialog(data);
         this->connect(Recver,SIGNAL(SysFriendData(LinkC_Friend_Data)),log,SLOT(GetFriendData(LinkC_Friend_Data)));
         this->connect(log,SIGNAL(SendMessageToServer(LinkC_User_Request)),this,SLOT(SendMessageToServer(LinkC_User_Request)));
         log->show();
-        ChatDialogMap.insert(data.UID, log);
+        ChatDialogMap.insert(data.info.UID, log);
     }else{
-        ChatDialogiterator = ChatDialogMap.find(data.UID);
+        ChatDialogiterator = ChatDialogMap.find(data.info.UID);
         log = ChatDialogiterator.value();
         log->show();
     }
     ((LUR*)package)->Action = USER_FRIEND_DATA;
-    ((LUR*)package)->UID    = data.UID;
+    ((LUR*)package)->UID    = data.info.UID;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);
 }
@@ -242,25 +242,25 @@ void MainWindow::ChatWith(LinkC_Friend_Data data){
 void MainWindow::FriendLabelClicked(LinkC_Friend_Data data){
     ChatDialog *log;
 
-    if(!ChatDialogMap.contains(data.UID)){
+    if(!ChatDialogMap.contains(data.info.UID)){
         log = new ChatDialog(data);
         //  发送连接请求
         ((LUR*)package)->Action=USER_CHAT_REQUEST;
-        ((LUR*)package)->UID   =data.UID;
+        ((LUR*)package)->UID   =data.info.UID;
         length = pack_message(USER_REQUEST,package,LUR_L,buffer);
         server.Send_msg(buffer,length,0);
         //  end
         this->connect(Recver,SIGNAL(SysFriendData(LinkC_Friend_Data)),log,SLOT(GetFriendData(LinkC_Friend_Data)));
         this->connect(log,SIGNAL(SendMessageToServer(LinkC_User_Request)),this,SLOT(SendMessageToServer(LinkC_User_Request)));
         log->show();
-        ChatDialogMap.insert(data.UID, log);
+        ChatDialogMap.insert(data.info.UID, log);
     }else{
-        ChatDialogiterator = ChatDialogMap.find(data.UID);
+        ChatDialogiterator = ChatDialogMap.find(data.info.UID);
         log = ChatDialogiterator.value();
         log->show();
     }
     ((LUR*)package)->Action = USER_FRIEND_DATA;
-    ((LUR*)package)->UID    = data.UID;
+    ((LUR*)package)->UID    = data.info.UID;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);
 }

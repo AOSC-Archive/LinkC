@@ -1,3 +1,8 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 15, 2014
+ */
+
 #ifndef _P2P_HELPER_H_
 #define _P2P_HELPER_H_
 

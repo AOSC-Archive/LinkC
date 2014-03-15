@@ -1,3 +1,8 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 15, 2014
+ */
+
 #include "linkc_network.h"
 #include "p2p_helper.h"
 #include <stdlib.h>

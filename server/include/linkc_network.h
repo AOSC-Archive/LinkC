@@ -1,3 +1,8 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 15, 2014
+ */
+
 #ifndef _LINKC_NETWORK_H_
 #define _LINKC_NETWORK_H_
 

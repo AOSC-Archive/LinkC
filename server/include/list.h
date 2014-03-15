@@ -1,3 +1,8 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 15, 2014
+ */
+
 #ifndef _LIST_H_
 #define _LIST_H_
 #include "def.h"

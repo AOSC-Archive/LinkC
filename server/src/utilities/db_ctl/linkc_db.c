@@ -1,3 +1,8 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 15, 2014
+ */
+
 #include "def.h"
 #include "linkc_db.h"
 #include "linkc_types.h"
@@ -107,16 +112,16 @@ printf("Friend Data Get %s\n",exec);
 			errmsg = NULL;
 			return LINKC_FAILURE;
 		}
-		_friend[0].UID = DestUID;
-		strcpy (_friend[0].name,dbResult[user_c + 2 - 1]);	// 
-		strcpy (_friend[0].nickname,dbResult[user_c + 4 -1]);	// 获得名字
-		strcpy (_friend[0].telephone,dbResult[user_c + 5 -1]);	// 获得电话
-		strcpy (_friend[0].company,dbResult[user_c + 6 -1]);	// 获得公司
-		strcpy (_friend[0].address,dbResult[user_c + 7 -1]);	// 获得地址
-		_friend[0].status = atoi(dbResult[user_c +11 -1]);
-		_friend[0].ip=inet_addr(dbResult[user_c +10-1]);
-			printf("Ip = %d\n",_friend[0].ip);
-		sprintf (exec,"SELECT * FROM id%d WHERE id='%d'",UID,DestUID);
+		_friend[0].info.UID = DestUID;
+		strcpy (_friend[0].info.username,dbResult[user_c +	USER_USERNAME]);// 获取用户名
+		strcpy (_friend[0].info.telephone,dbResult[user_c+	USER_TEL])    ;	// 获得电话
+		strcpy (_friend[0].info.company,dbResult[user_c	+	USER_COMPANY]);	// 获得公司
+		strcpy (_friend[0].info.address,dbResult[user_c	+	USER_ADDRESS]);	// 获得地址
+		_friend[0].info.status	= atoi(dbResult[user_c	+	USER_STATUS]) ; // 获得状态
+		_friend[0].info.ip	= inet_addr(dbResult[user_c +	USER_LAST_IP]); // 获得IP地址
+		strcpy (_friend[0].nickname,dbResult[user_c	+	USER_NAME])   ; // 获得昵称
+			printf("Ip = %d\n",_friend[0].info.ip);
+		sprintf (exec,"SELECT * FROM id%d WHERE id='%d'",UID,DestUID);		// 检索好友数据库
 		result = sqlite3_get_table( friend_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
 		if (nRow == 0)						// 如果不是好友
 		{
@@ -125,7 +130,7 @@ printf("Friend Data Get %s\n",exec);
 			errmsg = NULL;
 			return LINKC_FAILURE;
 		}
-		strcpy (_friend[0].nickname,dbResult[db_column + 2 - 1]);	// 如果是好友，得到nickname
+		strcpy (_friend[0].nickname,dbResult[db_column +	FRIEND_NICKNAME]);// 如果是好友，得到nickname
 		sqlite3_free_table (dbResult);
 		*_ffb = _friend;
 		errmsg = NULL;
@@ -152,24 +157,24 @@ int get_friends_data (int UID,struct friend_data ** ffb)
 		_friend = (struct friend_data *) malloc ((sizeof (struct friend_data))*nRow);
 		for (i=0;i<nRow;i++)		// 取得信息
 		{
-			sscanf (dbResult[db_column * i + db_column],"%d",&_friend[i].UID);
-			printf ("_friend[i].ID = %d\n",_friend[i].UID);
-			strcpy (_friend[i].nickname,dbResult[db_column * (i+1) + 1]);
+			sscanf (dbResult[db_column * i + db_column + FRIEND_UID],"%d",&_friend[i].info.UID);	// 获得好友UID
+			printf ("_friend[i].ID = %d\n",_friend[i].info.UID);
+			strcpy (_friend[i].nickname,dbResult[db_column * (i+1) + FRIEND_NICKNAME]);		// 获得好友自定义昵称
 		}
 		printf ("nRow = %d\n",nRow);
 		row = nRow;
 		for (i=0;i<row;i++)
 		{
-			sprintf (exec,"SELECT * FROM user WHERE id='%d'",_friend[i].UID);
+			sprintf (exec,"SELECT * FROM user WHERE id='%d'",_friend[i].info.UID);
 			printf ("exec = %s\n",exec);
 			result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
-			strcpy (_friend[i].name,dbResult[user_c + 4 -1]);
-			strcpy (_friend[i].telephone,dbResult[user_c + 5 -1]);
-			strcpy (_friend[i].company,dbResult[user_c + 6 -1]);
-			strcpy (_friend[i].address,dbResult[user_c + 7 -1]);
-			_friend[i].ip=0;
+			strcpy (_friend[i].info.username,dbResult[user_c  +	USER_USERNAME]);
+			strcpy (_friend[i].info.telephone,dbResult[user_c +	USER_TEL]);
+			strcpy (_friend[i].info.company,dbResult[user_c   +	USER_COMPANY]);
+			strcpy (_friend[i].info.address,dbResult[user_c   +	USER_ADDRESS]);
+			_friend[i].info.ip=0;
 #if DEBUG
-printf ("The Data Get\t= [%s]\n\t---> %d|%s|%s|%s|%s|%s\n",exec,_friend[i].UID,_friend[i].name,_friend[i].nickname,_friend[i].telephone,_friend[i].company,_friend[i].address);
+printf ("The Data Get\t= [%s]\n\t---> %d|%s|%s|%s|%s|%s\n",exec,_friend[i].info.UID,_friend[i].info.username,_friend[i].nickname,_friend[i].info.telephone,_friend[i].info.company,_friend[i].info.address);
 #endif
 		}
 
@@ -225,11 +230,11 @@ int status_set (struct user_data *user,int _Flag)
 	if (_Flag > 0)	// 分别为上线，隐身
 	{
 		sprintf (exec,"UPDATE user SET state='%d' where id='%d'",_Flag,user->UID);
-		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );
+		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );		// 更新状态
 		sprintf (exec,"UPDATE user SET sockfd='%d' where id='%d'",user->sockfd,user->UID);
-		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );
+		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );		// 更新Sockfd
 		sprintf (exec,"UPDATE user SET last_ip='%s' where id='%d'",inet_ntoa(user->addr.sin_addr),user->UID);
-		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );
+		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );		// 更新last ip
 		if( result == SQLITE_OK )	return LINKC_SUCCESS;
 		printf ("Exec Error\t[%s]\n",errmsg);
 		return LINKC_FAILURE;
@@ -237,9 +242,9 @@ int status_set (struct user_data *user,int _Flag)
 	if (_Flag == 0)	// 设置成下线
 	{
 		sprintf (exec,"UPDATE user SET state='0' where id='%d'",user->UID);
-		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );
+		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );		// 更新状态为[离线]
 		sprintf (exec,"UPDATE user SET sockfd='0' where id='%d'",user->UID);
-		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );
+		result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );		// 更新sockfd为[0]
 		if( result == SQLITE_OK )	return LINKC_SUCCESS;
 		printf ("Exec Error\t[%s]\n",errmsg);
 		return LINKC_FAILURE;
@@ -271,5 +276,11 @@ int friend_ctl(int local_UID,int target_ID,int _Flag)
 			return LINKC_FAILURE;
 		}
 	}
+	return LINKC_SUCCESS;
+}
+
+int get_user_info(int UID, struct user_info *info)
+{
+	
 	return LINKC_SUCCESS;
 }

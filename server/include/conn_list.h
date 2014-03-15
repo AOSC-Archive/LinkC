@@ -1,3 +1,8 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 15, 2014
+ */
+
 #ifndef _CONN_LIST_H_
 #define _CONN_LIST_H_
 

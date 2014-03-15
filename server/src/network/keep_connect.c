@@ -1,6 +1,7 @@
-/* ###################
- * 连接模块[仍在开发中]
-   #################### */
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 15, 2014
+ */
 
 #include "linkc_types.h"
 #include "linkc_db.h"
