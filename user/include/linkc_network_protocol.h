@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 15, 2014
+ * Last-Change		： March 22, 2014
  */
 
 #ifndef LINKC_NETWORK_PROTOCOL_H
@@ -102,7 +102,7 @@ typedef struct LinkC_User_Message_t	LinkC_User_Message;
 typedef struct login_data		LinkC_User_Login;
 typedef struct LinkC_Sys_Status_t	LinkC_Sys_Status;
 typedef struct LinkC_Friend_Data_t      LinkC_Friend_Data;
-typedef struct user_info		LinkC_User_Data;
+typedef struct LinkC_User_Data_t		LinkC_User_Data;
 
 #define MESSAGE_HEADER_LENGTH	sizeof(struct LinkC_Message_Header_t)
 #define USER_REQUEST_LENGTH 	sizeof(struct LinkC_User_Request_t)
@@ -110,12 +110,13 @@ typedef struct user_info		LinkC_User_Data;
 #define USER_LOGIN_LENGTH	sizeof(struct login_data)
 #define SYS_STATUS_LENGTH   	sizeof(struct LinkC_Sys_Status_t)
 #define SYS_FRIEND_DATA_LENGTH	sizeof(struct friend_data)
-#define SYS_USER_DATA_LENGTH	sizeof(struct user_info)
+#define SYS_USER_DATA_LENGTH	sizeof(struct LinkC_User_Data_t)
 
 Q_DECLARE_METATYPE(LinkC_Sys_Status)
 Q_DECLARE_METATYPE(LinkC_Friend_Data)
 Q_DECLARE_METATYPE(LinkC_User_Message)
 Q_DECLARE_METATYPE(LinkC_User_Request)
+Q_DECLARE_METATYPE(LinkC_User_Data)
 
 // 缩写一下，啊哈哈哈哈哈
 #define LMH	LinkC_Message_Header
