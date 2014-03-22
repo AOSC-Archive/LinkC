@@ -1,3 +1,7 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 22, 2014
+ */
 #include "Window/MainWindow.h"
 #include <QApplication>
 #include <QPushButton>
