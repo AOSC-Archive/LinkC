@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 15, 2014
+ * Last-Change		： March 22, 2014
  */
 
 #include "def.h"
@@ -289,13 +289,22 @@ int get_user_info(int UID, struct user_info *info)
 	result = sqlite3_get_table( friend_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
 	if( result == SQLITE_OK )
 	{
+		printf("GOT!!!\n");
 		strcpy (info->username,dbResult[user_c  +	USER_USERNAME]);
+		printf("GOT!!!\n");
 		strcpy (info->telephone,dbResult[user_c +	USER_TEL]);
+		printf("GOT!!!\n");
 		strcpy (info->company,dbResult[user_c   +	USER_COMPANY]);
+		printf("GOT!!!\n");
 		strcpy (info->address,dbResult[user_c   +	USER_ADDRESS]);
-		strcpy (info->join_time,dbResult[user_c +	USER_JOIN_TIME]);
-		strcpy (info->last_login,dbResult[user_c+	USER_LAST_LOGIN]);
-		info->status = atoi(dbResult[user_c	+	USER_STATUS]);
+		printf("GOT!!!\n");
+//		printf("Size = %d\n",sizeof(dbResult[user_c +	USER_JOIN_TIME]));
+//		strcpy (info->join_time,dbResult[user_c +	USER_JOIN_TIME]);
+//		printf("GOT!!!\n");
+//		strcpy (info->last_login,dbResult[user_c+	USER_LAST_LOGIN]);
+//		printf("GOT!!!\n");
+		sscanf(dbResult[user_c+USER_STATUS],"%d",info->status);
+		printf("GOT!!!\n");
 		return LINKC_SUCCESS;
 	}
 	return LINKC_FAILURE;
