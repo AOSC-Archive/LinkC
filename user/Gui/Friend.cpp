@@ -1,3 +1,7 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 22, 2014
+ */
 #include "LinkC_GUI.h"
 #include "LinkC_Label.h"
 #include <stdio.h>
@@ -25,7 +29,7 @@ LinkcFriendItem::LinkcFriendItem(QWidget *parent)
 }
 void LinkcFriendItem::setFriend(const LinkC_Friend_Data data){
     Friend = data;
-    this->setText(tr(data.info.username));
+    this->setText(tr(data.Data.username));
 }
 
 LinkC_Friend_Data LinkcFriendItem::GetFriend(){
@@ -57,7 +61,16 @@ void FriendArea::AddFriendToLayout(LinkC_Friend_Data Myfriend){
      FriendLabelArea->resize(list->width()-20,_FRIEND_LABEL_HEIGTH*friendcount);
      FriendLayout->addWidget(f);
      this->connect(f,SIGNAL(clicked(LinkC_Friend_Data)),this,SLOT(ItemClicked(LinkC_Friend_Data)));
-     FriendMap[Myfriend.info.UID] = Myfriend;
+     FriendMap[Myfriend.Data.UID] = f;
+}
+
+void FriendArea::clear(){
+    if(FriendMap.isEmpty() == false){
+        for(result = FriendMap.begin();result != FriendMap.end();result++)
+            delete result.value();
+        FriendMap.clear();
+        friendcount = 0;
+    }
 }
 
 void FriendArea::resizeEvent(QResizeEvent *){
@@ -83,5 +96,5 @@ void FriendArea::ItemClicked(LinkC_Friend_Data data){
 
 LinkC_Friend_Data FriendArea::GetFriendDataByUID(int UID){
     result = FriendMap.find(UID);
-    return result.value();
+    return result.value()->GetFriend();
 }
