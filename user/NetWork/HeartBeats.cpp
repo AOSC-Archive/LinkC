@@ -1,3 +1,7 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 22, 2014
+ */
 #include "HeartBeats.h"
 
 HeartBeats::HeartBeats(UDP_csocket sk, QThread *parent):

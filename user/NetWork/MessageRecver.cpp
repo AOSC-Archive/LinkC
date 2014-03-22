@@ -1,3 +1,7 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 22, 2014
+ */
 #include "MessageRecver.h"
 #include "linkc_network_protocol.h"
 #include "linkc_types.h"
@@ -40,6 +44,9 @@ void TCP_MessageRecver::run(){
         }
         else if(header == SYS_FRIEND_DATA){
             emit SysFriendData(*(LFD *)package);
+        }
+        else if(header == SYS_USER_DATA){
+            emit SysUserData(*(LUD *)package);
         }
         else{
             fprintf(stderr,"This Message Is Not Supposed!\n");

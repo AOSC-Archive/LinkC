@@ -1,3 +1,7 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 22, 2014
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory>
@@ -139,14 +143,14 @@ int socket_c::Recv_msg(void* Buffer,int Flag){
     if(type == TCP){
         byte = recv (Sockfd,Buffer,MAXBUF,Flag);
         if (byte < 0){
-            perror("TCP_Recv");
+            perror("TCP_Recv[0]");
             return -1;
         }
     }
     if(type == UDP){
         byte = recvfrom (Sockfd,Buffer,MAXBUF,Flag,(struct sockaddr *)&DestAddr,&AddrLen);
         if (byte < 0){
-            perror("UDP_Recv");
+            perror("UDP_Recv[0]");
         return -1;
         }
     }
@@ -158,14 +162,14 @@ int socket_c::Recv_msg(void* Buffer,int maxbuf,int Flag){
     if(type == TCP){
         byte = recv (Sockfd,Buffer,maxbuf,Flag);
         if (byte < 0){
-            perror("TCP_Recv");
+            perror("TCP_Recv[0]");
             return -1;
         }
     }
     if(type == UDP){
         byte = recvfrom (Sockfd,Buffer,maxbuf,Flag,(struct sockaddr *)&DestAddr,&AddrLen);
         if (byte < 0){
-            perror("UDP_Recv");
+            perror("UDP_Recv[0]");
         return -1;
         }
     }
@@ -188,14 +192,14 @@ int socket_c::Send_msg(const char* Message,int Flag){
     if (type == TCP){
         byte = send (Sockfd,Message,MAXBUF,Flag);
         if (byte < 0){
-            perror("TCP_Send");
+            perror("TCP_Send[0]");
             return -1;
         }
     }
     if (type == UDP){
         byte = sendto (Sockfd,Message,MAXBUF,Flag,(struct sockaddr *)&DestAddr,AddrLen);
         if (byte < 0){
-            perror("UDP_Send");
+            perror("UDP_Send[0]");
             return -1;
         }
     }
@@ -207,14 +211,14 @@ int socket_c::Send_msg(const void* Message,int Flag){
     if (type == TCP){
         byte = send (Sockfd,Message,MAXBUF,Flag);
         if (byte < 0){
-            perror("Send");
+            perror("Send[0]");
             return -1;
         }
     }
     if (type == UDP){
         byte = sendto (Sockfd,Message,MAXBUF,Flag,(struct sockaddr *)&DestAddr,AddrLen);
         if (byte < 0){
-            perror("UDP_Send");
+            perror("UDP_Send[0]");
             return -1;
         }
     }
@@ -226,14 +230,14 @@ int socket_c::Send_msg(const void* Message,int maxbuf,int Flag){
     if (type == TCP){
         byte = send (Sockfd,Message,maxbuf,Flag);
         if (byte < 0){
-            perror("TCP_Send");
+            perror("TCP_Send[0]");
             return -1;
         }
     }
     if (type == UDP){
         byte = sendto (Sockfd,Message,maxbuf,Flag,(struct sockaddr *)&DestAddr,AddrLen);
         if (byte < 0){
-            perror("UDP_Send");
+            perror("UDP_Send[0]");
             return -1;
         }
     }
@@ -283,7 +287,7 @@ int TCP_csocket::TCP_Recv(void *out, int out_size, int flag)
                 tmp = recv(Sockfd,(char *)recv_buffer+Length,STD_PACKAGE_SIZE,flag);
                 if(tmp <= 0)
                 {
-                    perror("RecvFrom");
+                    perror("TCP_Recv[1]");
                     Length = 0;
                     is_remain = 0;
                     return LINKC_FAILURE;
@@ -350,7 +354,7 @@ int TCP_csocket::TCP_Recv(void *out, int out_size, int flag)
             tmp = recv(Sockfd,(char *)recv_buffer+Length,STD_PACKAGE_SIZE,flag);
             if(tmp <= 0)
             {
-                perror("RecvFrom");
+                perror("TCP_Recv[2]");
                 Length = 0;
                 is_remain = 0;
                 return LINKC_FAILURE;
@@ -479,7 +483,7 @@ int UDP_csocket::UDP_Recv(void *out, int out_size, int flag)
                 tmp = recvfrom(Sockfd,(char *)recv_buffer+Length,STD_PACKAGE_SIZE,flag,(struct sockaddr *)&DestAddr,&AddrLen);
                 if(tmp <= 0)
                 {
-                    perror("Recv");
+                    perror("UDP_Recv[1]");
                     Length = 0;
                     is_remain = 0;
                     return LINKC_FAILURE;
@@ -546,7 +550,7 @@ int UDP_csocket::UDP_Recv(void *out, int out_size, int flag)
             tmp = recvfrom(Sockfd,(char *)recv_buffer+Length,STD_PACKAGE_SIZE,flag,(struct sockaddr *)&DestAddr,&AddrLen);
             if(tmp <= 0)
             {
-                perror("Recv");
+                perror("UDP_Recv[2]");
                 Length = 0;
                 is_remain = 0;
                 return LINKC_FAILURE;

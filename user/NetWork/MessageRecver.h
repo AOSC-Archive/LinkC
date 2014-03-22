@@ -1,3 +1,7 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 22, 2014
+ */
 #ifndef MESSAGERECVER_H
 #define MESSAGERECVER_H
 
@@ -21,6 +25,7 @@ signals:
     void UserMessage    (LinkC_User_Message);
     void SysActionStatus(LinkC_Sys_Status);
     void SysFriendData  (LinkC_Friend_Data);
+    void SysUserData    (LinkC_User_Data);
     void RecvError      ();
 
 protected:
