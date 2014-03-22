@@ -50,12 +50,16 @@ private slots:
     void UserMessage(LinkC_User_Message);
     void SysActionStatus(LinkC_Sys_Status);
     void SendMessageToServer(LinkC_User_Request);
+    void setUserData(LinkC_User_Data);
+    void SLOT_Quit(void);
+    void SLOT_Refresh_User_Info(void);
 signals:
 private:
     typedef QMap<int,ChatDialog *> _Map;
     TCP_csocket server;
 	int Connection_state;
     FriendArea * area;
+    SetupMenu  * MainSetupMenu;
     QTabWidget * tab;
     QGridLayout* TopLayout;
     QVBoxLayout* MainLayout;
@@ -64,8 +68,8 @@ private:
     QWidget    * MainWidget;
     _Map         ChatDialogMap;
     _Map::iterator ChatDialogiterator;
-
     TCP_MessageRecver *Recver;
+    LinkC_User_Data    User_Data;
 };
 
 
