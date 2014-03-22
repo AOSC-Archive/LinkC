@@ -27,6 +27,7 @@ SOURCES += main.cpp \
            Gui/Friend.cpp \
            Gui/LinkC_Label.cpp \
            Gui/MessageBox.cpp \
+	   Gui/SetupMenu.cpp \
            NetWork/Csocket.cpp \
            NetWork/HeartBeats.cpp \
            NetWork/LinkC_Package_Ctl.cpp \
