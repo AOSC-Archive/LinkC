@@ -1,3 +1,7 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： March 22, 2014
+ */
 #ifndef LINKC_GUI_H
 #define LINKC_GUI_H
 #include "LinkC_Label.h"
@@ -12,6 +16,7 @@
 #include <QScrollArea>
 #include <QtGui>
 #include <QListWidget>
+#include <QMenu>
 
 #define _FRIEND_LABEL_HEIGTH    30
 #define _MESSAGE_HISTORY_HEIGTH 40
@@ -45,6 +50,7 @@ class FriendArea : public QWidget{
     Q_OBJECT
 public:
     explicit FriendArea(QWidget *parent = 0);
+    void clear(void);
     void AddFriendToLayout(LinkC_Friend_Data Myfriend);
     void resizeEvent(QResizeEvent *);
     void setFriendCount(const char s[]);
@@ -59,7 +65,7 @@ signals:
 protected:
     int friendcount;
     QWidget     *FriendLabelArea;
-    typedef QMap<int,struct LinkC_Friend_Data_t>_Map;
+    typedef QMap<int,LinkcFriendItem *>_Map;
     _Map::const_iterator Value;
     QScrollArea *list;
     QWidget     *FriendWidget;
@@ -118,6 +124,24 @@ protected:
     HeartBeats        *HeartBeater;
     QTimer *timer;
     int MessageSize;
+};
+
+class SetupMenu : public QPushButton{
+    Q_OBJECT
+public:
+    explicit SetupMenu(QWidget *parent = 0);
+    ~SetupMenu();
+signals:
+    void SIG_Refresh_User_Info(void);
+    void SIG_Quit(void);
+public slots:
+    void SLOT_Quit(void);
+    void SLOT_Refresh_User_info(void);
+protected:
+    QMenu       *Menu;
+    QAction     *A_Quit;
+    QAction     *A_Refresh_Friend_List;
+    QAction     *A_Refresh_User_Info;
 };
 
 #endif
