@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 15, 2014
+ * Last-Change		： Aprli 2, 2014
  */
 
 #include "def.h"
@@ -15,6 +15,7 @@ int send_friends_data(struct user_data user,void *data)
 	int friend_count,length,byte,tmp,result;
 	struct friend_data *My_friend;
 	friend_count = get_friends_data (user.UID,&My_friend);
+	((LSS*)data)->Action = USER_FRIENDS_DATA;
 	if (friend_count == 0)		// 如果好友个数为 0
 	{
 		((LinkC_Sys_Status *)data)->Status = LINKC_FAILURE;
@@ -35,14 +36,15 @@ int send_friends_data(struct user_data user,void *data)
 	{
 		((LinkC_Sys_Status *)data)->Status = SUCCESS;
 		length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
-		result = TCP_Send (user.sockfd,buffer,length,0);	// 发送 执行成功
+		((LMH*)buffer)->Totle = friend_count;			// 将好友数量放这里......我TM太聪明了
+		result = send (user.sockfd,buffer,length,0);	// 发送 执行成功
 #if DEBUG
 		printf ("UID = %d\nHave %d friend(s)\n",user.UID,friend_count);
 		printf ("------Friends------\n");
 		for (tmp=0;tmp<friend_count;tmp++)	printf ("\tUID\t= %d\tNAME\t= %s\n",My_friend[tmp].info.UID,My_friend[tmp].info.username);
 		printf ("------End----------\n");
 #endif
-		non_std_m_message_send(My_friend,user.sockfd,friend_count,sizeof(friend_data),SYS_FRIEND_DATA,0);
+		non_std_m_message_send(My_friend,user.sockfd,friend_count,sizeof(friend_data),USER_FRIENDS_DATA,0);
 		free(My_friend);
 		My_friend = NULL;
 	}

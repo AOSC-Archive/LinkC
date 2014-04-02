@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 22, 2014
+ * Last-Change		： April 2, 2014
  */
 
 #ifndef LINKC_NETWORK_PROTOCOL_H
@@ -19,61 +19,63 @@
 #define LINKC_LIMITED	-2
 
 /* 系统 */
-#define MESSAGE_POOL_SIZE	15	// 发送消息池的大小
-#define STD_PACKAGE_SIZE	512	// 标准包最大大小
-#define STD_BUFFER_SIZE		1024	// 标准缓冲区大小
-#define MAX_BUFFER_SIZE		10240	// 最大缓冲区大小
+#define MESSAGE_POOL_SIZE       15      // 发送消息池的大小
+#define STD_PACKAGE_SIZE        512     // 标准包最大大小
+#define STD_BUFFER_SIZE         1024	// 标准缓冲区大小
+#define MAX_BUFFER_SIZE         10240	// 最大缓冲区大小
 #define END_OF_LINKC_MESSAGE	0X011B	// Esc键 汗!
-#define LINKC_MESSAGE_VERSION	1	// 协议版本
+#define LINKC_MESSAGE_VERSION	1       // 协议版本
 #define ALL_FRIEND              0
-#define HEART_BEATS_TIME	5	// 心跳时间[感觉有歧义]
+#define HEART_BEATS_TIME        5       // 心跳时间[感觉有歧义]
 
 /* Error_Code 定义区 [Check_Message里]*/
-#define DIFF_VERSION		-3	// 协议版本不一致
-#define EXCEED_THE_LIMIT	-2	// 大小超出限制
-#define NOT_MESSAGE		-1	// 非消息
-#define MESSAGE_INCOMPLETE	1	// 数据不完整
-#define OVER_RECV		2	// 收到的数据大于一个包，并且前面的是一个完整的包
+#define DIFF_VERSION            -3          // 协议版本不一致
+#define EXCEED_THE_LIMIT        -2          // 大小超出限制
+#define NOT_MESSAGE             -1          // 非消息
+#define MESSAGE_INCOMPLETE      1           // 数据不完整
+#define OVER_RECV               2           // 收到的数据大于一个包，并且前面的是一个完整的包
 
 
 /* 消息头[LinkC_Message_Header] */
-#define HEART_BEATS		0	// 心跳包
-#define EXIT			1	// 退出
-#define CONNECTION		2	// 连接
-#define SYS_MESSAGE_PUSHING	3	// 系统消息推送
-#define SYS_ACTION_STATUS	4	// 系统操作状态
-#define SYS_FRIEND_DATA		5	// 好友资料
-#define SYS_USER_DATA		6	// 用户自己的资料
-#define LOGIN		    	7	// 登录
+#define HEART_BEATS             0	// 心跳包
+#define EXIT                    1	// 退出
+#define CONNECTION              2	// 连接
+#define SYS_MESSAGE_PUSHING     3	// 系统消息推送
+#define SYS_ACTION_STATUS       4	// 系统操作状态
+#define SYS_FRIEND_DATA         5	// 好友资料
+#define SYS_FRIENDS_DATA        6
+#define SYS_USER_DATA           7	// 用户自己的资料
+#define LOGIN                   8	// 登录
 //-------分割--------//
-#define USER_REQUEST		8	// 用户请求 [扩展中]
-#define USER_MESSAGE		9	// 好友之间的信息[扩展中]
-#define USER_CHAT_MESSAGE	10	//
+#define USER_REQUEST            9	// 用户请求 [扩展中]
+#define USER_MESSAGE            10	// 好友之间的信息[扩展中]
+#define USER_CHAT_MESSAGE       11	//
 
 /* 用户请求[LinkC_User_Request] */
-#define USER_LOGOUT		1	// 登出
-#define USER_STATUS_HIDDEN	2	// 状态-隐身
-#define USER_STATUS_ONLINE	3	// 状态-在线
-#define USER_FRIEND_DATA	4	// 请求好友数据
-#define USER_CHAT_REQUEST	5	// 
-#define USER_DATA_REQUEST	6	// 用户请求自身的数据
+#define USER_LOGOUT             1	// 登出
+#define USER_STATUS_HIDDEN      2	// 状态-隐身
+#define USER_STATUS_ONLINE      3	// 状态-在线
+#define USER_FRIEND_DATA        4	// 请求好友数据
+#define USER_FRIENDS_DATA       5
+#define USER_CHAT_REQUEST       6	//
+#define USER_DATA_REQUEST      	7   // 用户请求自身的数据
 
 /* 用户消息[LinkC_User_Message]*/
-#define USER_CHAT		1	// 聊天
-#define USER_ACCEPT		2	// 接受
-#define USER_REFUSE		3	// 拒绝
-#define USER_ADD_FRIEND		4	// 添加好友
-#define USER_DEL_FRIEND		5	// 删除好友
-#define USER_CONNECT_READY	6	// P2P连接准备完毕
+#define USER_CHAT               1	// 聊天
+#define USER_ACCEPT             2	// 接受
+#define USER_REFUSE             3	// 拒绝
+#define USER_ADD_FRIEND         4	// 添加好友
+#define USER_DEL_FRIEND         5	// 删除好友
+#define USER_CONNECT_READY      6	// P2P连接准备完毕
 
 struct LinkC_Message_Header_t
 {
     uint8_t  Version;			// 协议版本
-    uint8_t  Totle;			// 总包数
+    uint8_t  Totle;             // 总包数
     uint8_t  Current;			// 当前包标记
     uint8_t  MessageHeader;		// 服务类型
     uint16_t MessageLength;		// 数据总长度
-    time_t   Time;			// 时间戳
+    time_t   Time;              // 时间戳
 };
 struct LinkC_User_Request_t{
 	uint16_t Action;

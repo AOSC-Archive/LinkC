@@ -42,20 +42,22 @@
 #define SYS_MESSAGE_PUSHING	3	// 系统消息推送
 #define SYS_ACTION_STATUS	4	// 系统操作状态
 #define SYS_FRIEND_DATA		5	// 好友资料
-#define SYS_USER_DATA		6	// 用户自己的资料
-#define LOGIN		    	7	// 登录
+#define SYS_FREIDNS_DATA	6
+#define SYS_USER_DATA		7	// 用户自己的资料
+#define LOGIN		    	8	// 登录
 //-------分割--------//
-#define USER_REQUEST		8	// 用户请求 [扩展中]
-#define USER_MESSAGE		9	// 好友之间的信息[扩展中]
-#define USER_CHAT_MESSAGE	10	//
+#define USER_REQUEST		9	// 用户请求 [扩展中]
+#define USER_MESSAGE		10	// 好友之间的信息[扩展中]
+#define USER_CHAT_MESSAGE	11	//
 
 /* 用户请求[LinkC_User_Request] */
 #define USER_LOGOUT		1	// 登出
 #define USER_STATUS_HIDDEN	2	// 状态-隐身
 #define USER_STATUS_ONLINE	3	// 状态-在线
 #define USER_FRIEND_DATA	4	// 请求好友数据
-#define USER_CHAT_REQUEST	5	// 
-#define USER_DATA_REQUEST	6	// 用户请求自身的数据
+#define USER_FRIENDS_DATA	5
+#define USER_CHAT_REQUEST	6	// 
+#define USER_DATA_REQUEST	7	// 用户请求自身的数据
 
 /* 用户消息[LinkC_User_Message]*/
 #define USER_CHAT		1	// 聊天

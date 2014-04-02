@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 22, 2014
+ * Last-Change		： Aprli 2, 2014
  */
 
 #include "linkc_types.h"
@@ -30,10 +30,10 @@ int keep_connect (struct user_data* _user)
 {
 	int result,tmp,error_count,count,friend_count;
 	struct user_data user;				// 用户基本数据
-	struct user_info *info = (struct user_info *)malloc(sizeof(struct user_info));			// 
 	int failure_count = 0;				// 登录已经失败次数
 	int byte;					// 接受的数据。
 
+	struct user_info *info;				// To save user data 
 	user.sockfd = _user -> sockfd;
 	user.addr = _user -> addr;			// 保存addr
 	struct friend_data* My_friend = NULL;		// 暂定
@@ -145,11 +145,11 @@ start:
 				else if(((LUR *)data)->Action == USER_DATA_REQUEST)	// get self information
 				{
 					((LSS *)data)->Action = USER_DATA_REQUEST;
-					if(get_user_info(user.UID,info) == LINKC_SUCCESS)
+				printf("Entered!\n");
+					if(get_user_info(user.UID,&info) == LINKC_SUCCESS)
 						((LSS *)data)->Status = LINKC_SUCCESS;
 					else
 						((LSS *)data)->Status = LINKC_FAILURE;
-					printf("Got!\n");
 					length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
 					send(user.sockfd,buffer,length,0);
 					length = pack_message(SYS_USER_DATA,(void *)info,LUD_L,buffer);
@@ -162,7 +162,8 @@ start:
 				}
 				continue;
 			}
-			else if(flag == USER_MESSAGE){
+			else if(flag == USER_MESSAGE)
+			{
 				if(((LUR *)data)->Action == USER_CONNECT_READY)
 				{
 					printf("Then\n");

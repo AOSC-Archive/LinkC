@@ -133,10 +133,12 @@ public:
     ~SetupMenu();
 signals:
     void SIG_Refresh_User_Info(void);
+    void SIG_Refresh_Friend_List(void);
     void SIG_Quit(void);
 public slots:
     void SLOT_Quit(void);
     void SLOT_Refresh_User_info(void);
+    void SLOT_Refresh_Friend_List(void);
 protected:
     QMenu       *Menu;
     QAction     *A_Quit;

@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 22, 2014
+ * Last-Change		： April 2, 2014
  */
 #include "MainWindow.h"
 #include "Csocket.h"
@@ -86,6 +86,8 @@ MainWindow::MainWindow(QWidget *parent) :
         this->connect(Recver,SIGNAL(SysActionStatus(LinkC_Sys_Status)),this,SLOT(SysActionStatus(LinkC_Sys_Status)));
         this->connect(MainSetupMenu,SIGNAL(SIG_Quit()),this,SLOT(SLOT_Quit()));
         this->connect(MainSetupMenu,SIGNAL(SIG_Refresh_User_Info()),this,SLOT(SLOT_Refresh_User_Info()));
+        this->connect(MainSetupMenu,SIGNAL(SIG_Refresh_Friend_List()),this,SLOT(SLOT_Refresh_Friend_List()));
+        this->connect(Recver,SIGNAL(SysFriendsList(void*,int)),this,SLOT(SLOT_RecvFriendList(void*,int)));
         head->show();
 //############配置编码#################
         QTextCodec *codec = QTextCodec::codecForName("UTF-8");
@@ -207,10 +209,11 @@ int MainWindow::InitFriendList(){
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);     // Send for Getting Friend Data
     server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);                // recv state
+    printf("Recved!\n");
     flag = get_message_header(buffer);
     if(flag == SYS_ACTION_STATUS){
         unpack_message(buffer,package);
-        if(((LSS *)package)->Action == USER_FRIEND_DATA){
+        if(((LSS *)package)->Action == USER_FRIENDS_DATA){
             if(((LSS *)package)->Status == LINKC_SUCCESS)
                 LinkC_Debug("State\t\t= [Success]");
             else{
@@ -278,7 +281,20 @@ void MainWindow::FriendLabelClicked(LinkC_Friend_Data data){
     ((LUR*)package)->Action = USER_FRIEND_DATA;
     ((LUR*)package)->UID    = data.Data.UID;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
-    server.Send_msg(buffer,length,0);
+//    server.Send_msg(buffer,length,0);SYS_ACTION_STATUS,data,LSS_L,buffer;
+}
+
+void MainWindow::SLOT_RecvFriendList(void *data, int count){
+    area->clear();
+    area->setFriendCount(count);                       // save Friend count
+    LinkC_Friend_Data *ffb = new LinkC_Friend_Data[area->FriendCount()];    // new memory
+    memcpy(ffb,data,area->FriendCount() * sizeof(LinkC_Friend_Data));  // Save Friend Data
+
+    int i;
+    for(i=0;i<area->FriendCount();i++)
+        area->AddFriendToLayout(ffb[i]);
+    delete (char *)data;
+    LinkC_Debug("Refresh Friend List\t= [SUCCESS]");
 }
 
 void MainWindow::UserMessage(struct LinkC_User_Message_t Message){
@@ -325,5 +341,11 @@ void MainWindow::SLOT_Refresh_User_Info(){
 
 void MainWindow::setUserData(LinkC_User_Data Data){
     User_Data = Data;
-    printf("Setted!\n");
+}
+
+void MainWindow::SLOT_Refresh_Friend_List(){
+    ((LUR *)package)->Action = USER_FRIEND_DATA;
+    ((LUR *)package)->UID = 0;
+    length = pack_message(USER_REQUEST,package,LUR_L,buffer);
+    server.Send_msg(buffer,length,0);     // Send for Getting Friend Data
 }

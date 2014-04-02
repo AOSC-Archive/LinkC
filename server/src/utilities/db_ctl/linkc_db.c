@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 22, 2014
+ * Last-Change		： March 26, 2014
  */
 
 #include "def.h"
@@ -278,7 +278,7 @@ int friend_ctl(int local_UID,int target_ID,int _Flag)
 	return LINKC_SUCCESS;
 }
 
-int get_user_info(int UID, struct user_info *info)
+int get_user_info(int UID, struct user_info **info)
 {
 	char exec[MAXBUF];
 	char * errmsg = NULL;
@@ -287,25 +287,37 @@ int get_user_info(int UID, struct user_info *info)
 	int result;
 	sprintf (exec,"SELECT * FROM id%d",UID);
 	result = sqlite3_get_table( friend_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
+	printf("Exec [%s]\n",exec);
 	if( result == SQLITE_OK )
 	{
+		if (nRow == 0)
+		{
+			sqlite3_free_table (dbResult);
+			errmsg = NULL;
+			return LINKC_FAILURE;
+		}
+		printf("ErrorMsg [%s]\n",errmsg);
+		struct user_info *t = (struct user_info*)malloc(sizeof(struct user_info));
 		printf("GOT!!!\n");
-		strcpy (info->username,dbResult[user_c  +	USER_USERNAME]);
+		strcpy (t[0].username,dbResult[user_c  +	USER_USERNAME]);
 		printf("GOT!!!\n");
-		strcpy (info->telephone,dbResult[user_c +	USER_TEL]);
+		strcpy (t[0].telephone,dbResult[user_c +	USER_TEL]);
 		printf("GOT!!!\n");
-		strcpy (info->company,dbResult[user_c   +	USER_COMPANY]);
+		strcpy (t[0].company,dbResult[user_c   +	USER_COMPANY]);
 		printf("GOT!!!\n");
-		strcpy (info->address,dbResult[user_c   +	USER_ADDRESS]);
+		strcpy (t->address,dbResult[user_c   +	USER_ADDRESS]);
 		printf("GOT!!!\n");
 //		printf("Size = %d\n",sizeof(dbResult[user_c +	USER_JOIN_TIME]));
 //		strcpy (info->join_time,dbResult[user_c +	USER_JOIN_TIME]);
 //		printf("GOT!!!\n");
 //		strcpy (info->last_login,dbResult[user_c+	USER_LAST_LOGIN]);
 //		printf("GOT!!!\n");
-		sscanf(dbResult[user_c+USER_STATUS],"%d",info->status);
+		sscanf(dbResult[user_c+USER_STATUS],"%d",t->status);
 		printf("GOT!!!\n");
+		sqlite3_free_table (dbResult);
+		*info = t;
 		return LINKC_SUCCESS;
 	}
+	sqlite3_free_table (dbResult);
 	return LINKC_FAILURE;
 }

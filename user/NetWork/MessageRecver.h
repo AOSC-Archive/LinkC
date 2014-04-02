@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 22, 2014
+ * Last-Change		： April 2, 2014
  */
 #ifndef MESSAGERECVER_H
 #define MESSAGERECVER_H
@@ -19,6 +19,7 @@ public:
     explicit TCP_MessageRecver(TCP_csocket *sk, QThread *parent = 0);
     ~TCP_MessageRecver();
     void run();
+    int RecvFriendsList(void);
 
 signals:
     void MessageRecved  (const void *data);
@@ -27,6 +28,7 @@ signals:
     void SysFriendData  (LinkC_Friend_Data);
     void SysUserData    (LinkC_User_Data);
     void RecvError      ();
+    void SysFriendsList (void*,int);
 
 protected:
     TCP_csocket Dest;

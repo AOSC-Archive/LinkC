@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 15, 2014
+ * Last-Change		： March 26, 2014
  */
 
 #ifndef _LINKC_DB_H_
@@ -78,7 +78,7 @@ extern int get_info (int UID,int _Flag);
 
 extern int add_friend(int UID, int _who_ID,int _Flag);
 
-extern int get_user_info(int UID, struct user_info *info);
+extern int get_user_info(int UID, struct user_info **info);
 /*
  * 获得目标UID用户的资料	返回[LINKC_SUCCESS / LINKC_FAILURE]
  * 参数：1	int UID		用户的UID

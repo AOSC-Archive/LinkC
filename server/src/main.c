@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 15, 2014
+ * Last-Change		： March 26, 2014
  */
 
 #include "linkc_network.h"
@@ -12,6 +12,9 @@
 
 int main(int argc, char* argv[])
 {
+#if PER_USER_TEST
+	start_connect();
+#else
 	pid_t LCServer = 0;		// LinkC Server
 	pid_t P2PServer = 0;		// P2P Helper
 	if ((LCServer = fork()) < -1)
@@ -33,6 +36,7 @@ int main(int argc, char* argv[])
 		p2p_helper();
 	}
 	else		getchar();
+#endif
 	printf("Quit!\n");
 	exit (0);
 }

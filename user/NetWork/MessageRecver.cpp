@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 22, 2014
+ * Last-Change		： April 2, 2014
  */
 #include "MessageRecver.h"
 #include "linkc_network_protocol.h"
@@ -20,8 +20,11 @@ TCP_MessageRecver::~TCP_MessageRecver(){
 
 void TCP_MessageRecver::run(){
     int header;
-   void* buffer = malloc(MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
-   void* package = malloc(MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
+    void* buffer = malloc(MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
+    void* package = malloc(MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
+    int Totle;
+    void *tmp;
+    int k;
     printf("Debug >> TCP Recver\t= [STARTED]\n");
     while(1){
         bzero(buffer,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
@@ -33,14 +36,24 @@ void TCP_MessageRecver::run(){
             continue;
         }
         header = get_message_header(buffer);
-        if(header > 0)
+        if(header > 0){
+            Totle = ((LMH*)buffer)->Totle;
             unpack_message(buffer,package);
+        }
+
         if(header == USER_MESSAGE){         // 如果是好友信息
             emit UserMessage(*(LUM*)package);
             continue;
         }
         else if(header == SYS_ACTION_STATUS){
             emit SysActionStatus(*(LSS *)package);
+            if(((LSS*)package)->Action == USER_FRIENDS_DATA && ((LSS*)package)->Status == LINKC_SUCCESS){
+                tmp = new char[(Totle)*sizeof(LinkC_Friend_Data)];    // 参见 server/src/network/network_protocol/send_friends_data.c[我TM太聪明了那段]
+                printf("FriendCount = %d\n",Totle);
+                k = non_std_m_message_recv(Dest.GetSockfd(),sizeof(LinkC_Friend_Data),tmp);
+                // here's bug!
+                emit SysFriendsList(tmp,Totle);
+            }
         }
         else if(header == SYS_FRIEND_DATA){
             emit SysFriendData(*(LFD *)package);
@@ -49,7 +62,7 @@ void TCP_MessageRecver::run(){
             emit SysUserData(*(LUD *)package);
         }
         else{
-            fprintf(stderr,"This Message Is Not Supposed!\n");
+            printf("This Message Is Not Supposed!\n");
         }
     }
 }

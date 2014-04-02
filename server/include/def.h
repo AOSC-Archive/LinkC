@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 15, 2014
+ * Last-Change		： March 26, 2014
  */
 
 #ifndef _DEF_H_
@@ -23,6 +23,7 @@ typedef uint16_t port_t;
   Src is the Source connection's address
   Dest is the Dest connection's address
 */
+#define PER_USER_TEST	0		// 单用户测试
 
 #define SUCCESS 0
 #ifndef LINKC_STATUS
