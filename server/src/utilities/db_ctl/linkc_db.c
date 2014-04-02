@@ -285,10 +285,10 @@ int get_user_info(int UID, struct user_info **info)
 	char **dbResult;
 	int nRow, nColumn;
 	int result;
-	sprintf (exec,"SELECT * FROM id%d",UID);
-	result = sqlite3_get_table( friend_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
+	sprintf (exec,"SELECT * FROM user WHERE id=%d",UID);
+	result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
 	printf("Exec [%s]\n",exec);
-	if( result == SQLITE_OK )
+	if(result == SQLITE_OK )
 	{
 		if (nRow == 0)
 		{
@@ -296,28 +296,18 @@ int get_user_info(int UID, struct user_info **info)
 			errmsg = NULL;
 			return LINKC_FAILURE;
 		}
-		printf("ErrorMsg [%s]\n",errmsg);
 		struct user_info *t = (struct user_info*)malloc(sizeof(struct user_info));
-		printf("GOT!!!\n");
-		strcpy (t[0].username,dbResult[user_c  +	USER_USERNAME]);
-		printf("GOT!!!\n");
-		strcpy (t[0].telephone,dbResult[user_c +	USER_TEL]);
-		printf("GOT!!!\n");
-		strcpy (t[0].company,dbResult[user_c   +	USER_COMPANY]);
-		printf("GOT!!!\n");
+		strcpy (t->username,dbResult[user_c  +	USER_USERNAME]);
+		strcpy (t->telephone,dbResult[user_c +	USER_TEL]);
+		strcpy (t->company,dbResult[user_c   +	USER_COMPANY]);
 		strcpy (t->address,dbResult[user_c   +	USER_ADDRESS]);
-		printf("GOT!!!\n");
-//		printf("Size = %d\n",sizeof(dbResult[user_c +	USER_JOIN_TIME]));
-//		strcpy (info->join_time,dbResult[user_c +	USER_JOIN_TIME]);
-//		printf("GOT!!!\n");
-//		strcpy (info->last_login,dbResult[user_c+	USER_LAST_LOGIN]);
-//		printf("GOT!!!\n");
-		sscanf(dbResult[user_c+USER_STATUS],"%d",t->status);
-		printf("GOT!!!\n");
-		sqlite3_free_table (dbResult);
+		strcpy (t
+		
 		*info = t;
+		sqlite3_free_table (dbResult);
 		return LINKC_SUCCESS;
 	}
+	printf("Error!\n");
 	sqlite3_free_table (dbResult);
 	return LINKC_FAILURE;
 }

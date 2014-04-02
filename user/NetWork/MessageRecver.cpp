@@ -24,7 +24,6 @@ void TCP_MessageRecver::run(){
     void* package = malloc(MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
     int Totle;
     void *tmp;
-    int k;
     printf("Debug >> TCP Recver\t= [STARTED]\n");
     while(1){
         bzero(buffer,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
@@ -49,9 +48,6 @@ void TCP_MessageRecver::run(){
             emit SysActionStatus(*(LSS *)package);
             if(((LSS*)package)->Action == USER_FRIENDS_DATA && ((LSS*)package)->Status == LINKC_SUCCESS){
                 tmp = new char[(Totle)*sizeof(LinkC_Friend_Data)];    // 参见 server/src/network/network_protocol/send_friends_data.c[我TM太聪明了那段]
-                printf("FriendCount = %d\n",Totle);
-                k = non_std_m_message_recv(Dest.GetSockfd(),sizeof(LinkC_Friend_Data),tmp);
-                // here's bug!
                 emit SysFriendsList(tmp,Totle);
             }
         }

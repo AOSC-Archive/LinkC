@@ -57,7 +57,7 @@ MainWindow::MainWindow(QWidget *parent) :
     DataVar.setValue(D3);
     qRegisterMetaType<LinkC_User_Message>("LinkC_User_Message");
     DataVar.setValue(D4);
-    qRegisterMetaType<LinkC_User_Message>("LinkC_User_Request");
+    qRegisterMetaType<LinkC_User_Request>("LinkC_User_Request");
     DataVar.setValue(D5);
     qRegisterMetaType<LinkC_User_Data>("LinkC_User_Data");
 
@@ -87,13 +87,13 @@ MainWindow::MainWindow(QWidget *parent) :
         this->connect(MainSetupMenu,SIGNAL(SIG_Quit()),this,SLOT(SLOT_Quit()));
         this->connect(MainSetupMenu,SIGNAL(SIG_Refresh_User_Info()),this,SLOT(SLOT_Refresh_User_Info()));
         this->connect(MainSetupMenu,SIGNAL(SIG_Refresh_Friend_List()),this,SLOT(SLOT_Refresh_Friend_List()));
-        this->connect(Recver,SIGNAL(SysFriendsList(void*,int)),this,SLOT(SLOT_RecvFriendList(void*,int)));
+        this->connect(Recver,SIGNAL(SysFriendsList(void*,int)),this,SLOT(SLOT_SetFriendToArea(void*,int)));
         head->show();
 //############配置编码#################
-        QTextCodec *codec = QTextCodec::codecForName("UTF-8");
+/*        QTextCodec *codec = QTextCodec::codecForName("UTF-8");
         QTextCodec::setCodecForTr(codec);
         QTextCodec::setCodecForLocale(QTextCodec::codecForLocale());
-        QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale());
+        QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale());*/
 //############初始化中间部分############
     MainLayout->addSpacing(50);
     MainLayout->addWidget(area);
@@ -209,7 +209,6 @@ int MainWindow::InitFriendList(){
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);     // Send for Getting Friend Data
     server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);                // recv state
-    printf("Recved!\n");
     flag = get_message_header(buffer);
     if(flag == SYS_ACTION_STATUS){
         unpack_message(buffer,package);
@@ -226,14 +225,7 @@ int MainWindow::InitFriendList(){
         }
     }
     flag = non_std_m_message_recv(server.GetSockfd(),sizeof(LinkC_Friend_Data),package);
-    area->setFriendCount(flag);                       // save Friend count
-    LinkC_Friend_Data *ffb = new LinkC_Friend_Data[area->FriendCount()];    // new memory
-    memcpy(ffb,package,area->FriendCount() * sizeof(LinkC_Friend_Data));  // Save Friend Data
-
-    int i;
-    for(i=0;i<area->FriendCount();i++)
-        area->AddFriendToLayout(ffb[i]);
-
+    SLOT_SetFriendToArea(package,flag);
     return 0;
 }
 
@@ -281,10 +273,10 @@ void MainWindow::FriendLabelClicked(LinkC_Friend_Data data){
     ((LUR*)package)->Action = USER_FRIEND_DATA;
     ((LUR*)package)->UID    = data.Data.UID;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
-//    server.Send_msg(buffer,length,0);SYS_ACTION_STATUS,data,LSS_L,buffer;
+    server.Send_msg(buffer,length,0);
 }
 
-void MainWindow::SLOT_RecvFriendList(void *data, int count){
+void MainWindow::SLOT_SetFriendToArea(void *data, int count){
     area->clear();
     area->setFriendCount(count);                       // save Friend count
     LinkC_Friend_Data *ffb = new LinkC_Friend_Data[area->FriendCount()];    // new memory
@@ -294,7 +286,6 @@ void MainWindow::SLOT_RecvFriendList(void *data, int count){
     for(i=0;i<area->FriendCount();i++)
         area->AddFriendToLayout(ffb[i]);
     delete (char *)data;
-    LinkC_Debug("Refresh Friend List\t= [SUCCESS]");
 }
 
 void MainWindow::UserMessage(struct LinkC_User_Message_t Message){

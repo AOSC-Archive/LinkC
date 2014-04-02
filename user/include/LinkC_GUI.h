@@ -16,6 +16,8 @@
 #include <QScrollArea>
 #include <QtGui>
 #include <QListWidget>
+#include <QPushButton>
+#include <QTextEdit>
 #include <QMenu>
 
 #define _FRIEND_LABEL_HEIGTH    30

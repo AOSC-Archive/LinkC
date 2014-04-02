@@ -145,7 +145,7 @@ start:
 				else if(((LUR *)data)->Action == USER_DATA_REQUEST)	// get self information
 				{
 					((LSS *)data)->Action = USER_DATA_REQUEST;
-				printf("Entered!\n");
+					printf("Entered!\n");
 					if(get_user_info(user.UID,&info) == LINKC_SUCCESS)
 						((LSS *)data)->Status = LINKC_SUCCESS;
 					else

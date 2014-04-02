@@ -55,7 +55,7 @@ private slots:
     void SLOT_Refresh_User_Info(void);
     void SLOT_Refresh_Friend_List(void);
 
-    void SLOT_RecvFriendList(void*,int);
+    void SLOT_SetFriendToArea(void*,int);
 signals:
 private:
     typedef QMap<int,ChatDialog *> _Map;

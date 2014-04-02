@@ -23,7 +23,7 @@ typedef uint16_t port_t;
   Src is the Source connection's address
   Dest is the Dest connection's address
 */
-#define PER_USER_TEST	0		// 单用户测试
+#define PER_USER_TEST	1		// 单用户测试
 
 #define SUCCESS 0
 #ifndef LINKC_STATUS
