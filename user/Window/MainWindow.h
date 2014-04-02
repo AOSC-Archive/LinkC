@@ -1,3 +1,7 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： April 2, 2014
+ */
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -48,9 +52,9 @@ private slots:
     void ChatWith(LinkC_Friend_Data);
     void FriendLabelClicked(LinkC_Friend_Data);
     void UserMessage(LinkC_User_Message);
-    void SysActionStatus(LinkC_Sys_Status);
     void SendMessageToServer(LinkC_User_Request);
     void setUserData(LinkC_User_Data);
+    void SLOT_SysActionStatus(LinkC_Sys_Status);
     void SLOT_Quit(void);
     void SLOT_Refresh_User_Info(void);
     void SLOT_Refresh_Friend_List(void);

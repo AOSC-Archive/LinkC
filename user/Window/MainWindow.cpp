@@ -83,17 +83,12 @@ MainWindow::MainWindow(QWidget *parent) :
 //############连接####################
         this->connect(area, SIGNAL(ChatTo(LinkC_Friend_Data)),this, SLOT(FriendLabelClicked(LinkC_Friend_Data)));
         this->connect(Recver,SIGNAL(UserMessage(LinkC_User_Message)),this,SLOT(UserMessage(LinkC_User_Message)));
-        this->connect(Recver,SIGNAL(SysActionStatus(LinkC_Sys_Status)),this,SLOT(SysActionStatus(LinkC_Sys_Status)));
+        this->connect(Recver,SIGNAL(SysActionStatus(LinkC_Sys_Status)),this,SLOT(SLOT_SysActionStatus(LinkC_Sys_Status)));
         this->connect(MainSetupMenu,SIGNAL(SIG_Quit()),this,SLOT(SLOT_Quit()));
         this->connect(MainSetupMenu,SIGNAL(SIG_Refresh_User_Info()),this,SLOT(SLOT_Refresh_User_Info()));
         this->connect(MainSetupMenu,SIGNAL(SIG_Refresh_Friend_List()),this,SLOT(SLOT_Refresh_Friend_List()));
         this->connect(Recver,SIGNAL(SysFriendsList(void*,int)),this,SLOT(SLOT_SetFriendToArea(void*,int)));
         head->show();
-//############配置编码#################
-/*        QTextCodec *codec = QTextCodec::codecForName("UTF-8");
-        QTextCodec::setCodecForTr(codec);
-        QTextCodec::setCodecForLocale(QTextCodec::codecForLocale());
-        QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale());*/
 //############初始化中间部分############
     MainLayout->addSpacing(50);
     MainLayout->addWidget(area);
@@ -310,7 +305,7 @@ void MainWindow::UserMessage(struct LinkC_User_Message_t Message){
     }
 }
 
-void MainWindow::SysActionStatus(LinkC_Sys_Status status){
+void MainWindow::SLOT_SysActionStatus(LinkC_Sys_Status status){
     if(status.Status == 0) return;
 }
 
@@ -324,7 +319,6 @@ void MainWindow::SLOT_Quit(){
 }
 
 void MainWindow::SLOT_Refresh_User_Info(){
-    printf("Here!\n");
     ((LUR*)package)->Action = USER_DATA_REQUEST;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);

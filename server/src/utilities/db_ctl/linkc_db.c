@@ -301,7 +301,6 @@ int get_user_info(int UID, struct user_info **info)
 		strcpy (t->telephone,dbResult[user_c +	USER_TEL]);
 		strcpy (t->company,dbResult[user_c   +	USER_COMPANY]);
 		strcpy (t->address,dbResult[user_c   +	USER_ADDRESS]);
-		strcpy (t
 		
 		*info = t;
 		sqlite3_free_table (dbResult);
