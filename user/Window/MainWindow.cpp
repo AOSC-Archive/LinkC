@@ -20,14 +20,14 @@ int flag;
 LoginWindow *s;
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent){
+    QWidget(parent){
     Top         = new QWidget(this);    // 顶部
-    MainWidget  = new QWidget(this);    // 中部
     MainSetupMenu=new SetupMenu(this);  // 底部设置栏
     s           = new LoginWindow;      // 登录界面
     layout      = new QGridLayout;      // 主layout
     TopLayout   = new QGridLayout;      // 顶部layout
     MainLayout  = new QVBoxLayout;      // 中间layout
+    SettingDialog=new LinkC_Settings_Dialog;
     area        = new FriendArea;       //
     tab         = new QTabWidget;       //
     package     = new char[MAXBUF];     //
@@ -37,11 +37,11 @@ MainWindow::MainWindow(QWidget *parent) :
         exit(0);  // 如果链接失败，退出
     }
     Recver      = new TCP_MessageRecver(&server);
-    this->setCentralWidget(MainWidget); // 设置主widget
-    MainWidget->setLayout(layout);      // 设置主layout
+    this->setLayout(layout);
     layout->addLayout(MainLayout,0,0,1,1);
     this->setMaximumSize(300,700);
     this->setMinimumSize(150,300);
+    this->setWindowTitle(tr("LinkC"));
 
 //############注册数据类型##########
     LinkC_Sys_Status D1;
@@ -67,14 +67,14 @@ MainWindow::MainWindow(QWidget *parent) :
         Top->setLayout(line);
         line->addSpacing(50);
         line->addLayout(TopLayout);
-        QLabel *Name = new QLabel(tr("Tricks"));
-        QLabel *Stat = new QLabel(tr("Online"));
-        QLabel *Quit = new QLabel(tr("Quit"));
-        QLabel *Exit = new QLabel(tr("Exit"));
-        TopLayout->addWidget(Name,0,0,1,1);
-        TopLayout->addWidget(Stat,1,0,1,1);
-        TopLayout->addWidget(Quit,0,1,1,1);
-        TopLayout->addWidget(Exit,1,1,1,1);
+        LinkC_Label *NameLabel = new LinkC_Label(tr("Tricks"));
+        LinkC_Label *StatLabel = new LinkC_Label(tr("在线"));
+        LinkC_Label *SettingsLabel = new LinkC_Label(tr("设置"));
+        LinkC_Label *ExitLabel = new LinkC_Label(tr("退出"));
+        TopLayout->addWidget(NameLabel,0,0,1,1);
+        TopLayout->addWidget(StatLabel,1,0,1,1);
+        TopLayout->addWidget(SettingsLabel,0,1,1,1);
+        TopLayout->addWidget(ExitLabel,1,1,1,1);
         Top->show();
         LinkC_Label *head = new LinkC_Label(this);
         QPixmap pic("01.jpg");
@@ -88,6 +88,11 @@ MainWindow::MainWindow(QWidget *parent) :
         this->connect(MainSetupMenu,SIGNAL(SIG_Refresh_User_Info()),this,SLOT(SLOT_Refresh_User_Info()));
         this->connect(MainSetupMenu,SIGNAL(SIG_Refresh_Friend_List()),this,SLOT(SLOT_Refresh_Friend_List()));
         this->connect(Recver,SIGNAL(SysFriendsList(void*,int)),this,SLOT(SLOT_SetFriendToArea(void*,int)));
+        this->connect(SettingsLabel,SIGNAL(clicked()),this,SLOT(SLOT_SettingDialogClicked()));
+        this->connect(NameLabel,SIGNAL(clicked()),this,SLOT(SLOT_AccountCLabelClicked()));
+        this->connect(ExitLabel,SIGNAL(clicked()),this,SLOT(SLOT_ExitLabelClicked()));
+        this->connect(MainSetupMenu,SIGNAL(SIG_Settings_Dialog()),this,SLOT(SLOT_SettingDialogClicked()));
+
         head->show();
 //############初始化中间部分############
     MainLayout->addSpacing(50);
@@ -106,22 +111,19 @@ MainWindow::~MainWindow(){
     length = pack_message(EXIT,NULL,0,buffer);
     server.Send_msg(buffer,length,MSG_DONTWAIT);
 
-    LinkC_Debug("Main_Window\t= [EXITED]");
+    LinkC_Debug("MainWindow",LINKC_EXITED);
 }
 
 int MainWindow::NetworkInit(void){
 	int i;
     server.Set_IP(SERVER_IP);
-    server.Debug_Csocket_IP();
 	server.Set_Port(2341);
-	server.Debug_Csocket_Port();
     i = server.start_connect();
     if (i == -1)
 	{
 		QMessageBox::warning(0,"Waring","Connection refused!",QMessageBox::Yes);
         return -1;
 	}
-    server.Debug_Csocket_Sockfd();
     length = pack_message(CONNECTION,NULL,0,buffer);
     server.Send_msg(buffer,length,0);
     bzero(buffer,STD_PACKAGE_SIZE);
@@ -130,17 +132,14 @@ int MainWindow::NetworkInit(void){
     if (flag == SYS_ACTION_STATUS){
         unpack_message(buffer,package);
         if(((LSS *)package)->Action == CONNECTION){
-            if(((LSS *)package)->Status == LINKC_SUCCESS){
-                printf ("Debug >> Connect\t= [Success]\n");
+            LinkC_Debug("Connect",((LSS*)package)->Status);
+            if(((LSS *)package)->Status == LINKC_SUCCESS)
                 return 0;
-            }
-            else if(((LSS *)package)->Status == LINKC_FAILURE){
-                printf ("Debug >> Connect\t= [Failure]\n");
+            else if(((LSS *)package)->Status == LINKC_FAILURE)
                 return -1;
-            }
         }
     }
-    printf("Flag = %d\n",flag);
+    LinkC_Debug("NetWork Init",LINKC_FAILURE);
     return -1;
 }
 
@@ -161,24 +160,22 @@ int MainWindow::Login(){
             if (flag == SYS_ACTION_STATUS){
                 unpack_message(buffer,package);
                 if(((LSS *)package)->Action == LOGIN){
+                    LinkC_Debug("Login",((LSS *)package)->Status);
                     if(((LSS *)package)->Status == LINKC_SUCCESS){
-                        LinkC_Debug("Login\t\t= [Success]");
                         this->show();
                         return 0;
                     }
                     else if(((LSS *)package)->Status == LINKC_FAILURE){
-                        LinkC_Debug("Login\t\t= [Failure]");
                         QMessageBox::warning(0,"Waring","Login Faliure!",QMessageBox::Yes);
                         continue;
                     }
                     else if(((LSS *)package)->Status == LINKC_LIMITED){
                         QMessageBox::warning(0,"Waring","Please Try later!",QMessageBox::Yes);
-                        LinkC_Debug("Login\t\t= [Limited]");
                         exit(0);
                     }
                 }
             }
-            LinkC_Debug("Login\t\t= [MessageHeader Incorrect]");
+            LinkC_Debug("Message Header Incorrect",LINKC_WARNING);
             exit(0);
 		}
         else
@@ -207,17 +204,11 @@ int MainWindow::InitFriendList(){
     flag = get_message_header(buffer);
     if(flag == SYS_ACTION_STATUS){
         unpack_message(buffer,package);
-        if(((LSS *)package)->Action == USER_FRIENDS_DATA){
-            if(((LSS *)package)->Status == LINKC_SUCCESS)
-                LinkC_Debug("State\t\t= [Success]");
-            else{
-                if(((LSS *)package)->Status == LINKC_FAILURE)
-                    LinkC_Debug("State\t\t= [Failure]");
-                else
-                    LinkC_Debug("Friend\t\t= [NULL]");
-                return 0;
-            }
-        }
+        if(((LSS *)package)->Action == USER_FRIENDS_DATA)
+            LinkC_Debug("Init Friends List [Getting Data]",((LSS *)package)->Status);
+    }else{
+            LinkC_Debug("Init Friends List [Getting Data]",LINKC_FAILURE);
+            return -1;
     }
     flag = non_std_m_message_recv(server.GetSockfd(),sizeof(LinkC_Friend_Data),package);
     SLOT_SetFriendToArea(package,flag);
@@ -333,4 +324,16 @@ void MainWindow::SLOT_Refresh_Friend_List(){
     ((LUR *)package)->UID = 0;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);     // Send for Getting Friend Data
+}
+
+void MainWindow::SLOT_SettingDialogClicked(){
+    SettingDialog->show();
+}
+
+void MainWindow::SLOT_AccountCLabelClicked(){
+
+}
+
+void MainWindow::SLOT_ExitLabelClicked(){
+    this->close();
 }

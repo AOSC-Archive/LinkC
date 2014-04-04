@@ -1,3 +1,7 @@
+/*
+ * Author		： Junfeng Zhang <564691478@qq.com>
+ * Last-Change		： April 2, 2014
+ */
 #include "LinkC_GUI.h"
 
 SetupMenu::SetupMenu(QWidget *parent):
@@ -6,14 +10,17 @@ SetupMenu::SetupMenu(QWidget *parent):
     A_Quit              = new QAction(tr("退出"),Menu);
     A_Refresh_User_Info = new QAction(tr("刷新个人资料"),Menu);
     A_Refresh_Friend_List=new QAction(tr("刷新好友列表"),Menu);
+    A_Settings_Dialog   = new QAction(tr("设置"),Menu);
     this->setMenu(Menu);
     Menu->addAction(A_Quit);
     Menu->addAction(A_Refresh_User_Info);
     Menu->addAction(A_Refresh_Friend_List);
+    Menu->addAction(A_Settings_Dialog);
 
     this->connect(A_Quit,SIGNAL(triggered()),this,SLOT(SLOT_Quit()));
     this->connect(A_Refresh_User_Info,SIGNAL(triggered()),this,SLOT(SLOT_Refresh_User_info()));
     this->connect(A_Refresh_Friend_List,SIGNAL(triggered()),this,SLOT(SLOT_Refresh_Friend_List()));
+    this->connect(A_Settings_Dialog,SIGNAL(triggered()),this,SLOT(SLOT_Settings_Dialog()));
 }
 
 SetupMenu::~SetupMenu(){
@@ -30,4 +37,8 @@ void SetupMenu::SLOT_Refresh_User_info(){
 
 void SetupMenu::SLOT_Refresh_Friend_List(){
     emit SIG_Refresh_Friend_List();
+}
+
+void SetupMenu::SLOT_Settings_Dialog(){
+    emit SIG_Settings_Dialog();
 }

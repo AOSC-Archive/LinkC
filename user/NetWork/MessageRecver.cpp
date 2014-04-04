@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： April 2, 2014
+ * Last-Change		： April 4, 2014
  */
 #include "MessageRecver.h"
 #include "linkc_network_protocol.h"
@@ -24,7 +24,7 @@ void TCP_MessageRecver::run(){
     void* package = malloc(MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
     int Totle;
     void *tmp;
-    printf("Debug >> TCP Recver\t= [STARTED]\n");
+    LinkC_Debug("TCP MessageRecver",LINKC_STARTED);
     while(1){
         bzero(buffer,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
         bzero(package,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
@@ -51,15 +51,12 @@ void TCP_MessageRecver::run(){
                 emit SysFriendsList(tmp,Totle);
             }
         }
-        else if(header == SYS_FRIEND_DATA){
+        else if(header == SYS_FRIEND_DATA)
             emit SysFriendData(*(LFD *)package);
-        }
-        else if(header == SYS_USER_DATA){
+        else if(header == SYS_USER_DATA)
             emit SysUserData(*(LUD *)package);
-        }
-        else{
-            printf("This Message Is Not Supposed!\n");
-        }
+        else
+            LinkC_Debug("This Message is not supposed!",LINKC_WARNING);
     }
 }
 
@@ -73,7 +70,7 @@ void UDP_MessageRecver::run(){
     int header;
     int MsgLength;
     QString Message;
-    printf("Debug >> UDP Recver\t= [STARTED]\n");
+    LinkC_Debug("UDP MessageRecver",LINKC_STARTED);
     while(1){
         bzero(buffer,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
         bzero(package,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
@@ -89,11 +86,9 @@ void UDP_MessageRecver::run(){
             ((char *)package)[MsgLength] = 0;
             Message = (const char *)package;
             emit RecvedP2PMessage(Message);
-        }else if(header == HEART_BEATS){
+        }else if(header == HEART_BEATS)
             emit HeartBeats();
-        }
-        else{
-            fprintf(stderr,"This Message Is Not Supposed!\n");
-        }
+        else
+            LinkC_Debug("This Message is not supposed!",LINKC_WARNING);
     }
 }

@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 22, 2014
+ * Last-Change		： April 4, 2014
  */
 #ifndef _DEF_H_
 #define _DEF_H_
@@ -26,8 +26,13 @@ typedef uint16_t port_t;
 #define SUCCESS 0
 #ifndef LINKC_STATUS
 #define LINKC_STATUS
-#define LINKC_SUCCESS 0
-#define LINKC_FAILURE -1
+#define LINKC_EXITED    3
+#define LINKC_STOPED    2
+#define LINKC_STARTED   1
+#define LINKC_SUCCESS   0
+#define LINKC_FAILURE   -1
+#define LINKC_ERROR     -2
+#define LINKC_WARNING   -3
 #endif
 #define OK 0
 #define NOT_OK -1

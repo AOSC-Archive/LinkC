@@ -40,7 +40,7 @@ LoginWindow::LoginWindow(QWidget *parent) :
 }
 
 LoginWindow::~LoginWindow(){
-    LinkC_Debug("Login_Window\t= [EXITED]");
+    LinkC_Debug("Login Window",LINKC_EXITED);
 }
 
 void LoginWindow::QuitClick(void){

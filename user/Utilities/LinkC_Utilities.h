@@ -9,6 +9,6 @@
 #define _DEFAULT_ACTION_LENGTH      35
 
 void LinkC_Debug(const char *DebugMessage);
-void LinkC_Debug(const char *Action,const char *Status);
+void LinkC_Debug(const char *Target, int Status);
 
 #endif

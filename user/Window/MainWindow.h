@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： April 2, 2014
+ * Last-Change		： April 4, 2014
  */
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
@@ -11,6 +11,7 @@
 #include "linkc_types.h"
 #include "MessageRecver.h"
 #include "Utilities/LinkC_Utilities.h"
+#include "LinkC_Settings_Dialog.h"
 #include <QToolBox>
 #include <QGroupBox>
 #include <QLayout>
@@ -35,7 +36,7 @@ class LoginWindow;
 class ChatDialog;
 }
 
-class MainWindow : public QMainWindow{
+class MainWindow : public QWidget{
 	Q_OBJECT
 
 public:
@@ -58,8 +59,10 @@ private slots:
     void SLOT_Quit(void);
     void SLOT_Refresh_User_Info(void);
     void SLOT_Refresh_Friend_List(void);
-
     void SLOT_SetFriendToArea(void*,int);
+    void SLOT_SettingDialogClicked(void);
+    void SLOT_ExitLabelClicked(void);
+    void SLOT_AccountCLabelClicked(void);
 signals:
 private:
     typedef QMap<int,ChatDialog *> _Map;
@@ -72,7 +75,7 @@ private:
     QVBoxLayout* MainLayout;
     QGridLayout* layout;
     QWidget    * Top;
-    QWidget    * MainWidget;
+    LinkC_Settings_Dialog  *SettingDialog;
     _Map         ChatDialogMap;
     _Map::iterator ChatDialogiterator;
     TCP_MessageRecver *Recver;

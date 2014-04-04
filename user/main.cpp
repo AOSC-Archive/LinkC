@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForLocale(QTextCodec::codecForLocale());
     QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale());
 #else
-    QTextCodec::setCodecForLocale(QTextCodec::codecForName(“UTF8”););
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF8"));
 #endif
     QApplication a(argc, argv);
     MainWindow w;
