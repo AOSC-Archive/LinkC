@@ -12,7 +12,7 @@
 
 int main(int argc, char* argv[])
 {
-#if PER_USER_TEST
+#if PER_USER_TEST == 1
 	start_connect();
 #else
 	pid_t LCServer = 0;		// LinkC Server

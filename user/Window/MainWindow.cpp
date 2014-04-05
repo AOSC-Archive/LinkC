@@ -113,7 +113,7 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow(){
     length = pack_message(EXIT,NULL,0,buffer);
     server.Send_msg(buffer,length,MSG_DONTWAIT);
-
+    Recver->terminate();
     LinkC_Debug("MainWindow",LINKC_EXITED);
 }
 
@@ -192,8 +192,10 @@ void MainWindow::resizeEvent(QResizeEvent *){
 }
 
 void MainWindow::closeEvent(QCloseEvent *){
-    for ( ChatDialogiterator = ChatDialogMap.begin(); ChatDialogiterator != ChatDialogMap.end(); ++ChatDialogiterator )
-                ChatDialogiterator.value()->~ChatDialog();
+    for ( ChatDialogiterator = ChatDialogMap.begin(); ChatDialogiterator != ChatDialogMap.end(); ++ChatDialogiterator ){
+                ChatDialogiterator.value()->close();
+    }
+    ChatDialogMap.clear();
 }
 
 int MainWindow::InitFriendList(){

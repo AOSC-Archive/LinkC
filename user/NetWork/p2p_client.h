@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 22, 2014
+ * Last-Change		： April 5, 2014
  */
 #ifndef P2P_CLIENT_H
 #define P2P_CLIENT_H
@@ -13,6 +13,7 @@
 
 #include "Csocket.h"
 #include "def.h"
+#include "Utilities/LinkC_Utilities.h"
 #include <QTimer>
 #include <QObject>
 #include <QThread>
@@ -30,25 +31,6 @@ typedef struct conn_info_t conn_info;
 struct p2pinfo{
     struct sockaddr_in Dest;
     int is_server;
-};
-
-class P2PConnecter : public QThread{
-    Q_OBJECT
-public:
-    explicit P2PConnecter(UDP_csocket k, p2pinfo info, QThread *parent = 0);
-    void run();
-    void inDirectConnect(void);
-    void inDirectAccept(void);
-
-    bool IsConnected(void);
-signals:
-    void ConnectToPeerDone(bool);
-    void ReadyToAccept(void);
-protected:
-    UDP_csocket Dest;
-    char buffer[MAXBUF];
-    struct p2pinfo P2PInfo;
-    void *package;
 };
 
 class p2p_client : public QThread{
@@ -80,7 +62,6 @@ signals:
 public slots:
     void ConnectToPeer(void);
     void ReadyToAccept(void);
-    void ConnectDone(bool);
 
 protected:
     UDP_csocket Dest;
@@ -91,7 +72,6 @@ protected:
     struct p2pinfo P2PInfo;
     void *package;
     bool isPeerConnected;
-    P2PConnecter *Connecter;
 };
 
 

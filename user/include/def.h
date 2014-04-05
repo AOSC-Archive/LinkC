@@ -26,6 +26,7 @@ typedef uint16_t port_t;
 #define SUCCESS 0
 #ifndef LINKC_STATUS
 #define LINKC_STATUS
+#define LINKC_DONE      4
 #define LINKC_EXITED    3
 #define LINKC_STOPED    2
 #define LINKC_STARTED   1

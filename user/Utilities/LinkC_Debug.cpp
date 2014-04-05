@@ -9,7 +9,7 @@
 
 void LinkC_Debug(const char *DebugMessage){
 #if _DEBUG_MOD_
-    printf("[\033[35mDEBUG\033[0m]\t%s\n",DebugMessage);
+    printf("[\033[35mDEBUG  \033[0m]\t%s\n",DebugMessage);
 #endif
 }
 
@@ -33,6 +33,18 @@ void LinkC_Debug(const char *Target,int Status){
 #else
         printf("[WARNING]\t%s\n",Target);
 #endif
+    else if(Status == LINKC_DONE)
+#ifdef linux
+        printf("[\033[32mDONE   \033[0m]\t%s\n",Target);
+#else
+        printf("[DONE]  \t%s\n",Target);
+#endif
+    else if(Status == LINKC_STARTED)
+#ifdef linux
+        printf("[\033[32mSTARTED\033[0m]\t%s\n",Target);
+#else
+        printf("[STARTED]\t%s\n",Target);
+#endif
 #endif
 
     if(Status == LINKC_FAILURE)
@@ -42,22 +54,3 @@ void LinkC_Debug(const char *Target,int Status){
             printf("[FAILURE]\t%s\n",Target);
 #endif
 }
-
-/*
-void LinkC_Debug(const char *Action,const char *Status){
-    void *DebugMessage;
-    int len = strlen(Action);
-    int i;
-    if(len < _DEFAULT_ACTION_LENGTH){
-        DebugMessage = new char[_DEFAULT_ACTION_LENGTH + 4 + strlen(Status)];
-        strcpy((char*)DebugMessage,Action);
-        for(i=0;i<_DEFAULT_ACTION_LENGTH - len;i++){
-            (char *)DebugMessage+(len+i) = ' ';
-        }
-        (char *)DebugMessage+(i+len) = '=';
-        strcpy((char *)DebugMessage+(i+len+1),Status);
-        (char *)DebugMessage+(i+len+1+strlen(Status)+1) = 0;
-    }
-
-}
-*/

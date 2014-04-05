@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 26, 2014
+ * Last-Change		： April 5, 2014
  */
 
 #include "linkc_db.h"
@@ -63,7 +63,7 @@ int start_connect(void)
 		printf ("Server is waiting for connect!\n");
 #endif
 		client.sockfd = accept (sockfd,(struct sockaddr *)&client.addr,(socklen_t *)&len);
-#if PER_USER_TEST
+#if PER_USER_TEST == 0
 		pthread_create (&pid,NULL,(void*)*keep_connect,&(client));
 #else
 		keep_connect(&client);

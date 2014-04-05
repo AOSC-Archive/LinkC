@@ -49,7 +49,9 @@ ChatDialog::ChatDialog(LinkC_Friend_Data _MyFriend, QWidget *parent)
 }
 
 ChatDialog::~ChatDialog(){
-
+    if(peer->isRunning()==true)
+        peer->terminate();
+    delete peer;
 }
 
 void ChatDialog::ReadyToAccept(){
@@ -101,6 +103,7 @@ void ChatDialog::GetFriendData(LinkC_Friend_Data Data){
 
 void ChatDialog::P2PConnectDone(bool status){
     if(status == true){
+        LinkC_Debug("P2P-->Connect",LINKC_SUCCESS);
         Recver = new UDP_MessageRecver(peer->GetCsocket());
         Recver->start();
         this->connect(Recver,SIGNAL(HeartBeats()),this,SLOT(ComeAHeartBeats()));
@@ -112,7 +115,7 @@ void ChatDialog::P2PConnectDone(bool status){
         this->setWindowTitle(tr(title_tmp));
         this->SendButton->setEnabled(true);
     }else
-        printf("Connect Error!\n");
+        LinkC_Debug("P2P-->Connect",LINKC_FAILURE);
 }
 
 void ChatDialog::ComeAHeartBeats(){
