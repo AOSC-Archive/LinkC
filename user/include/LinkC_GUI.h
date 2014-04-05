@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： Aprli 4, 2014
+ * Last-Change		： April 5, 2014
  */
 #ifndef LINKC_GUI_H
 #define LINKC_GUI_H
@@ -138,17 +138,20 @@ signals:
     void SIG_Refresh_Friend_List(void);
     void SIG_Quit(void);
     void SIG_Settings_Dialog(void);
+    void SIG_UserInfoSettings_Dialog(void);
 public slots:
     void SLOT_Quit(void);
     void SLOT_Refresh_User_info(void);
     void SLOT_Refresh_Friend_List(void);
     void SLOT_Settings_Dialog(void);
+    void SLOT_UserInfoSettings_Dialog(void);
 protected:
     QMenu       *Menu;
     QAction     *A_Quit;
     QAction     *A_Refresh_Friend_List;
     QAction     *A_Refresh_User_Info;
     QAction     *A_Settings_Dialog;
+    QAction     *A_UserInforSettings_Dialog;
 };
 
 #endif

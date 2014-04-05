@@ -22,7 +22,8 @@ HEADERS += include/def.h \
            NetWork/p2p_client.h \
            Window/MainWindow.h \
 	   Utilities/LinkC_Utilities.h \
-   	   include/LinkC_Settings_Dialog.h
+   	   include/LinkC_Settings_Dialog.h \
+    include/LinkC_UserInfoSettings_Dialog.h
 SOURCES += main.cpp \
            Gui/ChatDialog.cpp \
            Gui/Friend.cpp \
@@ -37,6 +38,7 @@ SOURCES += main.cpp \
            Window/LoginWindow.cpp \
            Window/MainWindow.cpp \
 	   Utilities/LinkC_Debug.cpp \
-	   Gui/LinkC_Settings_Dialog.cpp
+	   Gui/LinkC_Settings_Dialog.cpp \
+    Gui/LinkC_UserInfoSettings_Dialog.cpp
 
 FORMS +=

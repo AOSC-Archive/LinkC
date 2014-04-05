@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： April 4, 2014
+ * Last-Change		： April 5, 2014
  */
 #ifndef LINKC_SETTINGS_DIALOG_H
 #define LINKC_SETTINGS_DIALOG_H
@@ -18,6 +18,7 @@ class LinkC_Settings_Dialog : public QWidget
 public:
     explicit LinkC_Settings_Dialog(QWidget *parent = 0);
     ~LinkC_Settings_Dialog();
+    void resizeEvent(QResizeEvent *);
 
 private:
 };

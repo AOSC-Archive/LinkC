@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： April 4, 2014
+ * Last-Change		： April 5, 2014
  */
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
@@ -12,6 +12,7 @@
 #include "MessageRecver.h"
 #include "Utilities/LinkC_Utilities.h"
 #include "LinkC_Settings_Dialog.h"
+#include "LinkC_UserInfoSettings_Dialog.h"
 #include <QToolBox>
 #include <QGroupBox>
 #include <QLayout>
@@ -65,21 +66,22 @@ private slots:
     void SLOT_AccountCLabelClicked(void);
 signals:
 private:
-    typedef QMap<int,ChatDialog *> _Map;
-    TCP_csocket server;
-	int Connection_state;
-    FriendArea * area;
-    SetupMenu  * MainSetupMenu;
-    QTabWidget * tab;
-    QGridLayout* TopLayout;
-    QVBoxLayout* MainLayout;
-    QGridLayout* layout;
-    QWidget    * Top;
-    LinkC_Settings_Dialog  *SettingDialog;
-    _Map         ChatDialogMap;
-    _Map::iterator ChatDialogiterator;
-    TCP_MessageRecver *Recver;
-    LinkC_User_Data    User_Data;
+    typedef QMap<int,ChatDialog *>  _Map;
+    TCP_csocket                     server;
+    int                             Connection_state;
+    FriendArea                      * area;
+    SetupMenu                       * MainSetupMenu;
+    QTabWidget                      * tab;
+    QGridLayout                     * TopLayout;
+    QVBoxLayout                     * MainLayout;
+    QGridLayout                     * layout;
+    QWidget                         * Top;
+    LinkC_Settings_Dialog           *SettingDialog;
+    LinkC_UserInfoSettings_Dialog   *UserInfoSettingsDialog;
+    _Map                            ChatDialogMap;
+    _Map::iterator                  ChatDialogiterator;
+    TCP_MessageRecver               *Recver;
+    LinkC_User_Data                 User_Data;
 };
 
 

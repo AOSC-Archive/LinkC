@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： April 4, 2014
+ * Last-Change		： April 5, 2014
  */
 #ifndef LINKC_LABEL_H
 #define LINKC_LABEL_H

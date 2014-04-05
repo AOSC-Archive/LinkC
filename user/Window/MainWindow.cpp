@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： April 2, 2014
+ * Last-Change		： April 5, 2014
  */
 #include "MainWindow.h"
 #include "Csocket.h"
@@ -21,16 +21,17 @@ LoginWindow *s;
 
 MainWindow::MainWindow(QWidget *parent) :
     QWidget(parent){
-    Top         = new QWidget(this);    // 顶部
-    MainSetupMenu=new SetupMenu(this);  // 底部设置栏
-    s           = new LoginWindow;      // 登录界面
-    layout      = new QGridLayout;      // 主layout
-    TopLayout   = new QGridLayout;      // 顶部layout
-    MainLayout  = new QVBoxLayout;      // 中间layout
-    SettingDialog=new LinkC_Settings_Dialog;
-    area        = new FriendArea;       //
-    tab         = new QTabWidget;       //
-    package     = new char[MAXBUF];     //
+    Top             = new QWidget(this);    // 顶部
+    MainSetupMenu   = new SetupMenu(this);  // 底部设置栏
+    s               = new LoginWindow;      // 登录界面
+    layout          = new QGridLayout;      // 主layout
+    TopLayout       = new QGridLayout;      // 顶部layout
+    MainLayout      = new QVBoxLayout;      // 中间layout
+    SettingDialog   =new LinkC_Settings_Dialog;
+    UserInfoSettingsDialog = new LinkC_UserInfoSettings_Dialog;
+    area            = new FriendArea;       //
+    tab             = new QTabWidget;       //
+    package         = new char[MAXBUF];     //
     setWindowTitle("Main_Window");      // 标题
     Connection_state = NetworkInit();   // 初始化网络
     if(Connection_state == -1){
@@ -91,6 +92,8 @@ MainWindow::MainWindow(QWidget *parent) :
         this->connect(SettingsLabel,SIGNAL(clicked()),this,SLOT(SLOT_SettingDialogClicked()));
         this->connect(NameLabel,SIGNAL(clicked()),this,SLOT(SLOT_AccountCLabelClicked()));
         this->connect(ExitLabel,SIGNAL(clicked()),this,SLOT(SLOT_ExitLabelClicked()));
+        this->connect(head,SIGNAL(clicked()),this,SLOT(SLOT_AccountCLabelClicked()));
+        this->connect(MainSetupMenu,SIGNAL(SIG_UserInfoSettings_Dialog()),this,SLOT(SLOT_AccountCLabelClicked()));
         this->connect(MainSetupMenu,SIGNAL(SIG_Settings_Dialog()),this,SLOT(SLOT_SettingDialogClicked()));
 
         head->show();
@@ -331,7 +334,7 @@ void MainWindow::SLOT_SettingDialogClicked(){
 }
 
 void MainWindow::SLOT_AccountCLabelClicked(){
-
+    UserInfoSettingsDialog->show();
 }
 
 void MainWindow::SLOT_ExitLabelClicked(){
