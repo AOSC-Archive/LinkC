@@ -1,6 +1,6 @@
 /*
- * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 15, 2014
+ * Author           ： Junfeng Zhang <564691478@qq.com>
+ * Last-Change      ： April 5 , 2014
  */
 
 #ifndef _CONN_LIST_H_
@@ -12,8 +12,8 @@
 
 struct conn_list_t
 {
-	list_t list;
-	pthread_mutex_t mutex;
+    list_t list;
+    pthread_mutex_t mutex;
 };
 typedef struct conn_list_t conn_list;
 

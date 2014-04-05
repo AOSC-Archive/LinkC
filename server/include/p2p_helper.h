@@ -1,6 +1,6 @@
 /*
- * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 15, 2014
+ * Author        ： Junfeng Zhang <564691478@qq.com>
+ * Last-Change        ： March 15, 2014
  */
 
 #ifndef _P2P_HELPER_H_
@@ -14,9 +14,9 @@
 
 struct peer_data_t
 {
-	int sockfd;
-	struct sockaddr_in addr;
-	conn_list list;
+    int sockfd;
+    struct sockaddr_in addr;
+    conn_list list;
 };
 
 typedef struct peer_data_t peer_data;

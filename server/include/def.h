@@ -1,6 +1,6 @@
 /*
- * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 26, 2014
+ * Author           ： Junfeng Zhang <564691478@qq.com>
+ * Last-Change      ： April 5 , 2014
  */
 
 #ifndef _DEF_H_
@@ -23,7 +23,7 @@ typedef uint16_t port_t;
   Src is the Source connection's address
   Dest is the Dest connection's address
 */
-#define PER_USER_TEST	0		// 单用户测试
+#define PER_USER_TEST    0        // 单用户测试
 
 #define SUCCESS 0
 #ifndef LINKC_STATUS
@@ -35,14 +35,14 @@ typedef uint16_t port_t;
 #define NOT_OK -1
 #define ERROR_TRACE
 
-#define STATUS_OK		3
-#define STATUS_ONLINE		2
-#define STATUS_HIDING		1
-#define STATUS_OFFLINE		0
-#define STATUS_ERROR		-1
+#define STATUS_OK        3
+#define STATUS_ONLINE        2
+#define STATUS_HIDING        1
+#define STATUS_OFFLINE        0
+#define STATUS_ERROR        -1
 
-#define FLAG_NODE	1
-#define FLAG_ITEM	2
+#define FLAG_NODE    1
+#define FLAG_ITEM    2
 
 #define FAILED(x) ((x < SUCCESS) ? 1 : 0)
 

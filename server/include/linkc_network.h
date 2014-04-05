@@ -1,6 +1,6 @@
 /*
- * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 15, 2014
+ * Author           ： Junfeng Zhang <564691478@qq.com>
+ * Last-Change      ： April 5 , 2014
  */
 
 #ifndef _LINKC_NETWORK_H_
@@ -18,10 +18,10 @@ extern int init_network(int port);
 extern int keep_connect (struct user_data* _user);
 /*
  * 建立连接后，开始接受客户端数据
- * 参数：1	struct user_data 的地址
+ * 参数：1    struct user_data 的地址
  */
 
-extern int send_friends_data	(struct user_data user,void *data);
-extern int send_friend_data	(struct user_data user,void *data);
+extern int send_friends_data    (struct user_data user,void *data);
+extern int send_friend_data     (struct user_data user,void *data);
 
 #endif

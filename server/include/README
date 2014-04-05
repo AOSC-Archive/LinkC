@@ -5,38 +5,38 @@
 —————————linkc_db.h——————————
 sqlite3本地数据库操作函数
 ————函数部分————
-	int open_db (void)
-		打开数据库
+    int open_db (void)
+        打开数据库
 
-	check_pass (struct login_data user)
-		检查用户账号密码
+    check_pass (struct login_data user)
+        检查用户账号密码
 
-	int get_friend_data (int UID,struct friend_data *** ffb)
-		获取好友资料（有BUG，暂不可用）
+    int get_friend_data (int UID,struct friend_data *** ffb)
+        获取好友资料（有BUG，暂不可用）
 
-	state_set (int UID,int _sockfd,int _Flag)
-		设置用户状态
-			Flags:
-				STATE_ONLINE
-				STATE_HIDING
-				STATE_OFFLINE
-			Return:
-				STATE_OK
-				STATE_ERROR
+    state_set (int UID,int _sockfd,int _Flag)
+        设置用户状态
+            Flags:
+                STATE_ONLINE
+                STATE_HIDING
+                STATE_OFFLINE
+            Return:
+                STATE_OK
+                STATE_ERROR
 
 
-	int get_info (int UID,int _Flag)
-		获取用户状态
-			Flags:
-				STATE_ONLINE
-				STATE_HIDING
-				STATE_OFFLINE
-			Return:
-				STATE_OK
-				STATE_ERROR
+    int get_info (int UID,int _Flag)
+        获取用户状态
+            Flags:
+                STATE_ONLINE
+                STATE_HIDING
+                STATE_OFFLINE
+            Return:
+                STATE_OK
+                STATE_ERROR
 
-	add_friend(int _dest,int _who)
-		添加好友（未做）
+    add_friend(int _dest,int _who)
+        添加好友（未做）
 ————————END————————
 
 
@@ -44,23 +44,23 @@ sqlite3本地数据库操作函数
 —————————linkc_network.h——————————
 网络链接部分，用于网络连接
 ————函数部分————
-	int start_connect (void)
-		初始化链接，并等待链接
+    int start_connect (void)
+        初始化链接，并等待链接
 
-	int keep_connect (struct user_data* _user)
-		保持链接，处理事务（主要）（有BUG）
+    int keep_connect (struct user_data* _user)
+        保持链接，处理事务（主要）（有BUG）
 
-	int user_login(struct user_data* data)
-		登陆模块，用于检查账号密码和设置状态
+    int user_login(struct user_data* data)
+        登陆模块，用于检查账号密码和设置状态
 
-	user_logout(int UID,int sockfd)
-		退出登陆并设置状态
+    user_logout(int UID,int sockfd)
+        退出登陆并设置状态
 
-	chat_with  (int SRC_UID,int DEST_UID,int sockfd)
-		聊天请求（开发中）（基本不能用）
+    chat_with  (int SRC_UID,int DEST_UID,int sockfd)
+        聊天请求（开发中）（基本不能用）
 
-	int qmsg(void)
-		测试功能，进程内部通讯用
+    int qmsg(void)
+        测试功能，进程内部通讯用
 ————————END————————
 
 
