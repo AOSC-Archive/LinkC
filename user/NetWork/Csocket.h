@@ -1,12 +1,12 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 22, 2014
+ * Last-Change		： April 5, 2014
  */
 #ifndef CSOCKET_H
 #define CSOCKET_H
 #include "linkc_types.h"
 #include "linkc_network_protocol.h"
-#include "Utilities/LinkC_Utilities.h"
+#include "LinkC_Utilities.h"
 #include <arpa/inet.h>
 #include <string.h>
 #include <linkc_types.h>

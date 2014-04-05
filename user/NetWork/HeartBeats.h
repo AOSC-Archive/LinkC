@@ -3,7 +3,7 @@
  * Last-Change		： April 5, 2014
  */
 #include "linkc_network_protocol.h"
-#include "Utilities/LinkC_Utilities.h"
+#include "LinkC_Utilities.h"
 #include "Csocket.h"
 #include <QThread>
 

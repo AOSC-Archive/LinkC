@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <QVariant>      // 为了注册数据类型
 
 
@@ -27,8 +28,9 @@ MainWindow::MainWindow(QWidget *parent) :
     layout          = new QGridLayout;      // 主layout
     TopLayout       = new QGridLayout;      // 顶部layout
     MainLayout      = new QVBoxLayout;      // 中间layout
-    SettingDialog   =new LinkC_Settings_Dialog;
+    SettingDialog   = new LinkC_Settings_Dialog;
     UserInfoSettingsDialog = new LinkC_UserInfoSettings_Dialog;
+    User_Info       = new LinkC_User_Info;
     area            = new FriendArea;       //
     tab             = new QTabWidget;       //
     package         = new char[MAXBUF];     //
@@ -49,7 +51,7 @@ MainWindow::MainWindow(QWidget *parent) :
     LinkC_Friend_Data D2;
     LinkC_User_Message D3;
     LinkC_User_Request D4;
-    LinkC_User_Data D5;
+    LinkC_User_Info D5;
     QVariant DataVar;
     DataVar.setValue(D1);
     qRegisterMetaType<LinkC_Sys_Status>("LinkC_Sys_Status");
@@ -60,7 +62,7 @@ MainWindow::MainWindow(QWidget *parent) :
     DataVar.setValue(D4);
     qRegisterMetaType<LinkC_User_Request>("LinkC_User_Request");
     DataVar.setValue(D5);
-    qRegisterMetaType<LinkC_User_Data>("LinkC_User_Data");
+    qRegisterMetaType<LinkC_User_Info>("LinkC_User_Info");
 
 //############初始化顶部############
         Top->setGeometry(0,0,this->width(),50); //设置大小
@@ -68,10 +70,10 @@ MainWindow::MainWindow(QWidget *parent) :
         Top->setLayout(line);
         line->addSpacing(50);
         line->addLayout(TopLayout);
-        LinkC_Label *NameLabel = new LinkC_Label(tr("Tricks"));
-        LinkC_Label *StatLabel = new LinkC_Label(tr("在线"));
-        LinkC_Label *SettingsLabel = new LinkC_Label(tr("设置"));
-        LinkC_Label *ExitLabel = new LinkC_Label(tr("退出"));
+        NameLabel = new LinkC_Label(tr("Tricks"));
+        StatLabel = new LinkC_Label(tr("在线"));
+        SettingsLabel = new LinkC_Label(tr("设置"));
+        ExitLabel = new LinkC_Label(tr("退出"));
         TopLayout->addWidget(NameLabel,0,0,1,1);
         TopLayout->addWidget(StatLabel,1,0,1,1);
         TopLayout->addWidget(SettingsLabel,0,1,1,1);
@@ -89,6 +91,7 @@ MainWindow::MainWindow(QWidget *parent) :
         this->connect(MainSetupMenu,SIGNAL(SIG_Refresh_User_Info()),this,SLOT(SLOT_Refresh_User_Info()));
         this->connect(MainSetupMenu,SIGNAL(SIG_Refresh_Friend_List()),this,SLOT(SLOT_Refresh_Friend_List()));
         this->connect(Recver,SIGNAL(SysFriendsList(void*,int)),this,SLOT(SLOT_SetFriendToArea(void*,int)));
+        this->connect(Recver,SIGNAL(SysUserInfo(LinkC_User_Info)),this,SLOT(SLOT_SetUserInfo(LinkC_User_Info)));
         this->connect(SettingsLabel,SIGNAL(clicked()),this,SLOT(SLOT_SettingDialogClicked()));
         this->connect(NameLabel,SIGNAL(clicked()),this,SLOT(SLOT_AccountCLabelClicked()));
         this->connect(ExitLabel,SIGNAL(clicked()),this,SLOT(SLOT_ExitLabelClicked()));
@@ -107,6 +110,7 @@ MainWindow::MainWindow(QWidget *parent) :
     Login();        //登录
     delete s;
     InitFriendList();
+    InitUserInfo();
     Recver->start();
 }
 
@@ -210,9 +214,9 @@ int MainWindow::InitFriendList(){
     if(flag == SYS_ACTION_STATUS){
         unpack_message(buffer,package);
         if(((LSS *)package)->Action == USER_FRIENDS_DATA)
-            LinkC_Debug("Init Friends List [Getting Data]",((LSS *)package)->Status);
+            LinkC_Debug("Get Friends Data",((LSS *)package)->Status);
     }else{
-            LinkC_Debug("Init Friends List [Getting Data]",LINKC_FAILURE);
+            LinkC_Debug("Get Friends Data [Message Header Incorrect]",LINKC_WARNING);
             return -1;
     }
     flag = non_std_m_message_recv(server.GetSockfd(),sizeof(LinkC_Friend_Data),package);
@@ -220,23 +224,48 @@ int MainWindow::InitFriendList(){
     return 0;
 }
 
+int MainWindow::InitUserInfo(){
+    int flag;
+    ((LUR*)package)->Action = USER_INFO_REQUEST;
+    length = pack_message(USER_REQUEST,package,LUR_L,buffer);
+    server.Send_msg(buffer,length,0);
+    server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);
+    flag = get_message_header(buffer);
+    if(flag == SYS_ACTION_STATUS){
+        unpack_message(buffer,package);
+        if(((LSS*)package)->Action == USER_INFO_REQUEST){
+            bzero(buffer,STD_PACKAGE_SIZE);
+            server.TCP_Recv(buffer,STD_PACKAGE_SIZE,0);
+            flag = get_message_header(buffer);
+            if(flag == SYS_USER_INFO){
+                unpack_message(buffer,(void *)User_Info);
+                LinkC_Debug("Get User Info",LINKC_SUCCESS);
+                NameLabel->setText(tr(User_Info->username));
+                LinkC_Debug("Set User Info",LINKC_SUCCESS);
+                return 0;
+            }else   LinkC_Debug("Init User Info [Message Header Incorrect [2nd]]",LINKC_WARNING);
+        }else       LinkC_Debug("Init User Info [Message Header Action Incorrect]",LINKC_WARNING);
+    }else           LinkC_Debug("Init User Info [Message Header Incorrect]",LINKC_WARNING);
+    return -1;
+}
+
 
 void MainWindow::ChatWith(LinkC_Friend_Data data){
     ChatDialog *log;
 
-    if(!ChatDialogMap.contains(data.Data.UID)){
+    if(!ChatDialogMap.contains(data.Info.UID)){
         log = new ChatDialog(data);
         this->connect(Recver,SIGNAL(SysFriendData(LinkC_Friend_Data)),log,SLOT(GetFriendData(LinkC_Friend_Data)));
         this->connect(log,SIGNAL(SendMessageToServer(LinkC_User_Request)),this,SLOT(SendMessageToServer(LinkC_User_Request)));
         log->show();
-        ChatDialogMap.insert(data.Data.UID, log);
+        ChatDialogMap.insert(data.Info.UID, log);
     }else{
-        ChatDialogiterator = ChatDialogMap.find(data.Data.UID);
+        ChatDialogiterator = ChatDialogMap.find(data.Info.UID);
         log = ChatDialogiterator.value();
         log->show();
     }
     ((LUR*)package)->Action = USER_FRIEND_DATA;
-    ((LUR*)package)->UID    = data.Data.UID;
+    ((LUR*)package)->UID    = data.Info.UID;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);
 }
@@ -244,25 +273,25 @@ void MainWindow::ChatWith(LinkC_Friend_Data data){
 void MainWindow::FriendLabelClicked(LinkC_Friend_Data data){
     ChatDialog *log;
 
-    if(!ChatDialogMap.contains(data.Data.UID)){
+    if(!ChatDialogMap.contains(data.Info.UID)){
         log = new ChatDialog(data);
         //  发送连接请求
         ((LUR*)package)->Action=USER_CHAT_REQUEST;
-        ((LUR*)package)->UID   =data.Data.UID;
+        ((LUR*)package)->UID   =data.Info.UID;
         length = pack_message(USER_REQUEST,package,LUR_L,buffer);
         server.Send_msg(buffer,length,0);
         //  end
         this->connect(Recver,SIGNAL(SysFriendData(LinkC_Friend_Data)),log,SLOT(GetFriendData(LinkC_Friend_Data)));
         this->connect(log,SIGNAL(SendMessageToServer(LinkC_User_Request)),this,SLOT(SendMessageToServer(LinkC_User_Request)));
         log->show();
-        ChatDialogMap.insert(data.Data.UID, log);
+        ChatDialogMap.insert(data.Info.UID, log);
     }else{
-        ChatDialogiterator = ChatDialogMap.find(data.Data.UID);
+        ChatDialogiterator = ChatDialogMap.find(data.Info.UID);
         log = ChatDialogiterator.value();
         log->show();
     }
     ((LUR*)package)->Action = USER_FRIEND_DATA;
-    ((LUR*)package)->UID    = data.Data.UID;
+    ((LUR*)package)->UID    = data.Info.UID;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);
 }
@@ -277,6 +306,7 @@ void MainWindow::SLOT_SetFriendToArea(void *data, int count){
     for(i=0;i<area->FriendCount();i++)
         area->AddFriendToLayout(ffb[i]);
     delete (char *)data;
+    LinkC_Debug("Set Friends Into FriendList",LINKC_DONE);
 }
 
 void MainWindow::UserMessage(struct LinkC_User_Message_t Message){
@@ -315,13 +345,15 @@ void MainWindow::SLOT_Quit(){
 }
 
 void MainWindow::SLOT_Refresh_User_Info(){
-    ((LUR*)package)->Action = USER_DATA_REQUEST;
+    ((LUR*)package)->Action = USER_INFO_REQUEST;
     length = pack_message(USER_REQUEST,package,LUR_L,buffer);
     server.Send_msg(buffer,length,0);
 }
 
-void MainWindow::setUserData(LinkC_User_Data Data){
-    User_Data = Data;
+void MainWindow::SLOT_SetUserInfo(LinkC_User_Info Info){
+    memcpy((void *)User_Info,(void *)&Info,sizeof(Info));
+    NameLabel->setText(tr(User_Info->username));
+    LinkC_Debug("Set User Info",LINKC_SUCCESS);
 }
 
 void MainWindow::SLOT_Refresh_Friend_List(){

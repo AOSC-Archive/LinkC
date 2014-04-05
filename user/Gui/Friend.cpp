@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 22, 2014
+ * Last-Change		： April 5, 2014
  */
 #include "LinkC_GUI.h"
 #include "LinkC_Label.h"
@@ -29,7 +29,7 @@ LinkcFriendItem::LinkcFriendItem(QWidget *parent)
 }
 void LinkcFriendItem::setFriend(const LinkC_Friend_Data data){
     Friend = data;
-    this->setText(tr(data.Data.username));
+    this->setText(tr(data.Info.username));
 }
 
 LinkC_Friend_Data LinkcFriendItem::GetFriend(){
@@ -61,7 +61,7 @@ void FriendArea::AddFriendToLayout(LinkC_Friend_Data Myfriend){
      FriendLabelArea->resize(list->width()-20,_FRIEND_LABEL_HEIGTH*friendcount);
      FriendLayout->addWidget(f);
      this->connect(f,SIGNAL(clicked(LinkC_Friend_Data)),this,SLOT(ItemClicked(LinkC_Friend_Data)));
-     FriendMap[Myfriend.Data.UID] = f;
+     FriendMap[Myfriend.Info.UID] = f;
 }
 
 void FriendArea::clear(){

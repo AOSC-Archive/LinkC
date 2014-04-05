@@ -13,7 +13,7 @@
 
 #include "Csocket.h"
 #include "def.h"
-#include "Utilities/LinkC_Utilities.h"
+#include "LinkC_Utilities.h"
 #include <QTimer>
 #include <QObject>
 #include <QThread>
@@ -43,13 +43,11 @@ public:
     int SetDestIP(const char* ip);
 
     int SendP2PMessage(char *ch);
-    int HeartBeats();
 
     int DirectConnect(void);
     int IsServer(void);
     bool IsPeerConnected(void);
 
-    p2pinfo GetP2PInfo(void);
     UDP_csocket GetCsocket(void);
 
     void SetPeerIP(ip_t ip);
@@ -72,6 +70,7 @@ protected:
     struct p2pinfo P2PInfo;
     void *package;
     bool isPeerConnected;
+    p2pinfo GetP2PInfo(void);
 };
 
 

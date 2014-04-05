@@ -6,7 +6,7 @@ TEMPLATE = app
 TARGET = LinkC_Client
 QT += widgets core gui
 DEPENDPATH += . Gui include NetWork Window
-INCLUDEPATH += . Window NetWork include
+INCLUDEPATH += . Window NetWork include Utilities
 
 # Input
 HEADERS += include/def.h \

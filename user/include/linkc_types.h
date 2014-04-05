@@ -20,7 +20,7 @@ typedef struct login_data
         char pass_word[20];
 }login_data;
 
-struct LinkC_User_Data_t                // 用户信息，用于发回数据
+struct LinkC_User_Info_t                // 用户信息，用于发回数据
 {
         id_t UID;
         char name[20];                  // 自己定义的昵称
@@ -38,7 +38,7 @@ typedef struct LinkC_Friend_Data_t
 {
 	char nickname[20];
 	int group;
-    struct LinkC_User_Data_t Data;
+    struct LinkC_User_Info_t Info;
 }friend_data;
 
 #endif

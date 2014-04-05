@@ -26,7 +26,7 @@ signals:
     void UserMessage    (LinkC_User_Message);
     void SysActionStatus(LinkC_Sys_Status);
     void SysFriendData  (LinkC_Friend_Data);
-    void SysUserData    (LinkC_User_Data);
+    void SysUserInfo    (LinkC_User_Info);
     void RecvError      ();
     void SysFriendsList (void*,int);
 

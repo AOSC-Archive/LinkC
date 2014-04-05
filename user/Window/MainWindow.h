@@ -10,7 +10,7 @@
 #include "LinkC_GUI.h"
 #include "linkc_types.h"
 #include "MessageRecver.h"
-#include "Utilities/LinkC_Utilities.h"
+#include "LinkC_Utilities.h"
 #include "LinkC_Settings_Dialog.h"
 #include "LinkC_UserInfoSettings_Dialog.h"
 #include <QToolBox>
@@ -47,7 +47,8 @@ public:
 	int NetworkInit(void);
     void resizeEvent(QResizeEvent *);
     void closeEvent(QCloseEvent *);
-    int InitFriendList();
+    int InitFriendList(void);
+    int InitUserInfo(void);
     FriendArea *friendArea;
     void *package;
 private slots:
@@ -55,7 +56,7 @@ private slots:
     void FriendLabelClicked(LinkC_Friend_Data);
     void UserMessage(LinkC_User_Message);
     void SendMessageToServer(LinkC_User_Request);
-    void setUserData(LinkC_User_Data);
+    void SLOT_SetUserInfo(LinkC_User_Info);
     void SLOT_SysActionStatus(LinkC_Sys_Status);
     void SLOT_Quit(void);
     void SLOT_Refresh_User_Info(void);
@@ -81,7 +82,12 @@ private:
     _Map                            ChatDialogMap;
     _Map::iterator                  ChatDialogiterator;
     TCP_MessageRecver               *Recver;
-    LinkC_User_Data                 User_Data;
+    LinkC_User_Info                 *User_Info;
+
+    LinkC_Label                     *NameLabel;
+    LinkC_Label                     *StatLabel;
+    LinkC_Label                     *SettingsLabel;
+    LinkC_Label                     *ExitLabel;
 };
 
 

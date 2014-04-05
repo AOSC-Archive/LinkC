@@ -24,6 +24,7 @@ void TCP_MessageRecver::run(){
     void* package = malloc(MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
     int Totle;
     void *tmp;
+    int i;
     LinkC_Debug("TCP MessageRecver",LINKC_STARTED);
     while(1){
         bzero(buffer,MAX_BUFFER_SIZE + STD_BUFFER_SIZE + 1);
@@ -38,7 +39,7 @@ void TCP_MessageRecver::run(){
         if(header > 0){
             Totle = ((LMH*)buffer)->Totle;
             unpack_message(buffer,package);
-        }
+        }else   continue;
 
         if(header == USER_MESSAGE){         // 如果是好友信息
             emit UserMessage(*(LUM*)package);
@@ -46,15 +47,25 @@ void TCP_MessageRecver::run(){
         }
         else if(header == SYS_ACTION_STATUS){
             emit SysActionStatus(*(LSS *)package);
+            LinkC_Debug("Get Friends Data",((LSS *)package)->Status);
             if(((LSS*)package)->Action == USER_FRIENDS_DATA && ((LSS*)package)->Status == LINKC_SUCCESS){
                 tmp = new char[(Totle)*sizeof(LinkC_Friend_Data)];    // 参见 server/src/network/network_protocol/send_friends_data.c[我TM太聪明了那段]
+                for(i=0;i<Totle;i++){
+                    Dest.TCP_Recv(buffer,STD_BUFFER_SIZE,0);
+                    unpack_message(buffer,package);
+                    memcpy((char *)tmp+(i*sizeof(LinkC_Friend_Data_t)),package,sizeof(LinkC_Friend_Data_t));
+                }
                 emit SysFriendsList(tmp,Totle);
             }
         }
-        else if(header == SYS_FRIEND_DATA)
+        else if(header == SYS_FRIEND_DATA){
+            LinkC_Debug("Get Friend Data",LINKC_SUCCESS);
             emit SysFriendData(*(LFD *)package);
-        else if(header == SYS_USER_DATA)
-            emit SysUserData(*(LUD *)package);
+        }
+        else if(header == SYS_USER_INFO){
+            LinkC_Debug("Get User Info",LINKC_SUCCESS);
+            emit SysUserInfo(*(LUI *)package);
+        }
         else
             LinkC_Debug("This Message is not supposed!",LINKC_WARNING);
     }

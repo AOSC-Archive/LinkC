@@ -122,7 +122,7 @@ void p2p_client::inDirectConnectStart(){
     int flag;
 #if _LOCAL_NETWORK_P2P_TEST_
     Dest.Recv_msg(buffer,LMH_L,0);      // 因为这里接收的数据在有NAT设备的情况下是不会到达的
-    LinkC_Debug("Useless Message Recve",LINKC_DONE);
+    LinkC_Debug("Useless Message Recved",LINKC_DONE);
 #endif
     length = pack_message(CONNECTION,NULL,0,buffer);    // 第一次握手
     Dest.Send_msg(buffer,length,0);     // 发送连接请求

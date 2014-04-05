@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： Aprli 2, 2014
+ * Last-Change		： Aprli 5, 2014
  */
 
 #include "linkc_types.h"
@@ -28,6 +28,7 @@ extern void cls_buf(char * buffer,int size);
 int msgid;
 int keep_connect (struct user_data* _user)
 {
+	printf("Size = %d\n",sizeof(struct user_info));
 	int result,tmp,error_count,count,friend_count;
 	struct user_data user;				// 用户基本数据
 	int failure_count = 0;				// 登录已经失败次数
@@ -142,17 +143,16 @@ start:
 						send(tmp,buffer,length,0);
 					}
 				}
-				else if(((LUR *)data)->Action == USER_DATA_REQUEST)	// get self information
+				else if(((LUR *)data)->Action == USER_INFO_REQUEST)	// get self information
 				{
-					((LSS *)data)->Action = USER_DATA_REQUEST;
-					printf("Entered!\n");
+					((LSS *)data)->Action = USER_INFO_REQUEST;
 					if(get_user_info(user.UID,&info) == LINKC_SUCCESS)
 						((LSS *)data)->Status = LINKC_SUCCESS;
 					else
 						((LSS *)data)->Status = LINKC_FAILURE;
 					length = pack_message(SYS_ACTION_STATUS,data,LSS_L,buffer);
 					send(user.sockfd,buffer,length,0);
-					length = pack_message(SYS_USER_DATA,(void *)info,LUD_L,buffer);
+					length = pack_message(SYS_USER_INFO,(void *)info,LUI_L,buffer);
 					send(user.sockfd,buffer,length,0);
 					free(info);
 				}

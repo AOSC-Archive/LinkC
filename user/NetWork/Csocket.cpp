@@ -14,7 +14,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include "linkc_types.h"
-#if _LINUX_
+#if linux
 #include<netdb.h>
 #elif _WIN32_
 #include <ws2tcpip.h>

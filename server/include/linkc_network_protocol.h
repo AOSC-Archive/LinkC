@@ -43,7 +43,7 @@
 #define SYS_ACTION_STATUS	4	// 系统操作状态
 #define SYS_FRIEND_DATA		5	// 好友资料
 #define SYS_FREIDNS_DATA	6
-#define SYS_USER_DATA		7	// 用户自己的资料
+#define SYS_USER_INFO		7	// 用户自己的资料
 #define LOGIN		    	8	// 登录
 //-------分割--------//
 #define USER_REQUEST		9	// 用户请求 [扩展中]
@@ -57,7 +57,7 @@
 #define USER_FRIEND_DATA	4	// 请求好友数据
 #define USER_FRIENDS_DATA	5
 #define USER_CHAT_REQUEST	6	// 
-#define USER_DATA_REQUEST	7	// 用户请求自身的数据
+#define USER_INFO_REQUEST	7	// 用户请求自身的数据
 
 /* 用户消息[LinkC_User_Message]*/
 #define USER_CHAT		1	// 聊天
@@ -103,7 +103,7 @@ typedef struct LinkC_User_Message_t	LinkC_User_Message;
 typedef struct login_data		LinkC_User_Login;
 typedef struct LinkC_Sys_Status_t	LinkC_Sys_Status;
 typedef struct LinkC_Friend_Data_t      LinkC_Friend_Data;
-typedef struct user_info		LinkC_User_Data;
+typedef struct user_info		LinkC_User_Info;
 
 #define MESSAGE_HEADER_LENGTH	sizeof(struct LinkC_Message_Header_t)
 #define USER_REQUEST_LENGTH 	sizeof(struct LinkC_User_Request_t)
@@ -111,7 +111,7 @@ typedef struct user_info		LinkC_User_Data;
 #define USER_LOGIN_LENGTH	sizeof(struct login_data)
 #define SYS_STATUS_LENGTH   	sizeof(struct LinkC_Sys_Status_t)
 #define SYS_FRIEND_DATA_LENGTH	sizeof(struct friend_data)
-#define SYS_USER_DATA_LENGTH	sizeof(struct user_info)
+#define SYS_USER_INFO_LENGTH	sizeof(struct user_info)
 
 // 缩写一下，啊哈哈哈哈哈
 #define LMH	LinkC_Message_Header
@@ -120,7 +120,7 @@ typedef struct user_info		LinkC_User_Data;
 #define LUL	LinkC_User_Login
 #define LSS	LinkC_Sys_Status
 #define LFD	LinkC_Friend_Data
-#define LUD	LinkC_User_Data
+#define LUI	LinkC_User_Info
 
 #define LMH_L	MESSAGE_HEADER_LENGTH
 #define LUR_L	USER_REQUEST_LENGTH
@@ -128,7 +128,7 @@ typedef struct user_info		LinkC_User_Data;
 #define LUL_L	USER_LOGIN_LENGTH
 #define LSS_L	SYS_STATUS_LENGTH
 #define LFD_L	SYS_FRIEND_DATA_LENGTH
-#define LUD_L	SYS_USER_DATA_LENGTH
+#define LUI_L	SYS_USER_INFO_LENGTH
 // 缩写 End
 
 int16_t	check_message		(void *Message,uint16_t Recv_Length);
