@@ -1,6 +1,6 @@
 /*
  * Author           ： Junfeng Zhang <564691478@qq.com>
- * Last-Change      ： April 5, 2014
+ * Last-Change      ： April 6, 2014
  */
 
 #include "linkc_types.h"
@@ -12,7 +12,7 @@
 int user_logout(struct user_data* user)
 {
     CHECK_FAILED(status_set (user,STATUS_OFFLINE),ERROR_SET_STATE);
-    return SUCCESS;
+    return LINKC_SUCCESS;
 }
 
 int user_login(struct user_data* user)

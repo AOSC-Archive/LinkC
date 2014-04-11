@@ -56,6 +56,7 @@ private slots:
     void FriendLabelClicked(LinkC_Friend_Data);
     void UserMessage(LinkC_User_Message);
     void SendMessageToServer(LinkC_User_Request);
+    void SLOT_LoginWindowExit(void);
     void SLOT_SetUserInfo(LinkC_User_Info);
     void SLOT_SysActionStatus(LinkC_Sys_Status);
     void SLOT_Quit(void);
@@ -103,9 +104,12 @@ class LoginWindow : public QDialog{
 public:
     explicit LoginWindow(QWidget* = 0);	   //构造函数
 	~LoginWindow();	  // 析构函数
+    void closeEvent(QEvent *);
 	int GetLoginData(login_data &s);
 	QPushButton* LoginButton;
 	QPushButton* CancelButton;
+signals:
+    void Exit(void);
 public slots:		   // 槽函数
 	void QuitClick(void);		 // 退出按钮被按下
 	void LoginClick(void);		// 登录按钮被按下
@@ -114,6 +118,12 @@ private:
 	const char* PassWord;
     QLineEdit * UsernameInput;
     QLineEdit * PasswordInput;
+
+    QLabel* usrLabel;
+    QLabel* pwdLabel;
+    QGridLayout* gridLayout;
+    QHBoxLayout* btnLayout;
+    QVBoxLayout* dlgLayout;
 
 
 	struct login_data st;

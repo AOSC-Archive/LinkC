@@ -24,7 +24,7 @@
 #define MAX_BUFFER_SIZE         10240   // 最大缓冲区大小
 #define END_OF_LINKC_MESSAGE    0X011B  // Esc键 汗!
 #define LINKC_MESSAGE_VERSION   1       // 协议版本
-#define ALL_FRIEND              0       // 表示所有好友
+#define ALL_FRIENDS             0       // 表示所有好友
 #define HEART_BEATS_TIME        5       // 心跳时间[感觉有歧义]
 
 /* Error_Code 定义区 [Check_Message里]*/

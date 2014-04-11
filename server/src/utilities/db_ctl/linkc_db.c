@@ -101,7 +101,7 @@ int get_friend_data (int UID, int DestUID ,struct friend_data **_ffb)
     struct friend_data* _friend;
     _friend = (struct friend_data *) malloc (sizeof (struct friend_data));
     sprintf (exec,"SELECT * FROM user WHERE id='%d'",DestUID);
-printf("Friend Data Get %s\n",exec);
+    printf("Friend Data Get %s\n",exec);
     result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
     if( result == SQLITE_OK )
     {

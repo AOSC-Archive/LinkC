@@ -84,6 +84,7 @@ MainWindow::MainWindow(QWidget *parent) :
         head->setPixmap(pic);
         head->setGeometry(0,0,50,50);
 //############连接####################
+        this->connect(s,SIGNAL(Exit()),this,SLOT(SLOT_LoginWindowExit()));
         this->connect(area, SIGNAL(ChatTo(LinkC_Friend_Data)),this, SLOT(FriendLabelClicked(LinkC_Friend_Data)));
         this->connect(Recver,SIGNAL(UserMessage(LinkC_User_Message)),this,SLOT(UserMessage(LinkC_User_Message)));
         this->connect(Recver,SIGNAL(SysActionStatus(LinkC_Sys_Status)),this,SLOT(SLOT_SysActionStatus(LinkC_Sys_Status)));
@@ -107,6 +108,9 @@ MainWindow::MainWindow(QWidget *parent) :
     MainSetupMenu->setText(tr("菜单"));
 
 //############登录####################
+#if _LOCAL_NETWORK_P2P_TEST_
+    LinkC_Debug("Now You Stay Under LOCAL_NETWORK_TEST Mod",LINKC_WARNING);
+#endif
     Login();        //登录
     delete s;
     InitFriendList();
@@ -119,6 +123,12 @@ MainWindow::~MainWindow(){
     server.Send_msg(buffer,length,MSG_DONTWAIT);
     Recver->terminate();
     LinkC_Debug("MainWindow",LINKC_EXITED);
+    LinkC_Debug("LinkC Exited Normally");
+}
+
+void MainWindow::SLOT_LoginWindowExit(){
+    LinkC_Debug("LinkC Exited Normally");
+    exit(0);
 }
 
 int MainWindow::NetworkInit(void){
@@ -241,7 +251,7 @@ int MainWindow::InitUserInfo(){
                 unpack_message(buffer,(void *)User_Info);
                 LinkC_Debug("Get User Info",LINKC_SUCCESS);
                 NameLabel->setText(tr(User_Info->username));
-                LinkC_Debug("Set User Info",LINKC_SUCCESS);
+                LinkC_Debug("Set User Info",LINKC_DONE);
                 return 0;
             }else   LinkC_Debug("Init User Info [Message Header Incorrect [2nd]]",LINKC_WARNING);
         }else       LinkC_Debug("Init User Info [Message Header Action Incorrect]",LINKC_WARNING);
@@ -353,7 +363,7 @@ void MainWindow::SLOT_Refresh_User_Info(){
 void MainWindow::SLOT_SetUserInfo(LinkC_User_Info Info){
     memcpy((void *)User_Info,(void *)&Info,sizeof(Info));
     NameLabel->setText(tr(User_Info->username));
-    LinkC_Debug("Set User Info",LINKC_SUCCESS);
+    LinkC_Debug("Set User Info",LINKC_DONE);
 }
 
 void MainWindow::SLOT_Refresh_Friend_List(){

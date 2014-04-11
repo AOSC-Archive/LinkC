@@ -1,6 +1,6 @@
 /*
  * Author        ： Junfeng Zhang <564691478@qq.com>
- * Last-Change        ： April 5, 2014
+ * Last-Change        ： April 6, 2014
  */
 
 #include "linkc_db.h"
@@ -40,8 +40,8 @@ int start_connect(void)
 {
     struct user_data client;
     socklen_t len;
-    int result = init_sqlite3_db();                // 初始化数据库
-    if (result != LINKC_SUCCESS)
+    int result = init_sqlite3_db();                 // 初始化数据库
+    if (result != LINKC_SUCCESS)                    //  如果返回值不是 LINKC_SUCCESS [0]
     {
         printf ("DB Init error!\n");
         exit(EXIT_FAILURE);
@@ -56,15 +56,15 @@ int start_connect(void)
     pthread_t pid;
     while (1)
     {
-#if DEBUG
+#if DEBUG               //  如果是DEBUG情况下
         sleep (1);
         printf ("Server is waiting for connect!\n");
-#endif
-        client.sockfd = accept (sockfd,(struct sockaddr *)&client.addr,(socklen_t *)&len);
-#if PER_USER_TEST       // 如果是单用户测试
+#endif                  //  结束判断
+        client.sockfd = accept (sockfd,(struct sockaddr *)&client.addr,(socklen_t *)&len);  //  接受链接请求
+#if PER_USER_TEST       //  如果是单用户测试
         keep_connect(&client);
-#else                   // 否则
-        pthread_create (&pid,NULL,(void*)*keep_connect,&(client));
-#endif
+#else                   //  否则
+        pthread_create (&pid,NULL,(void*)*keep_connect,&(client));                          //  创建子进程，执行keep_connect函数
+#endif                  //  结束判断
     }
 }

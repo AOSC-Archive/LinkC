@@ -1,6 +1,6 @@
 /*
  * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： March 22, 2014
+ * Last-Change		： April 6, 2014
  */
 #include "MainWindow.h"
 #include "linkc_types.h"
@@ -9,23 +9,23 @@
 
 LoginWindow::LoginWindow(QWidget *parent) :
     QDialog(parent){
-    QLabel* usrLabel = new QLabel(tr("UserName:"));
-    QLabel* pwdLabel = new QLabel(tr("PassWord:"));
+    usrLabel      = new QLabel(tr("UserName:"));
+    pwdLabel      = new QLabel(tr("PassWord:"));
     UsernameInput = new QLineEdit;
     PasswordInput = new QLineEdit;
     PasswordInput->setEchoMode(QLineEdit::Password);
-    QGridLayout* gridLayout = new QGridLayout;
+    gridLayout = new QGridLayout;
     gridLayout->addWidget(usrLabel, 0, 0, 1, 1);
     gridLayout->addWidget(UsernameInput, 0, 1, 1, 3);
     gridLayout->addWidget(pwdLabel, 1, 0, 1, 1);
     gridLayout->addWidget(PasswordInput, 1, 1, 1, 3);
     LoginButton = new QPushButton(tr("Login"));
     CancelButton = new QPushButton(tr("Cancel"));
-    QHBoxLayout* btnLayout = new QHBoxLayout;
+    btnLayout = new QHBoxLayout;
     btnLayout->setSpacing(50);
     btnLayout->addWidget(LoginButton);
     btnLayout->addWidget(CancelButton);
-    QVBoxLayout* dlgLayout = new QVBoxLayout;
+    dlgLayout = new QVBoxLayout;
     dlgLayout->setMargin(40);
     dlgLayout->addLayout(gridLayout);
     dlgLayout->addStretch(40);
@@ -40,16 +40,39 @@ LoginWindow::LoginWindow(QWidget *parent) :
 }
 
 LoginWindow::~LoginWindow(){
+    delete usrLabel;
+    delete pwdLabel;
+    delete UsernameInput;
+    delete PasswordInput;
+    delete gridLayout;
+    delete LoginButton;
+    delete CancelButton;
+    delete btnLayout;
+    delete dlgLayout;
     LinkC_Debug("Login Window",LINKC_EXITED);
 }
 
 void LoginWindow::QuitClick(void){
-    QString response = "Are you sure to exit?";
+    QString response = "确定退出？";
     int answer = 0;
-    answer = QMessageBox::question(0,"Question",response,QMessageBox::Yes|QMessageBox::No);
+    answer = QMessageBox::question(0,"询问",response,QMessageBox::Yes|QMessageBox::No);
     if (answer == QMessageBox::Yes){
-        exit(0);
+        delete usrLabel;
+        delete pwdLabel;
+        delete UsernameInput;
+        delete PasswordInput;
+        delete gridLayout;
+        delete LoginButton;
+        delete CancelButton;
+        delete btnLayout;
+        delete dlgLayout;
+        LinkC_Debug("Login Window",LINKC_EXITED);
+        emit Exit();
     }
+}
+
+void LoginWindow::closeEvent(QEvent *){
+    emit Exit();
 }
 
 void LoginWindow::LoginClick(void){
@@ -61,11 +84,11 @@ int LoginWindow::GetLoginData(struct login_data& s){
     QString aa = UsernameInput->text();
     QString ab = PasswordInput->text();
     if (aa == ""){
-        QMessageBox::warning(0,"Warning","The Username is empty!",QMessageBox::Yes);
+        QMessageBox::warning(0,"警告！","用户名不能为空",QMessageBox::Yes);
         return -1;
     }
     else if (ab == ""){
-        QMessageBox::warning(0,"Warning","The Password is enpty!",QMessageBox::Yes);
+        QMessageBox::warning(0,"警告！","密码不能为空",QMessageBox::Yes);
         return -1;
     }
     QByteArray ba = aa.toLatin1();
