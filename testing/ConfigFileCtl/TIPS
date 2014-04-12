@@ -1,0 +1,6 @@
+Just Use
+    --> gcc Sourcs.c ReadLine.c -o Target   TO Build
+    --> ./Target OR gdb ./Target            TO RUN
+
+Just Use
+    --> #include "ConfigFileCtl.h"          TO Include LINKC_SUCCESS , ReadLine() and so on

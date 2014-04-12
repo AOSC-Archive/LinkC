@@ -28,21 +28,22 @@ typedef uint16_t port_t;
 #define SUCCESS 0
 #ifndef LINKC_STATUS
 #define LINKC_STATUS
-#define LINKC_SUCCESS 0
-#define LINKC_FAILURE -1
+#define LINKC_SUCCESS       0
+#define LINKC_FAILURE       -1
 #endif
-#define OK 0
-#define NOT_OK -1
+
+#define OK                  0
+#define NOT_OK              -1
 #define ERROR_TRACE
 
-#define STATUS_OK        3
-#define STATUS_ONLINE        2
-#define STATUS_HIDING        1
-#define STATUS_OFFLINE        0
+#define STATUS_OK           3
+#define STATUS_ONLINE       2
+#define STATUS_HIDING       1
+#define STATUS_OFFLINE      0
 #define STATUS_ERROR        -1
 
-#define FLAG_NODE    1
-#define FLAG_ITEM    2
+#define FLAG_NODE           1
+#define FLAG_ITEM           2
 
 #define FAILED(x) ((x < SUCCESS) ? 1 : 0)
 

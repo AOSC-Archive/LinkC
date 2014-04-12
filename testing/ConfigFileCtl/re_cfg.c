@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include "readline.c"
 #include "../../server/include/def.h"
+#include "../../server/include/linkc_utilities.h"       // For ReadLine()
 
 typedef t_r char  re[100];
 #define prompt_lenth 300
@@ -24,7 +25,7 @@ while(1)
     if(!input)
           break;
 
-    cfg_opt = (char *) readline( fp );
+    cfg_opt = (char *) ReadLine( fp );
     }
  while(cfg_opt[i])i++;
  fclose(fp);
