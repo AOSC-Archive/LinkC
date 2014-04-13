@@ -3,7 +3,7 @@
 
 #include <time.h>
 
-#define RE_VISIT_TIME   1       // 访问List的时间间隔[单位为秒]
+#define RE_VISIT_TIME   1       // 片轮查询List的时间间隔[单位为秒]
 #define TIME_TO_LIVE    2       // 一个Node[包]在TIME_TO_LIVE次访问后还没有被消除
                                 //  --> 这里是两秒后如果没有收到确认消息
                                 //  --> 则被认定为发送失败，重发数据
@@ -39,8 +39,8 @@ typedef struct PackageList_t    PackageList;
 PackageList*    BuildPackageList        (void);
 int             DestroyPackageList      (PackageList* List);
 int             InsertPackageListNode   (PackageList* List, void *Package);
-int             FindPackageListNode     (time_t SendTime);
-int             RemovePackageListNode   (time_t SendTime);
+int             FindPackageListNode     (time_t Time);
+int             RemovePackageListNode   (time_t Time);
 
 
 
