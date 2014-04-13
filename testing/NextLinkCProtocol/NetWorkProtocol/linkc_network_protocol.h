@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <time.h>
 
+#include "../NetWorkProtocol/linkc_network_protocol.h"
+
 /* 系统 */
 #define MESSAGE_POOL_SIZE       15      // 发送消息池的大小
 #define LINKC_MESSAGE_VERSION   2       // 协议版本
@@ -39,7 +41,10 @@
 #define USER_CONNECT_READY      6       // P2P连接准备完毕
 
 struct LinkC_Socket_t{
-    int Sockfd;
+    int                 Sockfd;
+    char                *ErrorMessage;
+    struct sockaddr_in  Addr;
+    PackageList         *List;
 };
 
 struct LinkC_Message_Header_t
@@ -52,20 +57,17 @@ struct LinkC_Message_Header_t
     time_t   Time;                      // 时间戳
 };
 typedef struct LinkC_Message_Header_t   LinkC_Message_Header;
+typedef struct LinkC_Socket_t           LinkC_Socket;
 
 #ifndef LINKC_UDP
 #define LINKC_UDP
 /* 函数部分 */
-int     LinkC_UDP_Init  (void);
-/*TODO:
- *      创建一个UDP套接字
- *ARGS:
- *      NONE
- *RETN:
- *      一个已经创建好的UDP
- */
-int     LinkC_UDP_Recv  (int Sockfd, char *Buffer, int BuffSize, int Flag);
-int     LinkC_UDP_Send  (int Sockfd, char *Buffer, int SendSize, int Flag);
+LinkC_Socket    LinkC_UDP_Socket_Init   (void);
+int             LinkC_Socket_Set_Port   (int Port);
+int             LinkC_Socket_Set_Addr   (struct sockaddr_in Addr);
+int             LinkC_Socket_Perror     (void);
+int             LinkC_UDP_Recv          (int Sockfd, char *Buffer, int BuffSize, int Flag);
+int             LinkC_UDP_Send          (int Sockfd, char *Buffer, int SendSize, int Flag);
 #endif
 
 

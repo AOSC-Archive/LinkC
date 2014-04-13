@@ -2,6 +2,7 @@
 #define LINKC_PACKAGE_LIST
 
 #include <time.h>
+#include <pthread.h>
 
 #define RE_VISIT_TIME   1       // 片轮查询List的时间间隔[单位为秒]
 #define TIME_TO_LIVE    2       // 一个Node[包]在TIME_TO_LIVE次访问后还没有被消除
@@ -18,21 +19,22 @@
 
 #endif
 
-struct PackageNode_t{
-    void                    *Package;       //  发送的数据
-    struct PackageNode_t    *Perv;          //  上一个节点
-    struct PackageNode_t    *Next;          //  下一个节点
-    int                     TimeToLive;     //  剩余生存次数
+struct PackageListNode_t{
+    void                        *Package;       //  发送的数据
+    struct PackageListNode_t    *Perv;          //  上一个节点
+    struct PackageListNode_t    *Next;          //  下一个节点
+    int                         TimeToLive;     //  剩余生存次数
 };
 
 struct PackageList_t{
-    int                     TotalNode;      //  现在节点的总数  
-    struct PackageNode_t    *StartNode;     //  起始节点
+    int                         TotalNode;      //  现在节点的总数  
+    pthread_mutex_t             *MutexLock;     //  互斥锁
+    struct PackageListNode_t    *StartNode;     //  起始节点
 };
 
 /* 重定义 */
-typedef struct PackageNode_t    PackageNode;
-typedef struct PackageList_t    PackageList;
+typedef struct PackageListNode_t    PackageListNode;
+typedef struct PackageList_t        PackageList;
 
 
 /* 函数部分 */
