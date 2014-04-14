@@ -39,3 +39,70 @@ int DestroyPackageList(PackageList *List){
     }
     return 0;
 }
+
+
+int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
+    if(List == NULL || Package == NULL){        //  如果指针为空
+        printf("Argument is NULL!\n");          //  输出出错
+        return 1;                               //  返回错误
+    }
+    PackageListNode *Node       = NULL;         //  声明节点[最好把变量声明在上锁之前,使上锁后执行时间最短]
+    PackageListNode *NowNode    = NULL;         //  当前节点
+    Node = (PackageListNode *)malloc(sizeof(PackageListNode));  //  分配内存
+
+    pthread_mutex_lock  (List->MutexLock);      //  上锁互斥锁[上锁后才进行操作]
+
+    if(List->TotalNode == 0){                   //  如果节点总数为0
+        Node->Next          = NULL;             //  设置下一个节点为NULL
+        Node->Perv          = NULL;             //  设置上一个节点为NULL
+        Node->ResendTime    = 0;                //  现在重发次数为0
+        Node->TimeToLive    = MAX_TIME_TO_LIVE; //  剩余生存时间为最大生存时间
+        Node->Count         = Count;            //  计数次数为当前传入参数的计数次数
+        pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
+        return 0;                               //  函数返回
+    }else{
+        NowNode = List->StartNode;              //  将当前节点设置为开始节点
+        while(1){                               //  永久循环
+            if(NowNode->Count < Count){         //  如果当前节点的计数次小于传入参数的计数次
+                if(NowNode->Perv != NULL){      //  如果现在节点的前一个[一定比当前节点的计数次大]
+                    Node->Perv      = NowNode->Perv;//  新建节点的上一个设置为当前节点的上一个
+                    Node->Perv->Next= Node;         //  新建节点的上一个的下一个设置为新建节点
+                    NowNode->Perv   = Node;         //  当前节点的上一个设置为新建节点
+                    Node->Next      = NowNode;      //  新建节点的下一个设置为当前节点
+                    Node->Package   = Package;      //  新建节点的数据包设置为传入参数的数据包
+                    Node->ResendTime    = 0;                //  现在重发次数为0
+                    Node->TimeToLive    = MAX_TIME_TO_LIVE; //  剩余生存时间为最大生存时间
+                    Node->Count         = Count;            //  计数次数为当前传入参数的计数次数
+                    pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
+                    return 0;                               //  退出函数
+                }else{                                      //  如果当前节点的前一个节点为空[意味着当前节点为首节点]
+                    Node->Next      = List->StartNode;      //  将新建的节点的下一个设置为链表的开始节点
+                    Node->Perv      = NULL;                 //  将新建的节点的前一个设置为空
+                    Node->TimeToLive= MAX_TIME_TO_LIVE;     //  设置剩余生存时间为最大生存时间
+                    Node->ResendTime= 0;                    //  设置重发次数为0
+                    Node->Package   = Package;
+                    List->StartNode->Perv = Node;           //  将链表的开始节点的前一个个设置为新建节点
+                    List->StartNode = Node;                 //  将链表的开始节点设置为新建节点
+                    pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
+                    return 0;                               //  函数返回
+                }
+            }else if(NowNode->Count == Count){          //  当前节点的计数次等于传入参数的计数次
+                free(Node);                             //  释放分配的内存
+                pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
+                return 1;                               //  返回错误
+            }else if(NowNode->Next == NULL){            //  如果这是最后一个节点[当前节点的下一个节点为空]
+                Node->Perv      = NowNode;              //  新建节点的前一个节点为当前节点
+                Node->Next      = NULL;                 //  新建节点的下一个节点为空
+                Node->TimeToLive= MAX_TIME_TO_LIVE;     //  设置剩余生存时间为最大生存时间
+                Node->ResendTime= 0;                    //  设置重发次数为0
+                Node->Package   = Package;              //  数据包为当前传入数据的数据包
+                pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
+                return 0;                               //  函数返回0
+            }else   NowNode = NowNode->Next;            //  设置当前节点为当前节点的下一个节点
+        }
+    }
+    pthread_mutex_unlock(List->MutexLock);      //  解锁互斥锁
+    return 1;                                   //  按照上面的逻辑顺序是不可能到达这里的
+}
+
+
