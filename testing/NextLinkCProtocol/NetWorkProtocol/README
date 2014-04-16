@@ -1,0 +1,3 @@
+编译test.c来测试
+
+编译命令    gcc -o test test.c LinkC_NetWorkProtocol.c ../PackageList/PackageList.c
