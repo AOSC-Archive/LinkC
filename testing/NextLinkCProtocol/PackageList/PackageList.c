@@ -134,14 +134,16 @@ int RemovePackageListNode (PackageList *List, uint32_t Count){
             Node->Next->Perv = Node->Perv;      //  则节点后面一个节点的前一个为当前节点的前一个
         }
         if(Node->Perv != NULL){                 //  如果节点前面还有节点
-            Node->Perv->Next = Node->Next;
+            Node->Perv->Next = Node->Next;      //  设置当前需要删除的节点的钱一个节点的后一个节点设置为当前需要删除的节点的下一个节点
         }else{                                  //  如果前面没有节点了[也就是说是首节点]
             List->StartNode = NULL;             //  链表的开始节点挂空
         }
         List->TotalNode --;                     //  总节点减一
         free(Node->Package);                    //  释放内存
         free(Node);                             //  释放内存
+        pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
+        return LINKC_PACKAGE_LIST_OK;           //  返回成功
     }
     pthread_mutex_unlock(List->MutexLock);      //  解锁互斥锁
-    return 1;
+    return LINKC_PACKAGE_LIST_NOT_FOUNT;
 }

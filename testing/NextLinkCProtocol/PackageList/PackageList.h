@@ -48,7 +48,7 @@ PackageList*    BuildPackageList                (void);
 int             DestroyPackageList              (PackageList *List);
 int             InsertPackageListNode           (PackageList *List, void *Package, uint32_t Count);
 int             FindPackageListNode             (PackageList *List, uint32_t Count, PackageListNode* Node);
-int             RemovePackageListNodeByCount    (PackageList *List, uint32_t Count);
+int             RemovePackageListNode           (PackageList *List, uint32_t Count);
 
 
 
