@@ -1,17 +1,12 @@
-/*
- * Author           ： Junfeng Zhang <564691478@qq.com>
- * Last-Change      ： April 13 , 2014
- */
-
-#ifndef LINKC_NETWORK_PROTOCOL_H
-#define LINKC_NETWORK_PROTOCOL_H
+#ifndef LINKC_NETWORKPROTOCOL_H
+#define LINKC_NETWORKPROTOCOL_H
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <stdint.h>
 #include <time.h>
-
-#include "../NetWorkProtocol/linkc_network_protocol.h"
+#include <netinet/in.h>
+#include "../PackageList/PackageList.h"
 
 /* 系统 */
 #define MESSAGE_POOL_SIZE       15      // 发送消息池的大小
@@ -41,10 +36,12 @@
 #define USER_CONNECT_READY      6       // P2P连接准备完毕
 
 struct LinkC_Socket_t{
-    int                 Sockfd;
-    char                *ErrorMessage;
-    struct sockaddr_in  Addr;
-    PackageList         *List;
+    int                 Sockfd;         //  网络句柄
+    int                 Available;      //  剩余可从缓冲区读出的数据包个数
+    struct sockaddr_in  Addr;           //  目标地址
+    char                *ErrorMessage;  //  错误信息
+    PackageList         *SendList;      //  发送链表
+    PackageList         *RecvList;      //  接收链表
 };
 
 struct LinkC_Message_Header_t

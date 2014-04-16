@@ -101,8 +101,47 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
             }else   NowNode = NowNode->Next;            //  设置当前节点为当前节点的下一个节点
         }
     }
-    pthread_mutex_unlock(List->MutexLock);      //  解锁互斥锁
-    return 1;                                   //  按照上面的逻辑顺序是不可能到达这里的
+    pthread_mutex_unlock(List->MutexLock);              //  解锁互斥锁
+    return 1;                                           //  按照上面的逻辑顺序是不可能到达这里的
 }
 
 
+int FindPackageListNode (PackageList *List, uint32_t Count, PackageListNode *Node){
+    if(List == NULL){                               //  如果链表指针为空
+        printf("Argument is NULL\n");               //  打印错误信息
+        return LINKC_PACKAGE_LIST_ERROR;            //  返回错误
+    }
+    Node = List->StartNode;                         //  设置节点为链表起始节点
+    while(Node){                                    //  如果节点不为空
+        if(Node->Count == Count){                   //  如果找到
+            return LINKC_PACKAGE_LIST_OK;           //  返回成功
+        }
+        Node = Node->Next;                          //  查找下一个
+    }
+    return LINKC_PACKAGE_LIST_NOT_FOUNT;            //  返回未找到
+}
+
+int RemovePackageListNode (PackageList *List, uint32_t Count){
+    if(List == NULL){                           //  如果链表指针为空
+        printf("Argument is NULL\n");           //  打印错误信息
+        return LINKC_PACKAGE_LIST_ERROR;        //  返回错误
+    }
+    PackageListNode *Node;                      //  声明一个节点指针
+    Node = List->StartNode;                     //  设置节点为链表起始节点
+    pthread_mutex_lock  (List->MutexLock);      //  上锁互斥锁
+    if(FindPackageListNode(List,Count,Node) == LINKC_PACKAGE_LIST_OK){    //  如果找到
+        if(Node->Next != NULL){                 //  如果节点后面还有节点
+            Node->Next->Perv = Node->Perv;      //  则节点后面一个节点的前一个为当前节点的前一个
+        }
+        if(Node->Perv != NULL){                 //  如果节点前面还有节点
+            Node->Perv->Next = Node->Next;
+        }else{                                  //  如果前面没有节点了[也就是说是首节点]
+            List->StartNode = NULL;             //  链表的开始节点挂空
+        }
+        List->TotalNode --;                     //  总节点减一
+        free(Node->Package);                    //  释放内存
+        free(Node);                             //  释放内存
+    }
+    pthread_mutex_unlock(List->MutexLock);      //  解锁互斥锁
+    return 1;
+}

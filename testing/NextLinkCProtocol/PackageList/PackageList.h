@@ -45,12 +45,10 @@ typedef struct PackageList_t        PackageList;
 
 /* 函数部分 */
 PackageList*    BuildPackageList                (void);
-int             DestroyPackageList              (PackageList* List);
-int             InsertPackageListNode           (PackageList* List, void *Package, uint32_t Count);
-int             FindPackageListNodeByTime       (time_t Time);
-int             RemovePackageListNodeByTime     (time_t Time);
-int             FindPackageListNodeByCount      (uint32_t Count);
-int             RemovePackageListNodeByCount    (uint32_t Count);
+int             DestroyPackageList              (PackageList *List);
+int             InsertPackageListNode           (PackageList *List, void *Package, uint32_t Count);
+int             FindPackageListNode             (PackageList *List, uint32_t Count, PackageListNode* Node);
+int             RemovePackageListNodeByCount    (PackageList *List, uint32_t Count);
 
 
 
