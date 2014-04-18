@@ -9,6 +9,7 @@ PackageList* BuildPackageList(void){
 
     List->TotalNode = 0;                        //  初始化TotalNode为0
     List->StartNode = NULL;                     //  挂空指针
+    List->MutexLock = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));    //  为互斥锁分配内存空间
 
     pthread_mutex_init(List->MutexLock,NULL);   //  默认形式初始化互斥锁
                                                 //  --> 建立互斥锁的函数原型为
