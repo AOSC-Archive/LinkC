@@ -31,7 +31,7 @@ int DestroyPackageList(PackageList *List){
     PackageListNode *Node;                      //  用于保存当前节点
     PackageListNode *Next;                      //  用于保存下一个节点
     Node = List->StartNode;                     //  当前节点设置为链表开始节点
-    while(1){                                   //  无限循环
+    while(Node){                                //  无限循环
         Next = Node->Next;                      //  保存下一个节点的地址
         free(Node->Package);                    //  删除信息
         free(Node);                             //  删除节点

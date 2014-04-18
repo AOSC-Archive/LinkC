@@ -62,6 +62,9 @@ typedef struct SocketList_t     SocketList;
 
 /* 链表函数定义 */
 int     InitSocketList(void);                       //  初始LinkC_Socket环境[整个程序中只能被调用一次]
+int     AddSocketToList(LinkC_Socket *Socket);      //  添加LinkC_Socket到链表中去
+int     FindSocketInList(LinkC_Socket *Socket);     //  在链表中查找结点
+int     DelSocketFromList(LinkC_Socket *Socket);    //  从链表中删除LinkC_Socket
 int     DestroySocketList(void);                    //  销毁LinkC_Socket环境[同上]
 
 #endif  /* LINKC_SOCKET_LIST  */
@@ -81,7 +84,7 @@ void TimerInt(int SigNo, siginfo_t *SigInfo, void *Arg);
  * 参数:    这里前两个参数是系统直接赋值的,分别是
  *          [1]-->  int             信号的值
  *          [2]-->  siginf_t*       信号的具体信息
- *          [3]-->  void*           用户自己传递的数据
+ *          [3]-->  void*           真心不知道干嘛用的这个参数
  */
 
 void IOReadyInt(int SignalNumber, siginfo_t *info, void *Arg);
@@ -98,15 +101,15 @@ void IOReadyInt(int SignalNumber, siginfo_t *info, void *Arg);
 /* 套接字操作函数定义 */
 #ifndef LINKC_SOCKET_FUNCTIONS
 #define LINKC_SOCKET_FUNCTIONS
-int     CreateSocket(LinkC_Socket *Socket, int Family, uint8_t SockType, const struct sockaddr *MyAddr, socklen_t addrlen);
+int     CreateSocket(LinkC_Socket *Socket, int Family, int SockType, const struct sockaddr *MyAddr, socklen_t addrlen);
 /* 
  * TODO:    创建一个LinkC_Socket套接字
  *
  * ARGS:
  *      [1] Type :  LinkC_Socket*           一个空的LinkC_Socket指针，用于返回创建好了的LinkC_Socket
- *      [2] Type :  uint8_t                 一个一字节的无符号整形数，用于设定套接字的类型
- *                                              --> [1] TCP
- *                                              --> [2] UDP
+ *      [2] Type :  int                     一个一字节的无符号整形数，用于设定套接字的类型
+ *                                              --> [SOCK_STREAM]   字节流套接字[TCP]
+ *                                              --> [SOCK_DGRAM]    数据报套接字[UDP]
  *      [3] Type :  const struct sockaddr*  一个静态的sockaddr结构体，用于绑定本地地址
  *      [4] Type :  sockaddr_l              套接字长度
  *

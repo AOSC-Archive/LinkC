@@ -10,7 +10,7 @@ SocketList *List = NULL;            //  全局变量，套接字的链表
 
 void TimerInt(int SigNo, siginfo_t *SigInfo, void *Arg){
     printf("Now Totle Socket is %d\n",List->TotalSocket);
-    alarm(1);           //  1秒后发射信号
+//    alarm(1);           //  1秒后发射信号
 }
 
 int InitSocketList(void){
@@ -22,6 +22,57 @@ int InitSocketList(void){
     List->StartNode     = NULL;                     //  开始节点挂空
     List->TotalSocket   = 0;                        //  套接字总数为0
     return 0;                                       //  返回0
+}
+
+int FindSocketInList(LinkC_Socket *Socket){
+    LinkC_Socket *NowNode = List->StartNode;
+    while(1){                                       //  循环
+        if(NowNode == Socket)   return 0;           //  返回找到
+        if(NowNode->Next != NULL){                  //  如果下一个节点为空
+            NowNode = NowNode->Next;                //  设置为下一个节点
+        }else{                                      //  或者
+            break;                                  //  跳出循环
+        }
+    }
+    return 1;                                       //  返回未找到
+}
+int CreateSocket(LinkC_Socket *Socket, int Family, int SockType, const struct sockaddr *MyAddr, socklen_t addrlen){
+    if(List == NULL){                                                           //  如果链表没有初始化
+        printf("The LinkC Socket environment is not created!\n");               //  打印错误信息
+        return 1;                                                               //  返回1
+    }
+    Socket                  =   (LinkC_Socket*)malloc(sizeof(LinkC_Socket));    //  为套接字结构体分配内存
+    Socket->Available       =   0;                                              //  将可用包数设置为0
+    Socket->Sockfd          =   socket(AF_INET,SockType,0);                     //  创建套接字
+    Socket->SendList        =   BuildPackageList();                             //  创建链表
+    Socket->RecvList        =   BuildPackageList();                             //  创建链表
+    bind(Socket->Sockfd,MyAddr,addrlen);
+
+    AddSocketToList(Socket);
+    return 0;
+}
+
+int AddSocketToList(LinkC_Socket *Socket){
+    if(Socket == NULL){                             //  如果参数为空指针
+        printf("The Argument is NULL\n");           //  打印错误信息
+        return 1;
+    }
+    if(List->TotalSocket == 0){                     //  如果现在还没有Socket
+        List->StartNode = Socket;                   //  其事节点为当前节点
+        Socket->Perv = NULL;                        //  当前节点的前一个节点挂空
+        Socket->Next = NULL;                        //  当前节点的后一个节点挂空
+        List->TotalSocket++;                        //  Socket总数加一
+    }else{
+        if(FindSocketInList(Socket) == 0){          //  如果找到
+            printf("bad addition");                 //  打印错误信息
+            return 1;
+        }
+        Socket->Next            = List->StartNode;  //  新建节点的下一个设置成现在的起始节点
+        List->StartNode->Perv   = Socket;           //  链表起始节点的前一个为新建节点
+        List->StartNode         = Socket;           //  链表起始节点为当前节点
+        Socket->Perv            = NULL;             //  当前节点的前一个节点挂空
+    }
+    return 0;
 }
 
 int DestroySocketList(void){
@@ -52,23 +103,6 @@ int DestroySocketList(void){
             break;                                  //  跳出循环
         }
     }
-    return 0;
-}
-int CreateSocket(LinkC_Socket *Socket, int Family, uint8_t SockType, const struct sockaddr *MyAddr, socklen_t addrlen){
-    if(List == NULL){                                                           //  如果链表没有初始化
-        printf("The LinkC Socket environment is not created!\n");               //  打印错误信息
-        return 1;                                                               //  返回1
-    }
-    Socket                  =   (LinkC_Socket*)malloc(sizeof(LinkC_Socket));    //  为套接字结构体分配内存
-    Socket->Available       =   0;                                              //  将可用包数设置为0
-    memset((void *)&(Socket->Addr),0,sizeof(Socket->Addr));                     //  清空数据
-    if(SockType == 1){                                                          //  如果要创建UDP套接字{
-        Socket->Sockfd = socket(Family,SOCK_DGRAM,IPPROTO_UDP);                 //  创建UDP套接字
-    }else{
-        Socket->Sockfd = socket(Family,SOCK_STREAM,IPPROTO_TCP);                //  创建TCP套接字
-    }
-    bind(Socket->Sockfd,MyAddr,addrlen);                                        //  绑定本地地址
-    // Add to List
     return 0;
 }
 

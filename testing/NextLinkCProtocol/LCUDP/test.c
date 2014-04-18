@@ -17,6 +17,7 @@ int main(){
     if(sigaction(SIGALRM,&Act,NULL)==-1)    //  安装信号
         printf("install error~!\n");        //      参数[1]-->  信号，这里是时钟信号[后面的第三个参数我就不清楚了]
     alarm(1);                               //  1秒后发射信号
-    while(1){sleep(2);};
+    sleep(2);
+    DestroySocketList();
     return 0;
 }
