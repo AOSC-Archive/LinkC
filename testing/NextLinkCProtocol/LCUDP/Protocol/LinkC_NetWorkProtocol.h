@@ -32,9 +32,6 @@ struct LinkC_Socket_t{
     char                    *ErrorMessage;          //  错误信息
     PackageList             *SendList;              //  发送链表
     PackageList             *RecvList;              //  接收链表
-    struct LinkC_Socket_t   *Perv;                  //  前一个
-    struct LinkC_Socket_t   *Next;                  //  后一个
-    pthread_mutex_t         *Mutex_Lock;            //  互斥锁
 };
 
 struct LinkC_Message_Header_t
@@ -53,19 +50,28 @@ typedef struct LinkC_Socket_t           LinkC_Socket;
 #ifndef LINKC_SOCKET_LIST
 #define LINKC_SOCKET_LIST
 
+struct SocketListNode_t{
+    LinkC_Socket            *Socket;                //  套接字
+    pthread_mutex_t         *Mutex_Lock;            //  互斥锁
+    struct SocketListNode_t *Perv;                  //  前一个
+    struct SocketListNode_t *Next;                  //  后一个
+};
+
 struct SocketList_t{
     int                     TotalSocket;            //  总共的套接字数目
-    struct LinkC_Socket_t   *StartNode;             //  开始节点
+    struct SocketListNode_t *StartNode;             //  开始节点
 };
 
 typedef struct SocketList_t     SocketList;
+typedef struct SocketListNode_t SocketListNode;
 
 /* 链表函数定义 */
-int     InitSocketList(void);                       //  初始LinkC_Socket环境[整个程序中只能被调用一次]
-int     AddSocketToList(LinkC_Socket *Socket);      //  添加LinkC_Socket到链表中去
-int     FindSocketInList(LinkC_Socket *Socket);     //  在链表中查找结点
-int     DelSocketFromList(LinkC_Socket *Socket);    //  从链表中删除LinkC_Socket
-int     DestroySocketList(void);                    //  销毁LinkC_Socket环境[同上]
+int     InitSocketList      (void);                 //  初始LinkC_Socket环境[整个程序中只能被调用一次]
+int     AddSocketToList     (LinkC_Socket *Socket); //  添加LinkC_Socket到链表中去
+int     DelSocketFromList   (LinkC_Socket *Socket); //  从链表中删除指定LinkC_Socket
+int     IsSocketInList      (LinkC_Socket *Socket); //  查询这个Socket是否存在于链表中
+int     FindNodeInList      (SocketListNode *Node); //  在链表中查找结点
+int     DestroySocketList   (void);                 //  销毁LinkC_Socket环境[同上]
 
 #endif  /* LINKC_SOCKET_LIST  */
 #endif  /* LINKC_SOCKET_TYPES */
