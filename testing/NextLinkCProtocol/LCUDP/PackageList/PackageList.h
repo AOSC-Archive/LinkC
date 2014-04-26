@@ -5,13 +5,6 @@
 #include <pthread.h>
 #include <stdint.h>
 
-#define RE_VISIT_TIME       1   // 片轮查询List的时间间隔[单位为秒]
-#define MAX_TIME_TO_LIVE    2   // 一个Node[包]在TIME_TO_LIVE次访问后还没有被消除
-                                //      --> 这里是两秒后如果没有收到确认消息
-                                //      --> 则被认定为发送失败，重发数据
-#define MAX_RESEND_TIME     3   //  最大重发次数
-                                //      --> 这里是指如果重发三次还是没有收到信息
-                                //      --> 则认定断开链接
 
 /* Error Code 定义 */
 #ifndef LINKC_PACKAGE_LIST_ERROR_CODE

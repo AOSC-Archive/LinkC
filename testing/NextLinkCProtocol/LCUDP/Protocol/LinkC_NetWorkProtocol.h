@@ -13,9 +13,15 @@
 #define MAX_MESSAGE_POOL_SIZE   15      //  最大缓冲区保存数据报的数量
 #define LINKC_MESSAGE_VERSION   2       //  协议版本
 #define ERROR_OUTPUT_TYPE       1       //  表示直接输出[2]为输出到指定文件
-#if ERROR_OUTPUT_TYPE == 2              //  如果将错误输出到指定文件
-#define ERROR_OUTPUT_FILE       "/tmp/LinkCSocketErrorOutput"
-#endif
+#define NORMAL_PACKAGE          "NP"    //  表示正常的数据报
+#define RESEND_PACKAGE          "RP"    //  表示重发的数据报
+#define RE_VISIT_TIME           1       // 片轮查询List的时间间隔[单位为秒]
+#define MAX_TIME_TO_LIVE        2       // 一个Node[包]在TIME_TO_LIVE次访问后还没有被消除
+                                        //      --> 这里是两秒后如果没有收到确认消息
+                                        //      --> 则被认定为发送失败，重发数据
+#define MAX_RESEND_TIME         3       //  最大重发次数
+                                        //      --> 这里是指如果重发三次还是没有收到信息
+                                        //      --> 则认定断开链接
 
 /* Error_Code */
 #define DIFF_VERSION            1       // 协议版本不一致
@@ -30,15 +36,12 @@
 #define LINKC_SOCKET_TYPES
 struct LinkC_Socket_t{
     int                     Sockfd;                 //  基础网络句柄
-    uint8_t                 SockType;               //  套接字类型  [1]TCP  [2]UDP
     int                     Available;              //  剩余可从缓冲区读出的数据包个数
     struct sockaddr_in      Addr;                   //  目标地址
     char                    *ErrorMessage;          //  错误信息
     PackageList             *SendList;              //  发送链表
     PackageList             *RecvList;              //  接收链表
 };
-#define LINKC_TCP   1
-#define LINKC_UDP   2
 
 struct LinkC_Message_Header_t
 {
@@ -113,16 +116,12 @@ void IOReadyInt(int SignalNumber, siginfo_t *info, void *Arg);
 /* 套接字操作函数定义 */
 #ifndef LINKC_SOCKET_FUNCTIONS
 #define LINKC_SOCKET_FUNCTIONS
-int     CreateSocket(int Family, int SockType, const struct sockaddr *MyAddr, socklen_t addrlen);
+int     CreateSocket(const struct sockaddr *MyAddr);
 /* 
- * TODO:    创建一个LinkC_Socket套接字
+ * TODO:    创建一个LinkC_Socket套接字[IPV4 Only]
  *
  * ARGS:
- *      [1] Type :  int                     一个一字节的无符号整形数，用于设定套接字的类型
- *                                              --> [SOCK_STREAM]   字节流套接字[TCP]
- *                                              --> [SOCK_DGRAM]    数据报套接字[UDP]
- *      [2] Type :  const struct sockaddr*  一个静态的sockaddr结构体，用于绑定本地地址
- *      [3] Type :  sockaddr_l              套接字长度
+ *      [1] Type :  const struct sockaddr*  一个静态的sockaddr结构体，用于绑定本地地址
  *
  * RETN:
  *      [A] 成功，返回值为一个socket
