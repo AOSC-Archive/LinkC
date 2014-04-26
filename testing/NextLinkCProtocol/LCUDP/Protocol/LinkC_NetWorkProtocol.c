@@ -10,8 +10,35 @@ SocketList *List = NULL;            //  全局变量，套接字的链表
 
 void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
     printf("SigNo = %d\nSigCode = %d\n",SigNo,SigInfo->si_code);
-    printf("Arg's Addr = [%lx]\n",(unsigned long)Arg);
-    printf("Now Totle Socket is %d\n",List->TotalSocket);
+    printf("Arg's Addr = [%lx]\n",      (unsigned long)Arg);
+    printf("Now Totle Socket is %d\n",  List->TotalSocket);
+
+    PackageListNode *PackNode   = NULL;                             //  缓冲区8链表节点指针
+    SocketListNode  *Node       = List->StartNode;                  //  赋值为开始节点
+
+    while(Node){                                                    //  循环直到当前节点为空
+        if(Node->Socket->ErrorMessage != NULL)                      //  如果错误信息不为空
+#if ERROR_OUTPUT_TYPE   ==  1                                       //      如果以是直接输出
+        printf("Socket Error [%s]\n",Node->Socket->ErrorMessage);   //          输出错误信息
+#else                                                               //      否则
+        // output to file                                           //          输出到文件
+#endif                                                              //      判断结束
+
+        if(Node->Socket->SendList->TotalNode != 0){                 //  如果发送链表中还有剩余[也就是收到确认没有到达]
+
+            pthread_mutex_lock(Node->Socket->SendList->MutexLock);  //  给链表上锁上锁
+            PackNode = Node->Socket->SendList->StartNode;           //  设置为链表开始节点
+            while(PackNode){
+                if(PackNode->TimeToLive == 0){                      //  如果剩余生存时间为0
+                    
+                }
+                PackNode = PackNode->Next;                          //  跳转到下一个节点
+            }
+            pthread_mutex_unlock(Node->Socket->SendList->MutexLock);//  给链表解锁
+            PackNode = NULL;                                        //  挂空指针
+        }
+    }
+
 //    alarm(1);           //  1秒后发射信号
 }
 
@@ -26,24 +53,17 @@ int InitSocketList(void){
     return 0;                                       //  返回0
 }
 
-int IsSocketInList(LinkC_Socket *Socket){
-    if(Socket == NULL){                             //  如果传入参数是空指针
-        printf("Argument is NULL!\n");              //  打印错误信息
-        return 2;                                   //  返回错误
-    }
+int IsSocketInList(int Socket){
     SocketListNode *NowNode = List->StartNode;      //  新建一个节点，指向链表的开始节点
     while(NowNode){                                 //  循环[当前节点不为空]
-        if(NowNode->Socket == Socket)   return 0;   //  返回找到
+        if(NowNode->Socket->Sockfd == Socket)
+            return 0;                               //  返回找到
         NowNode = NowNode->Next;                    //  设置为下一个节点
     }
     return 1;                                       //  返回未找到
 }
-int CreateSocket(LinkC_Socket *Socket, int Family, int SockType, const struct sockaddr *MyAddr, socklen_t addrlen){
-    if(List == NULL){                                                           //  如果链表没有初始化
-        printf("The LinkC Socket environment is not created!\n");               //  打印错误信息
-        return 1;                                                               //  返回1
-    }
-    Socket                  =   (LinkC_Socket*)malloc(sizeof(LinkC_Socket));    //  为套接字结构体分配内存
+int CreateSocket(int Family, int SockType, const struct sockaddr *MyAddr, socklen_t addrlen){
+    LinkC_Socket *Socket    =   (LinkC_Socket*)malloc(sizeof(LinkC_Socket));    //  为套接字结构体分配内存
     Socket->Available       =   0;                                              //  将可用包数设置为0
     Socket->Sockfd          =   socket(Family,SockType,0);                      //  创建套接字
     Socket->SendList        =   BuildPackageList();                             //  创建链表
@@ -51,7 +71,7 @@ int CreateSocket(LinkC_Socket *Socket, int Family, int SockType, const struct so
     bind(Socket->Sockfd,MyAddr,addrlen);                                        //  绑定地址
 
     AddSocketToList(Socket);
-    return 0;
+    return Socket->Sockfd;
 }
 
 int AddSocketToList(LinkC_Socket *Socket){
@@ -59,8 +79,8 @@ int AddSocketToList(LinkC_Socket *Socket){
         printf("The Argument is NULL\n");           //  打印错误信息
         return 1;
     }
-    if(IsSocketInList(Socket) == 0){                //  当前Socket是否已经存在于链表中，如果存在
-        printf("bad addition");                     //  打印错误信息
+    if(IsSocketInList(Socket->Sockfd) == 0){        //  当前Socket是否已经存在于链表中，如果存在
+        printf("Bad addition\n");                   //  打印错误信息
         return 1;
     }
     SocketListNode* Node;
@@ -80,21 +100,17 @@ int AddSocketToList(LinkC_Socket *Socket){
     return 0;                                       //  返回函数
 }
 
-int DelSocketFromList(LinkC_Socket *Socket){
-    if(Socket == NULL){                                 //  如果传入参数为空
-        printf("The Argument is NULL\n");               //  打印错误信息
-        return 1;                                       //  返回错误
-    }
+int DelSocketFromList(int Socket){
     SocketListNode *NowNode = List->StartNode;          //  声明一个节点指针，指向链表的开头
     while(NowNode){
-        if(NowNode->Socket == Socket){                  //  如果找到
+        if(NowNode->Socket->Sockfd == Socket){          //  如果找到
             pthread_mutex_lock(NowNode->Mutex_Lock);    //  申请互斥锁
-            close(Socket->Sockfd);                      //  关闭套接字
-            if(Socket->ErrorMessage != NULL){           //  如果错误消息指针不为空
-                free(Socket->ErrorMessage);             //  释放内存空间
+            close(Socket);                              //  关闭套接字[真是简单粗暴啊]
+            if(NowNode->Socket->ErrorMessage != NULL){  //  如果错误消息指针不为空
+                free(NowNode->Socket->ErrorMessage);    //  释放内存空间
             }
-            DestroyPackageList(Socket->RecvList);       //  释放接收缓冲区
-            DestroyPackageList(Socket->SendList);       //  释放发送缓冲区
+            DestroyPackageList(NowNode->Socket->RecvList);  //  释放接收缓冲区
+            DestroyPackageList(NowNode->Socket->SendList);  //  释放发送缓冲区
             if(NowNode->Perv != NULL){                  //  如果当前节点的前一个节点不为空
                 NowNode->Perv->Next = NowNode->Next;    //  设置当前节点的前一个节点的后一个节点为当前节点的后一个节点
             }else{                                      //  否则
@@ -105,7 +121,6 @@ int DelSocketFromList(LinkC_Socket *Socket){
             }
             pthread_mutex_unlock(NowNode->Mutex_Lock);  //  解锁互斥锁
             pthread_mutex_destroy(NowNode->Mutex_Lock); //  销毁互斥锁
-            Socket = NULL;                              //  请随时注意挂空指针以防意外
             return 0;
         }else{                                          //  否则
             NowNode = NowNode->Next;                    //  设置当前节点为当前节点的下一个节点
@@ -145,6 +160,20 @@ int DestroySocketList(){
     return 0;                                           //  返回函数
 }
 
-int DeleteSocket(LinkC_Socket *Socket){
+int DeleteSocket(int Socket){
     return DelSocketFromList(Socket);
+}
+
+int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t Length, int Flag){
+    int byte = 0;
+    socklen_t len = sizeof(struct sockaddr_in);
+    if(Socket->SockType == LINKC_UDP){              //  如果是UDP套接字
+        byte = sendto(Socket->Sockfd, Message, Length, Flag, (struct sockaddr *)&(Socket->Addr),len);   //  发送UDP数据报
+    }else if(Socket->SockType == LINKC_TCP){        //  如果是TCP套接字
+        byte = send(Socket->Sockfd,Message,Length,Flag);    //  发送TCP数据报
+    }else{
+        Socket->ErrorMessage = (char *)malloc(16);
+        sprintf(Socket->ErrorMessage,"Bad SockType!");
+    }
+    return byte;
 }
