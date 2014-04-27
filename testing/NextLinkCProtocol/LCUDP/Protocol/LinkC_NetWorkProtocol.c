@@ -32,6 +32,8 @@ void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
                     ResendMessage(Node->Socket,PackNode->Package ,PackNode->MessageLength); //  重发消息
                     PackNode->TimeToLive = MAX_TIME_TO_LIVE;        //  重设剩余生存时间
                     PackNode->ResendTime ++;                        //  重发次数自增加一
+                }else{
+                    PackNode->TimeToLive --;                        //  剩余生存时间减一
                 }
                 PackNode = PackNode->Next;                          //  跳转到下一个节点
             }
@@ -39,7 +41,7 @@ void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
             PackNode = NULL;                                        //  挂空指针
         }
     }
-//    alarm(1);           //  1秒后发射信号
+    alarm(1);           //  1秒后发射信号
 }
 
 int InitSocketList(void){
