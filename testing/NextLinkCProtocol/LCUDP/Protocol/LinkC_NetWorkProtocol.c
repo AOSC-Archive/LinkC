@@ -40,8 +40,23 @@ void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
             pthread_mutex_unlock(Node->Socket->SendList->MutexLock);//  给链表解锁
             PackNode = NULL;                                        //  挂空指针
         }
+        Node = Node->Next;
     }
     alarm(1);           //  1秒后发射信号
+}
+int InitLCUDPEnvironment(void){
+	    struct sigaction Act;                   //  定义处理信号的参数集合
+	    sigemptyset(&Act.sa_mask);              //  将数据清空
+	    Act.sa_sigaction=TimerInt;              //  设置回调函数[请在LinkC_NetWorkProtocol.c中查找]
+	    Act.sa_flags=SA_SIGINFO;                //  使用sa_sigaction参数的函数最为信号发来后的处理函数[也就是上面定义的]
+	    if(InitSocketList()!=0)                 //  如果初始化链表失败
+            return 1;
+        if(sigaction(SIGALRM,&Act,NULL)==-1){   //  安装信号
+            perror("Signal");
+            return 1;
+        }
+        alarm(1);                               //  1秒后发射信号
+        return 0;
 }
 
 int InitSocketList(void){
@@ -58,7 +73,7 @@ int InitSocketList(void){
 int IsSocketInList(int Socket){
     SocketListNode *NowNode = List->StartNode;      //  新建一个节点，指向链表的开始节点
     while(NowNode){                                 //  循环[当前节点不为空]
-        if(NowNode->Socket->Sockfd == Socket)
+        if(NowNode->Socket->Sockfd == Socket)       //  如果当前Socket等于传入的Socket
             return 0;                               //  返回找到
         NowNode = NowNode->Next;                    //  设置为下一个节点
     }
@@ -66,14 +81,24 @@ int IsSocketInList(int Socket){
 }
 int CreateSocket(const struct sockaddr *MyAddr){
     LinkC_Socket *Socket    =   (LinkC_Socket*)malloc(sizeof(LinkC_Socket));    //  为套接字结构体分配内存
-    Socket->Available       =   0;                                              //  将可用包数设置为0
     Socket->Sockfd          =   socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);         //  创建UDP套接字
+    if(Socket->Sockfd < 0){                                                     //  如果创建套接字失败
+        perror("Create LCUDP");                                                 //  打印错误信息
+        free(Socket);                                                           //  释放内存
+        return 1;                                                               //  返回错误
+    }
+    if(bind(Socket->Sockfd,MyAddr,sizeof(struct sockaddr_in)) < 0){             //  绑定地址
+        perror("Bind LCUDP");                                                   //  输出错误信息
+        close(Socket->Sockfd);                                                  //  关闭套接字
+        free(Socket);                                                           //  释放内存
+        return 1;
+    }
+    Socket->Available       =   0;                                              //  将可用包数设置为0
     Socket->SendList        =   BuildPackageList();                             //  创建链表
     Socket->RecvList        =   BuildPackageList();                             //  创建链表
-    bind(Socket->Sockfd,MyAddr,sizeof(struct sockaddr_in));                     //  绑定地址
 
-    AddSocketToList(Socket);
-    return Socket->Sockfd;
+    AddSocketToList(Socket);                                                    //  将当前套接字加入到片轮列表
+    return Socket->Sockfd;                                                      //  返回创建的套接子
 }
 
 int AddSocketToList(LinkC_Socket *Socket){
@@ -92,13 +117,13 @@ int AddSocketToList(LinkC_Socket *Socket){
         List->StartNode = Node;                     //  将当前节点设置为开始节点
         Node->Perv      = NULL;                     //  当前节点的前一个节点挂空
         Node->Next      = NULL;                     //  当前节点的后一个节点挂空
-        List->TotalSocket++;                        //  Socket总数加一
     }else{
         Node->Next              = List->StartNode;  //  新建节点的下一个设置成现在的起始节点
         Node->Perv              = NULL;             //  当前节点的前一个节点挂空
         List->StartNode->Perv   = Node;             //  链表起始节点的前一个为新建节点
         List->StartNode         = Node;             //  链表起始节点为当前节点
     }
+    List->TotalSocket++;                            //  Socket总数加一
     return 0;                                       //  返回函数
 }
 
@@ -169,7 +194,7 @@ int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t Length, int Flag){
 }
 
 
-int ResendMessage(LinkC_Socket *Socket, void *Message, int Length){
+int ResendMessage(LinkC_Socket *Socket, void *Message, size_t Length){
     if(Socket == NULL){                         //  如果参数为空
         printf("Argument is NULL!\n");          //  打印出错信息
         return 1;                               //  返回错误

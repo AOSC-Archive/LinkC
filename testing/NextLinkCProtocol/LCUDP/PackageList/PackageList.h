@@ -21,7 +21,7 @@ struct PackageListNode_t{
     struct PackageListNode_t    *Perv;          //  上一个节点
     struct PackageListNode_t    *Next;          //  下一个节点
     uint16_t                     MessageLength; //  数据长度
-    uint8_t                       TimeToLive;   //  剩余生存次数
+    uint8_t                      TimeToLive;    //  剩余生存次数
     uint8_t                      ResendTime;    //  目前重发次数
     uint32_t                     Count;         //  数据包的计数
 };

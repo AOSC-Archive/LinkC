@@ -116,6 +116,14 @@ void IOReadyInt(int SignalNumber, siginfo_t *info, void *Arg);
 /* 套接字操作函数定义 */
 #ifndef LINKC_SOCKET_FUNCTIONS
 #define LINKC_SOCKET_FUNCTIONS
+int     InitLCUDPEnvironment(void);
+/*
+ * TODO:    初始化LCUDP环境
+ *
+ *
+ */
+
+
 int     CreateSocket(const struct sockaddr *MyAddr);
 /* 
  * TODO:    创建一个LinkC_Socket套接字[IPV4 Only]
@@ -142,8 +150,8 @@ int     SetDestAddr(int Socket, const struct sockaddr* DestAddr);
 
 int     DeleteSocket(int Socket);         //  删除一个LinkC_Socket套接字
 
-int     __LinkC_Send(LinkC_Socket *Socket, void *Message, int Length);  //  直接发送数据[最基础的发送数据函数]
+int     __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag);  //  直接发送数据[最基础的发送数据函数]
 
-int     ResendMessage(LinkC_Socket *Socket, void *Message, int Length); //  重发数据
+int     ResendMessage(LinkC_Socket *Socket, void *Message, size_t size); //  重发数据
 #endif  /* LINKC_SOCKET_FUNCTIONS   */
 #endif  /* LINKC_NETWORKPROTOCO     */
