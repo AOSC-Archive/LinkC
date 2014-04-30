@@ -120,13 +120,12 @@ int     InitLCUDPEnvironment(void);
 /*
  * TODO:    初始化LCUDP环境
  *
- *
  */
 
 
 int     CreateSocket(const struct sockaddr *MyAddr);
 /* 
- * TODO:    创建一个LinkC_Socket套接字[IPV4 Only]
+ * TODO:    创建一个LinkC_Socket套接字[IPV4 Only]，同时加入片轮链表
  *
  * ARGS:
  *      [1] Type :  const struct sockaddr*  一个静态的sockaddr结构体，用于绑定本地地址
@@ -141,14 +140,20 @@ int     SetDestAddr(int Socket, const struct sockaddr* DestAddr);
  * TODO:    设置连接对象的地址
  *
  * ARGS:
- *      [1] Tyep :  int                     一个创建好了的LinkC_Socket，做为设置目标
+ *      [1] Tyep :  int                     一个创建好了并添加在片轮链表中的Socket，做为设置目标
  *      [2] Type :  const struct sockaddr*  一个静态的sockaddr结构体，用于传入目标的地址
  * RETN:
  *      [0] 成功
  *      [1] 失败
  */
 
-int     DeleteSocket(int Socket);         //  删除一个LinkC_Socket套接字
+int     DeleteSocket(int Socket);
+/*
+ * TODO:    删除一个已经被添加到片轮链表中的Socket
+ *
+ * ARGS:
+ *      [1] Type :  int                     一个Socket
+ */
 
 int     __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag);  //  直接发送数据[最基础的发送数据函数]
 

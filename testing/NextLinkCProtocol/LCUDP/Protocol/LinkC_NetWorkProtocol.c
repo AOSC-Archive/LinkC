@@ -44,6 +44,13 @@ void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
     }
     alarm(1);           //  1秒后发射信号
 }
+
+void IOReadyInt(int SignalNumber, siginfo_t *info, void *Arg){
+    printf("SigNo = %d\nSigCode = %d\n",SignalNumber,info->si_code);
+    printf("Arg's Addr = [%lx]\n",      (unsigned long)Arg);
+    printf("Now Totle Socket is %d\n",  List->TotalSocket);
+}
+
 int InitLCUDPEnvironment(void){
 	    struct sigaction Act;                   //  定义处理信号的参数集合
 	    sigemptyset(&Act.sa_mask);              //  将数据清空
