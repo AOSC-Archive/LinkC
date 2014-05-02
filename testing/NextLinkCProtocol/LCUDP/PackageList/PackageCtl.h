@@ -1,6 +1,8 @@
 #ifndef LINKC_PACKAGE_CONTROL_
 #define LINKC_PACKAGE_CONTROL_
 
+#include <stddef.h>     //  For size_t
+
 int	PackMessage(void* Message, size_t Length, void* Output);
 /*
  * TODO:	Package a message for sending
@@ -28,7 +30,7 @@ int	UnPackMessage(void* Message, void* Output);
  *	[FAILURE]	1
  */
 
-int	EncryptPackage(void Message, size_t Length, void* Output);
+int	EncryptPackage(void* Message, size_t Length, void* Output);
 /*
  * TODO:	Encrypt a message for sending
  *		and return a length-same point
@@ -43,7 +45,7 @@ int	EncryptPackage(void Message, size_t Length, void* Output);
  *	[FAILURE]	1
  */
 
-int 	UnEncryPackage(void* Message, void* Output);
+int DecryptPackage(void* Message, void* Output);
 /*
  * TODO:	Unencrypt a message you recved
  *
