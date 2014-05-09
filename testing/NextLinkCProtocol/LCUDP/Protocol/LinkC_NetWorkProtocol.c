@@ -1,5 +1,9 @@
 #include "LinkC_NetWorkProtocol.h"
+#include "../Package/PackageList/PackageList.h"
+#include "../Package/Package.h"
+#include "../Package/PackageCtl.h"
 #include <stdlib.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>                 //  For 信号控制
@@ -9,9 +13,13 @@
 SocketList *List = NULL;            //  全局变量，套接字的链表
 
 void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
-    printf("SigNo = %d\nSigCode = %d\n",SigNo,SigInfo->si_code);
+/*    printf("SigNo = %d\nSigCode = %d\n",SigNo,SigInfo->si_code);
     printf("Arg's Addr = [%lx]\n",      (unsigned long)Arg);
-    printf("Now Totle Socket is %d\n",  List->TotalSocket);
+    printf("Now Totle Socket is %d\n",  List->TotalSocket);*/
+    if(!SigNo)   perror("SigNo");
+    if(!SigInfo) perror("SigInfo");
+    if(!Arg)     perror("Arg");
+    printf("Timer INT\n");
 
     PackageListNode *PackNode   = NULL;                             //  缓冲区链表节点指针
     SocketListNode  *Node       = List->StartNode;                  //  赋值为开始节点
@@ -45,25 +53,163 @@ void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
     alarm(1);           //  1秒后发射信号
 }
 
-void IOReadyInt(int SignalNumber, siginfo_t *info, void *Arg){
-    printf("SigNo = %d\nSigCode = %d\n",SignalNumber,info->si_code);
+void IOReadyInt(int SigNo, siginfo_t *SigInfo, void *Arg){
+/*    printf("SigNo = %d\nSigCode = %d\n",SigNo,SigInfo->si_code);
     printf("Arg's Addr = [%lx]\n",      (unsigned long)Arg);
-    printf("Now Totle Socket is %d\n",  List->TotalSocket);
+    printf("Now Totle Socket is %d\n",  List->TotalSocket);*/
+    if(!SigNo)   perror("SigNo");
+    if(!SigInfo) perror("SigInfo");
+    if(!Arg)     perror("Arg");
+    printf("IOReady\n");
+    PackageListNode *PackNode   = NULL;                                 //  缓冲区链表节点指针
+    SocketListNode  *Node       = List->StartNode;                      //  赋值为开始节点
+    while(Node){
+        
+    }
+}
+int AskForResend(LinkC_Socket *Socket, int Count){
+    ConfirmationMessage confirm;                                        //  数据结构
+    confirm.isRecved    = 0;                                            //  说明没有收到
+    confirm.Count       = Count;                                        //  说明哪个包没有收到
+    void *Buffer = malloc(STD_PACKAGE_SIZE);                            //  分配内存
+    int Length = PackMessage((void *)&confirm,sizeof(confirm),Buffer);  //  打包数据
+    ___LinkC_Send(Socket,Buffer,Length,MSG_DONTWAIT);                   //  发送数据
+    free (Buffer);                                                      //  释放内存
+    Buffer = NULL;                                                      //  挂空指针
+    return 0;                                                           //  返回成功
+}
+int ConfirmRecved(LinkC_Socket *Socket, int Count){
+    ConfirmationMessage confirm;                                        //  数据结构
+    confirm.isRecved    = 1;                                            //  说明收到
+    confirm.Count       = Count;                                        //  说明哪个包收到
+    void *Buffer = malloc(STD_PACKAGE_SIZE);                            //  分配内存
+    int Length = PackMessage((void *)&confirm,sizeof(confirm),Buffer);  //  打包数据
+    ___LinkC_Send(Socket,Buffer,Length,MSG_DONTWAIT);                   //  发送数据
+    free (Buffer);                                                      //  释放内存
+    Buffer = NULL;                                                      //  挂空指针
+    return 0;                                                           //  返回成功
 }
 
+int _LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
+    return 0;
+}
+
+int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
+    return 0;
+}
+
+int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
+    ((MessageHeader *)Message)->MessageCounts = Socket->SendList->NowCount+1;               //  将本数据包的计数次设置为之前发送的数据包总数加一
+    if(InsertPackageListNode(Socket->SendList,Message,Socket->SendList->NowCount +1) != 0){ //  将本数据包存入发送缓冲区失败
+        return 1;
+    }
+    Socket->SendList->NowCount ++;                                                          //  发送缓冲区总计数自增加一
+    ___LinkC_Send(Socket,Message,size,Flag);
+    return 0;
+}
+
+int __LinkC_Recv(LinkC_Socket *Socket, int Flag){
+    int Byte;
+    void *Header = malloc(8);
+    Byte = recvfrom(Socket->Sockfd,Header,8,Flag,(struct sockaddr*)&(Socket->Addr),NULL);   //  先接收消息头大小的数据
+    if(Byte < 8){                                                               //  recvfrom返回收到数据长度小于8[出错或者无数据]
+        free(Header);                                                           //  释放内存
+        if(Byte == 0){                                                          //  recvfrom返回收到数据长度为0[断开链接或者无数据]
+            return 0;                                                           //  返回0
+        }else if(Byte < 0){                                                     //  recvfrom返回负数[出错]
+            perror("__LinkC_Recv");                                             //  打印错误细信息
+            return -1;                                                          //  返回错误
+        }else{                                                                  //  recvfrom返回收到数据长度介于0到8之间[残缺数据包，舍弃]
+            Socket->ErrorMessage = (char *)malloc(64);                          //  分配内存
+            memset(Socket->ErrorMessage,0,64);                                  //  清空分配部分的内存
+            sprintf(Socket->ErrorMessage,"消息头已经损毁!");                    //  设置错误信息
+            return -1;                                                          //  返回错误
+        }
+    }else{                                                                      //  recvfrom返回收到数据长度为8[可能为一个消息头]
+        if(((MessageHeader*)Header)->ProtocolVersion != PROTOCOL_VERSION){      //  如果协议版本号不一致
+            Socket->ErrorMessage = (char *)malloc(64);                          //  分配内存
+            memset(Socket->ErrorMessage,0,64);                                  //  清空分配部分的内存
+            sprintf(Socket->ErrorMessage,"协议版本不一致！");                   //  设置错误信息
+            return -1;                                                          //  返回错误
+        }
+        void *Message = malloc(((MessageHeader*)Header)->MessageLength);        //  分配内存
+        if(((MessageHeader*)Header)->MessageType == HEART_BEATS){               //  若是心跳包
+            return 0;                                                           //  直接返回[忽略]
+        }else if(((MessageHeader*)Header)->MessageType == RESEND_MESSAGE){      //  若是重发的数据包
+            if(___LinkC_Recv(Socket,Message,((MessageHeader*)Header)->MessageLength,MSG_DONTWAIT) != 0){    // 如果接收剩余数据失败
+                AskForResend(Socket,((MessageHeader*)Header)->MessageCounts);   //  请求重发
+                return 0;                                                       //  返回无数据
+            }
+            ConfirmRecved(Socket,((MessageHeader*)Header)->MessageCounts);      //  发送确认收到消息
+            InsertPackageListNode(Socket->SendList,Message,((MessageHeader*)Header)->MessageCounts);        //  插入已经收到的消息
+            
+        }else if(((MessageHeader*)Header)->MessageType == SSL_KEY_MESSAGE){     //  如果是SSL密钥
+            if(___LinkC_Recv(Socket,Message,((MessageHeader*)Header)->MessageLength,MSG_DONTWAIT) != 0){    // 如果接收剩余数据失败
+                AskForResend(Socket,((MessageHeader*)Header)->MessageCounts);   //  请求重发
+                return 0;                                                       //  返回无数据
+            }
+            ConfirmRecved(Socket,((MessageHeader*)Header)->MessageCounts);      //  发送确认收到消息
+            //      保存密钥
+        }else if(((MessageHeader*)Header)->MessageType == NORMAL_MESSAGE){      //  如果是普通数据
+            if(___LinkC_Recv(Socket,Message,((MessageHeader*)Header)->MessageLength,MSG_DONTWAIT) != 0){    // 如果接收剩余数据失败
+                AskForResend(Socket,((MessageHeader*)Header)->MessageCounts);   //  请求重发
+               return 0;                                                        //  返回无数据
+            }
+            ConfirmRecved(Socket,((MessageHeader*)Header)->MessageCounts);      //  发送确认收到消息
+            InsertPackageListNode(Socket->SendList,Message,((MessageHeader*)Header)->MessageCounts);        //  插入已经收到的消息
+        }
+    }
+    return Byte;
+}
+
+
+int ___LinkC_Send(LinkC_Socket *Socket, void *Message, size_t Length, int Flag){
+    return sendto(Socket->Sockfd, Message, Length, Flag, (struct sockaddr *)&(Socket->Addr),sizeof(struct sockaddr_in));   //  发送UDP数据报
+}
+
+
+int ___LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
+    int Byte;                                                               //  保存本次接收的长度
+    size_t Length = 0;                                                      //  保存已经接收的长度
+    while(1)
+    {
+        Byte = recvfrom(Socket->Sockfd,(char *)Message+Length,size-Length,Flag,(struct sockaddr*)&(Socket->Addr),&(Socket->SockLen));   //  接收数据
+        if(Byte < 0){                                                       //  recvfrom返回小于等于0 [1]没有数据 [2]链接关闭 [3]出错
+            perror("RecvFrom");                                             //  打印错误信息
+            return -1;                                                      //  返回出错
+        }else if(Byte == 0){
+            Socket->ErrorMessage = (char *)malloc(64);                      //  分配内存
+            memset(Socket->ErrorMessage,0,64);                              //  清空分配部分的内存
+            sprintf(Socket->ErrorMessage,"消息已经损毁!");                  //  设置错误信息
+            return -1;                                                      //  返回错误
+        }
+        Length += Byte;                                                     //  设置当前总计接收的数据长度
+        if(Length == size){                                                 //  正好接收到要接收的数据的长度
+            break;                                                          //  跳出循环
+        }
+    }
+    return 0;                                                               //  返回成功
+}
 int InitLCUDPEnvironment(void){
 	    struct sigaction Act;                   //  定义处理信号的参数集合
 	    sigemptyset(&Act.sa_mask);              //  将数据清空
-	    Act.sa_sigaction=TimerInt;              //  设置回调函数[请在LinkC_NetWorkProtocol.c中查找]
+	    Act.sa_sigaction=TimerInt;              //  设置回调函数[上面第一个函数]
 	    Act.sa_flags=SA_SIGINFO;                //  使用sa_sigaction参数的函数最为信号发来后的处理函数[也就是上面定义的]
 	    if(InitSocketList()!=0)                 //  如果初始化链表失败
-            return 1;
-        if(sigaction(SIGALRM,&Act,NULL)==-1){   //  安装信号
-            perror("Signal");
-            return 1;
+            return 1;                           //  返回错误
+        if(sigaction(SIGALRM,&Act,NULL)==-1){   //  安装SIGALRM信号
+            perror("Signal");                   //  打印错误信息
+            return 1;                           //  返回错误
+        }
+	    sigemptyset(&Act.sa_mask);              //  将数据清空
+	    Act.sa_sigaction=IOReadyInt;            //  设置回调函数[上面第二个函数]
+	    Act.sa_flags=0;                         //  使用sa_sigaction参数的函数最为信号发来后的处理函数[也就是上面定义的]
+        if(sigaction(SIGIO,&Act,NULL)==-1){     //  安装SIGIO信号
+            perror("Signal");                   //  打印错误信息
+            return 1;                           //  返回错误
         }
         alarm(1);                               //  1秒后发射信号
-        return 0;
+        return 0;                               //  返回成功
 }
 
 int InitSocketList(void){
@@ -94,12 +240,35 @@ int CreateSocket(const struct sockaddr *MyAddr){
         free(Socket);                                                           //  释放内存
         return 1;                                                               //  返回错误
     }
+    /*  我也不知道这段是什么意思，不过大概就是说设置成在收到数据的时候发送一个信息这么回事    */
+    if(fcntl(Socket->Sockfd,F_SETOWN,getpid()) == -1){
+        perror("Set Own");
+        close(Socket->Sockfd);                                                  //  关闭套接字
+        free(Socket);                                                           //  释放内存
+        return 1;                                                               //  返回错误
+    }
+    int flag = fcntl(Socket->Sockfd,F_GETFL,0);                                 //  获得那啥FL?
+    if(flag == -1){                                                             //  如果出错
+        perror("Get FL");                                                       //  打印错误信息
+        close(Socket->Sockfd);                                                  //  关闭套接字
+        free(Socket);                                                           //  释放内存
+        return 1;                                                               //  返回错误
+    }
+    if(fcntl(Socket->Sockfd,F_SETFL,flag | O_ASYNC) == -1){                     //  如果设置成受到数据就发信号的那啥套接字失败
+        perror("Set FL");                                                       //  打印错误信息
+        close(Socket->Sockfd);                                                  //  关闭套接字
+        free(Socket);                                                           //  释放内存
+        return 1;                                                               //  返回错误
+    }
+
     if(bind(Socket->Sockfd,MyAddr,sizeof(struct sockaddr_in)) < 0){             //  绑定地址
         perror("Bind LCUDP");                                                   //  输出错误信息
         close(Socket->Sockfd);                                                  //  关闭套接字
         free(Socket);                                                           //  释放内存
         return 1;
     }
+
+
     Socket->Available       =   0;                                              //  将可用包数设置为0
     Socket->SendList        =   BuildPackageList();                             //  创建链表
     Socket->RecvList        =   BuildPackageList();                             //  创建链表
@@ -195,11 +364,6 @@ int DeleteSocket(int Socket){
     }
     return 1;                                           //  返回失败
 }
-
-int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t Length, int Flag){
-    return sendto(Socket->Sockfd, Message, Length, Flag, (struct sockaddr *)&(Socket->Addr),sizeof(struct sockaddr_in));   //  发送UDP数据报
-}
-
 
 int ResendMessage(LinkC_Socket *Socket, void *Message, size_t Length){
     if(Socket == NULL){                         //  如果参数为空

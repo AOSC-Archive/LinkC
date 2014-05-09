@@ -27,7 +27,8 @@ struct PackageListNode_t{
 };
 
 struct PackageList_t{
-    int                         TotalNode;      //  现在节点的总数  
+    uint32_t                    TotalNode;      //  现在节点的总数  
+    uint32_t                    NowCount;       //  总计发送数据包数
     pthread_mutex_t             *MutexLock;     //  互斥锁
     struct PackageListNode_t    *StartNode;     //  起始节点
 };

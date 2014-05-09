@@ -1,5 +1,5 @@
 #include "PackageList.h"
-#include "../Protocol/LinkC_NetWorkProtocol.h"
+#include "../../Protocol/LinkC_NetWorkProtocol.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,6 +9,7 @@ PackageList* BuildPackageList(void){
     PackageList *List = (PackageList*)malloc(sizeof(PackageList));  // 为链表分配内存
 
     List->TotalNode = 0;                        //  初始化TotalNode为0
+    List->NowCount  = 0;                        //  初始化NowCount 为0
     List->StartNode = NULL;                     //  挂空指针
     List->MutexLock = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));    //  为互斥锁分配内存空间
 
@@ -60,6 +61,7 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
         Node->ResendTime    = 0;                //  现在重发次数为0
         Node->TimeToLive    = MAX_TIME_TO_LIVE; //  剩余生存时间为最大生存时间
         Node->Count         = Count;            //  计数次数为当前传入参数的计数次数
+        List->TotalNode ++;                     //  当前总包数自增加一
         pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
         return 0;                               //  函数返回
     }else{
@@ -75,6 +77,7 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
                     Node->ResendTime    = 0;                //  现在重发次数为0
                     Node->TimeToLive    = MAX_TIME_TO_LIVE; //  剩余生存时间为最大生存时间
                     Node->Count         = Count;            //  计数次数为当前传入参数的计数次数
+                    List->TotalNode ++;                     //  当前总包数自增加一
                     pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
                     return 0;                               //  退出函数
                 }else{                                      //  如果当前节点的前一个节点为空[意味着当前节点为首节点]
@@ -82,9 +85,10 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
                     Node->Perv      = NULL;                 //  将新建的节点的前一个设置为空
                     Node->TimeToLive= MAX_TIME_TO_LIVE;     //  设置剩余生存时间为最大生存时间
                     Node->ResendTime= 0;                    //  设置重发次数为0
-                    Node->Package   = Package;
+                    Node->Package   = Package;              //  保存数据包
                     List->StartNode->Perv = Node;           //  将链表的开始节点的前一个个设置为新建节点
                     List->StartNode = Node;                 //  将链表的开始节点设置为新建节点
+                    List->TotalNode ++;                     //  当前总包数自增加一
                     pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
                     return 0;                               //  函数返回
                 }
@@ -98,6 +102,7 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
                 Node->TimeToLive= MAX_TIME_TO_LIVE;     //  设置剩余生存时间为最大生存时间
                 Node->ResendTime= 0;                    //  设置重发次数为0
                 Node->Package   = Package;              //  数据包为当前传入数据的数据包
+                List->TotalNode ++;                     //  当前总包数自增加一
                 pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
                 return 0;                               //  函数返回0
             }else   NowNode = NowNode->Next;            //  设置当前节点为当前节点的下一个节点
