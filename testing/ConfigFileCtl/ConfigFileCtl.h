@@ -4,11 +4,12 @@
 #include "../../server/include/linkc_utilities.h"   // For ReadLine
 #include "../../server/include/def.h"               // For Some ErrorCode
 #include <stdio.h>                                  // For FILE , fopen and so on
-
 #define STD_BUFFER_SIZE 128
+// QUestion : It's always find the key first and then read the configuration!
+// update the requestions please
 
 int ReadConfigFile(FILE *fp, char *Key, char *Value);
-/* 
+/*
  * this function can just read configure file
  * Args:
  *      [1] FILE *fp        an opend File point,must have promise to read!
@@ -31,7 +32,7 @@ int ReadConfigFile(FILE *fp, char *Key, char *Value);
  *      [2] if find the key,the file point will be reset to this line's beginning
  *          so you can just call ReadConfigFile() to Read the Key & Value you want to find
  * Args:
- *      [1] FILE *fp        an opend File point,must have promise to read!
+ *      [1] FILE *fp        an opened File point,must have promise to read!
  *      [2] char *Key       the key which you want to find
  *
  * Returns:

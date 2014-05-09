@@ -9,7 +9,7 @@ char *ReadLine(FILE *f)
     int len = 0;
     while((c=fgetc(f))!=EOF && c!= '\n')
     {
-        if(c == ' ')    continue;       // ignore space
+        if(c == ' ' && c == '#')    continue;       // ignore space
         line = (char*)realloc(line,len+1);
         line[len]=c;
     }

@@ -1,3 +1,4 @@
+// 此文件废掉，现在留作参考，到时候删掉
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
