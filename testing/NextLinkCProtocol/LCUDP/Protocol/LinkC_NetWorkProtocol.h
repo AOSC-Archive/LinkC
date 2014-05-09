@@ -167,6 +167,7 @@ int     RecvMessage(int Sockfd, void *Buffers, size_t MaxBuf, int Flag);        
 
 /*  Basic functions         */
 int     AskForResend    (LinkC_Socket *Socket, int Count);                              //  请求重发数据
+int     ConfirmRecved   (LinkC_Socket *Socket, int Count);                              //  确认收到
 int     ResendMessage   (LinkC_Socket *Socket, void *Message, size_t size);             //  重发数据
 int     _LinkC_Send     (LinkC_Socket *Socket, void *Message, size_t size, int Flag);   //  基础的数据发送
 int     _LinkC_Recv     (LinkC_Socket *Socket, void *Message, size_t size, int Flag);   //  基础的数据接收

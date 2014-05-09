@@ -19,8 +19,15 @@ struct MessageBody_t{
     time_t      Time;           //  发送时间
 };
 
-typedef struct MessageHeader_t  MessageHeader;
-typedef struct MessageBody_t    MessageBody;
+struct ConfirmationMessage_t{
+    uint32_t    isRecved;       //  是否收到
+    uint32_t    Count;          //  包的编号[计数次]
+};
+
+typedef struct MessageHeader_t          MessageHeader;
+typedef struct MessageBody_t            MessageBody;
+
+typedef struct ConfirmationMessage_t    ConfirmationMessage;
 
 
 //  ####    定义区域    ####
@@ -33,6 +40,7 @@ typedef struct MessageBody_t    MessageBody;
 #define HEART_BEATS             0x02        //  心跳包
 #define RESEND_MESSAGE          0x03        //  重发的数据
 #define SSL_KEY_MESSAGE         0x04        //  交换SSL证书
+#define CONFIRMATION_MESSAGE    0x05        //  收到确认消息
 //  ####    MessageHeader   ####    MessageType ####    结束    ####
 
 //  ####    定义区域    ####    结束    ####
