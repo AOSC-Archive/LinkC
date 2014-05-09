@@ -1,5 +1,5 @@
-#ifndef LINKC_NETWORKPROTOCOL_H
-#define LINKC_NETWORKPROTOCOL_H
+#ifndef LINKC_NETWORK_PROTOCOL_H
+#define LINKC_NETWORK_PROTOCOL_H
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <netinet/in.h>
-#include "../PackageList/PackageList.h"
+#include "../Package/PackageList/PackageList.h"
 
 /* 系统 */
 #define MAX_MESSAGE_POOL_SIZE   15      //  最大缓冲区保存数据报的数量
@@ -38,6 +38,7 @@ struct LinkC_Socket_t{
     int                     Sockfd;                 //  基础网络句柄
     int                     Available;              //  剩余可从缓冲区读出的数据包个数
     struct sockaddr_in      Addr;                   //  目标地址
+    socklen_t               SockLen;                //  长度
     char                    *ErrorMessage;          //  错误信息
     PackageList             *SendList;              //  发送链表
     PackageList             *RecvList;              //  接收链表
@@ -75,12 +76,13 @@ typedef struct SocketList_t     SocketList;
 typedef struct SocketListNode_t SocketListNode;
 
 /* 链表函数定义 */
-int     InitSocketList      (void);                 //  初始LinkC_Socket环境[整个程序中只能被调用一次]
-int     AddSocketToList     (LinkC_Socket *Socket); //  添加LinkC_Socket到链表中去
-int     FindNodeInList      (SocketListNode *Node); //  在链表中查找结点
-int     DelSocketFromList   (int Socket);           //  从链表中删除指定LinkC_Socket
-int     IsSocketInList      (int Socket);           //  查询这个Socket是否存在于链表中
-int     DestroySocketList   (void);                 //  销毁LinkC_Socket环境[同上]
+int     InitSocketList      (void);                             //  初始LinkC_Socket环境[整个程序中只能被调用一次]
+int     AddSocketToList     (LinkC_Socket *Socket);             //  添加LinkC_Socket到链表中去
+int     IsSocketInList      (int Sockfd);                       //  查询这个Socket是否存在于链表中
+int     GetSocketInList     (int Sockfd,LinkC_Socket *Socket);  //  获取对应的LinkC_Socket
+int     FindNodeInList      (SocketListNode *Node);             //  在链表中查找结点
+int     DelSocketFromList   (int Socket);                       //  从链表中删除指定LinkC_Socket
+int     DestroySocketList   (void);                             //  销毁LinkC_Socket环境[必须初始化LinkC_Socket环境后才能调用]
 
 #endif  /* LINKC_SOCKET_LIST  */
 #endif  /* LINKC_SOCKET_TYPES */
@@ -155,8 +157,24 @@ int     DeleteSocket(int Socket);
  *      [1] Type :  int                     一个Socket
  */
 
-int     __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag);  //  直接发送数据[最基础的发送数据函数]
+/*  Network IO  */
+#ifndef LINKC_NETWORK_IO
+#define LINKC_NETWORK_IO
+/*  High level functions    */
+int     SendMessage(int Sockfd, void *Message, size_t Length, int Flag);                //  标准数据发送
+int     RecvMessage(int Sockfd, void *Buffers, size_t MaxBuf, int Flag);                //  标准数据接收
+/*  High level functions    */
 
-int     ResendMessage(LinkC_Socket *Socket, void *Message, size_t size); //  重发数据
+/*  Basic functions         */
+int     AskForResend    (LinkC_Socket *Socket, int Count);                              //  请求重发数据
+int     ResendMessage   (LinkC_Socket *Socket, void *Message, size_t size);             //  重发数据
+int     _LinkC_Send     (LinkC_Socket *Socket, void *Message, size_t size, int Flag);   //  基础的数据发送
+int     _LinkC_Recv     (LinkC_Socket *Socket, void *Message, size_t size, int Flag);   //  基础的数据接收
+int     __LinkC_Send    (LinkC_Socket *Socket, void *Message, size_t size, int Flag);   //  低级的数据发送
+int     __LinkC_Recv    (LinkC_Socket *Socket, void *Message, size_t size, int Flag);   //  低级的数据接收
+int     ___LinkC_Recv   (LinkC_Socket *Socket, void *Message, size_t size, int Flag);   //  最低级的数据接收
+int     ___LinkC_Send   (LinkC_Socket *Socket, void *Message, size_t size, int Flag);   //  最低级的数据发送
+/*  Basic functions         */
+#endif  /* LINKC_NETWORK_IO         */
 #endif  /* LINKC_SOCKET_FUNCTIONS   */
-#endif  /* LINKC_NETWORKPROTOCO     */
+#endif  /* LINKC_NETWORK_PROTOCO    */

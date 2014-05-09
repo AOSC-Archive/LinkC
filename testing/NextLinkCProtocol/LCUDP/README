@@ -1,6 +1,6 @@
 编译test.c来测试
 
-编译命令    gcc -o test test.c PackageList/PackageList.c Protocol/LinkC_NetWorkProtocol.c
+编译命令    gcc -o test test.c Package/PackageList/PackageList.c Protocol/LinkC_NetWorkProtocol.c
 
 
 编译SSLTest.c来测试SSL功能[考虑给OpenSSL捐点钱？]
