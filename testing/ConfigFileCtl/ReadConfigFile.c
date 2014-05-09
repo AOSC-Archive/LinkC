@@ -51,12 +51,8 @@ size_t ReadLine(int Fd, void *Vptr, int MaxSize){
     return -1;                      //  返回错误
 }
 
-int ReadConfigFile(int fd,char *Key,char **Value)
+int ReadConfigFile(int fd,char *Key,char *Value)
 {
-    if(Key){                //  不理这四行
-    }
-    if(Value){
-    }
     char *Buffer = (char *)malloc(512);     //  分配内存
     int Byte;
     while(1){

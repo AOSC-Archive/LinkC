@@ -7,7 +7,7 @@
 // update the requestions please
 // A : so first we should read all key&value
 
-int ReadConfigFile(int fd, char *Key, char **Value);
+int ReadConfigFile(int fd, char *Key, char *Value);
 /*
  * this function can just read configure file
  * Args:
