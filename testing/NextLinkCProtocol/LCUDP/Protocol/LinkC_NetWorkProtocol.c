@@ -63,6 +63,9 @@ void IOReadyInt(int SigNo, siginfo_t *SigInfo, void *Arg){
     printf("IOReady\n");
     PackageListNode *PackNode   = NULL;                                 //  缓冲区链表节点指针
     SocketListNode  *Node       = List->StartNode;                      //  赋值为开始节点
+    while(Node){
+        
+    }
 }
 int AskForResend(LinkC_Socket *Socket, int Count){
     ConfirmationMessage confirm;                                        //  数据结构
@@ -135,7 +138,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, int Flag){
         }else if(((MessageHeader*)Header)->MessageType == RESEND_MESSAGE){      //  若是重发的数据包
             if(___LinkC_Recv(Socket,Message,((MessageHeader*)Header)->MessageLength,MSG_DONTWAIT) != 0){    // 如果接收剩余数据失败
                 AskForResend(Socket,((MessageHeader*)Header)->MessageCounts);   //  请求重发
-                return 0;                                                        //  返回无数据
+                return 0;                                                       //  返回无数据
             }
             ConfirmRecved(Socket,((MessageHeader*)Header)->MessageCounts);      //  发送确认收到消息
             InsertPackageListNode(Socket->SendList,Message,((MessageHeader*)Header)->MessageCounts);        //  插入已经收到的消息
@@ -143,7 +146,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, int Flag){
         }else if(((MessageHeader*)Header)->MessageType == SSL_KEY_MESSAGE){     //  如果是SSL密钥
             if(___LinkC_Recv(Socket,Message,((MessageHeader*)Header)->MessageLength,MSG_DONTWAIT) != 0){    // 如果接收剩余数据失败
                 AskForResend(Socket,((MessageHeader*)Header)->MessageCounts);   //  请求重发
-                return 0;                                                        //  返回无数据
+                return 0;                                                       //  返回无数据
             }
             ConfirmRecved(Socket,((MessageHeader*)Header)->MessageCounts);      //  发送确认收到消息
             //      保存密钥
