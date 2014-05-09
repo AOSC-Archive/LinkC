@@ -1,15 +1,10 @@
-#include <stdio.h>
-#include "re_cfg.h"
-#include "../../server/include/def.h"
+#include "ConfigFileCtl.h"
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdlib.h>
 
-
-int main(void){
-  int i;
-  char * l,*x;
-  int len = re_cfg("/tmp/test_hl.data",3,l);
-  for(i = 0;i < len;i++){
-   x=(char*) l[i]];
-    printf("%s",x);
-                          }
-  return 0;
+int main(){
+    int fd = open("Example.conf",O_RDONLY);     //  只读方式打开
+    ReadConfigFile(fd,NULL,NULL);
+    return 0;
 }

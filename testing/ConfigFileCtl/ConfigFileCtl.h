@@ -1,20 +1,19 @@
 #ifndef _LINKC_CONFIG_FILE_CONTROL_
 #define _LINKC_CONFIG_FILE_CONTROL_
 
-#include "../../server/include/linkc_utilities.h"   // For ReadLine
-#include "../../server/include/def.h"               // For Some ErrorCode
 #include <stdio.h>                                  // For FILE , fopen and so on
 #define STD_BUFFER_SIZE 128
 // QUestion : It's always find the key first and then read the configuration!
 // update the requestions please
+// A : so first we should read all key&value
 
-int ReadConfigFile(FILE *fp, char *Key, char *Value);
+int ReadConfigFile(int fd, char *Key, char **Value);
 /*
  * this function can just read configure file
  * Args:
- *      [1] FILE *fp        an opend File point,must have promise to read!
+ *      [1] int fd          an opend File handl,must have promise to read!
  *      [2] char *Key       The Key is a point have been malloced the momory
- *      [3] char *Value     The Value of the key now have been read
+ *      [3] char **Value    The Value List of the key now have been read
  *
  *      The Key & Value's Size is Defined As [STD_BUFFER_SIZE]
  *
