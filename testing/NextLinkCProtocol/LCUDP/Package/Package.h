@@ -22,7 +22,7 @@ struct MessageBody_t{
 struct ConfirmationMessage_t{
     uint32_t    isRecved;       //  是否收到
     uint32_t    Count;          //  包的编号[计数次]
-};
+};                              //  8byte total
 
 typedef struct MessageHeader_t          MessageHeader;
 typedef struct MessageBody_t            MessageBody;

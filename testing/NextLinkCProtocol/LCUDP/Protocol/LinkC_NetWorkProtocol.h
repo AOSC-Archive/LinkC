@@ -22,6 +22,7 @@
 #define MAX_RESEND_TIME         3       //  最大重发次数
                                         //      --> 这里是指如果重发三次还是没有收到信息
                                         //      --> 则认定断开链接
+#define RECV_BUFFER_SIZE        2048    //  接收缓冲区大小
 
 /* Error_Code */
 #define DIFF_VERSION            1       // 协议版本不一致
@@ -39,6 +40,7 @@ struct LinkC_Socket_t{
     int                     Available;              //  剩余可从缓冲区读出的数据包个数
     struct sockaddr_in      Addr;                   //  目标地址
     socklen_t               SockLen;                //  长度
+    char                    *RecvBuffer;            //  接收缓冲区
     char                    *ErrorMessage;          //  错误信息
     PackageList             *SendList;              //  发送链表
     PackageList             *RecvList;              //  接收链表

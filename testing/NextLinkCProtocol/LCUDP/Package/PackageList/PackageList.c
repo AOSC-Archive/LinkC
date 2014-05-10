@@ -61,6 +61,7 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
         Node->ResendTime    = 0;                //  现在重发次数为0
         Node->TimeToLive    = MAX_TIME_TO_LIVE; //  剩余生存时间为最大生存时间
         Node->Count         = Count;            //  计数次数为当前传入参数的计数次数
+        Node->Package       = Package;          //  新建节点的数据包设置为传入参数的数据包
         List->TotalNode ++;                     //  当前总包数自增加一
         pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
         return 0;                               //  函数返回

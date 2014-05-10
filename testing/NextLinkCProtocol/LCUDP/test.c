@@ -1,6 +1,7 @@
 #include "Protocol/LinkC_NetWorkProtocol.h"
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -19,13 +20,14 @@ int main(){
     int RecvSock;
     RecvSock = CreateSocket((struct sockaddr *)&(addr));
     socklen_t len = sizeof(addr);
-    char buffer[16];
+    char send[2048] = "dwihywuadhuiawkjdwahduiwahdhdadfhwahwaiohdiowahdfiowahdiowajdwaoidhnwiuafhbuiegbfuewjksafaiohanialweklasefuivgbewiaufhnkjeahiuaewhndfewdiowafdlhewaiufhnaskjfhnelawfiuewahriojodfjewaiorfhewaioyhrfioehwohewaiohfioewahfioewafhfioawehfahuiewahiofha";
+    char buffer[2048];
     while(1){
-        sleep(10);
-        sendto(SendSock,"...",4,0,(struct sockaddr*)&addr,len);
+        sleep(2);
+        sendto(SendSock,send,strlen(send),0,(struct sockaddr*)&addr,len);
         printf("Send\n");
-        recvfrom(RecvSock,buffer,16,0,NULL,&len);
-        printf("%s\n",buffer);
+        recvfrom(RecvSock,buffer,2048,0,NULL,NULL);
+        printf("I Recv [%s]\n",buffer);
     };
     DestroySocketList();
     return 0;

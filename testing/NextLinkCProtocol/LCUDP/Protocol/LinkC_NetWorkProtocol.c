@@ -63,9 +63,6 @@ void IOReadyInt(int SigNo, siginfo_t *SigInfo, void *Arg){
     printf("IOReady\n");
     PackageListNode *PackNode   = NULL;                                 //  缓冲区链表节点指针
     SocketListNode  *Node       = List->StartNode;                      //  赋值为开始节点
-    while(Node){
-        
-    }
 }
 int AskForResend(LinkC_Socket *Socket, int Count){
     ConfirmationMessage confirm;                                        //  数据结构
@@ -108,12 +105,14 @@ int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
     return 0;
 }
 
-int __LinkC_Recv(LinkC_Socket *Socket, int Flag){
+int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
     int Byte;
-    void *Header = malloc(8);
-    Byte = recvfrom(Socket->Sockfd,Header,8,Flag,(struct sockaddr*)&(Socket->Addr),NULL);   //  先接收消息头大小的数据
+    if(size < 8){
+        printf("RecvBuffer is too small to save message!\n");
+        return 1;
+    }
+    Byte = recvfrom(Socket->Sockfd,Message,8,Flag,(struct sockaddr*)&(Socket->Addr),NULL);   //  先接收消息头大小的数据
     if(Byte < 8){                                                               //  recvfrom返回收到数据长度小于8[出错或者无数据]
-        free(Header);                                                           //  释放内存
         if(Byte == 0){                                                          //  recvfrom返回收到数据长度为0[断开链接或者无数据]
             return 0;                                                           //  返回0
         }else if(Byte < 0){                                                     //  recvfrom返回负数[出错]
@@ -126,37 +125,40 @@ int __LinkC_Recv(LinkC_Socket *Socket, int Flag){
             return -1;                                                          //  返回错误
         }
     }else{                                                                      //  recvfrom返回收到数据长度为8[可能为一个消息头]
-        if(((MessageHeader*)Header)->ProtocolVersion != PROTOCOL_VERSION){      //  如果协议版本号不一致
+        if(((MessageHeader*)Message)->ProtocolVersion != PROTOCOL_VERSION){     //  如果协议版本号不一致
             Socket->ErrorMessage = (char *)malloc(64);                          //  分配内存
             memset(Socket->ErrorMessage,0,64);                                  //  清空分配部分的内存
             sprintf(Socket->ErrorMessage,"协议版本不一致！");                   //  设置错误信息
             return -1;                                                          //  返回错误
         }
-        void *Message = malloc(((MessageHeader*)Header)->MessageLength);        //  分配内存
-        if(((MessageHeader*)Header)->MessageType == HEART_BEATS){               //  若是心跳包
+        if(((MessageHeader*)Message)->MessageType == HEART_BEATS){              //  若是心跳包
             return 0;                                                           //  直接返回[忽略]
-        }else if(((MessageHeader*)Header)->MessageType == RESEND_MESSAGE){      //  若是重发的数据包
-            if(___LinkC_Recv(Socket,Message,((MessageHeader*)Header)->MessageLength,MSG_DONTWAIT) != 0){    // 如果接收剩余数据失败
-                AskForResend(Socket,((MessageHeader*)Header)->MessageCounts);   //  请求重发
+        }else if(((MessageHeader*)Message)->MessageType == RESEND_MESSAGE){     //  若是重发的数据包
+            if(___LinkC_Recv(Socket,(char *)Message+8,((MessageHeader*)Message)->MessageLength,Flag) != 0){     // 如果接收剩余数据失败
+                AskForResend(Socket,((MessageHeader*)Message)->MessageCounts);  //  请求重发
                 return 0;                                                       //  返回无数据
             }
-            ConfirmRecved(Socket,((MessageHeader*)Header)->MessageCounts);      //  发送确认收到消息
-            InsertPackageListNode(Socket->SendList,Message,((MessageHeader*)Header)->MessageCounts);        //  插入已经收到的消息
+            ConfirmRecved(Socket,((MessageHeader*)Message)->MessageCounts);     //  发送确认收到消息
+            void *Package = malloc(((MessageHeader*)Message)->MessageLength+8); //  为插入的数据单独分配内存
+            memcpy(Package,Message,((MessageHeader*)Message)->MessageLength+8); //  复制内存
+            InsertPackageListNode(Socket->SendList,Package,((MessageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
             
-        }else if(((MessageHeader*)Header)->MessageType == SSL_KEY_MESSAGE){     //  如果是SSL密钥
-            if(___LinkC_Recv(Socket,Message,((MessageHeader*)Header)->MessageLength,MSG_DONTWAIT) != 0){    // 如果接收剩余数据失败
-                AskForResend(Socket,((MessageHeader*)Header)->MessageCounts);   //  请求重发
+        }else if(((MessageHeader*)Message)->MessageType == SSL_KEY_MESSAGE){    //  如果是SSL密钥
+            if(___LinkC_Recv(Socket,(char *)Message+8,((MessageHeader*)Message)->MessageLength,Flag) != 0){     // 如果接收剩余数据失败
+                AskForResend(Socket,((MessageHeader*)Message)->MessageCounts);  //  请求重发
                 return 0;                                                       //  返回无数据
             }
-            ConfirmRecved(Socket,((MessageHeader*)Header)->MessageCounts);      //  发送确认收到消息
+            ConfirmRecved(Socket,((MessageHeader*)Message)->MessageCounts);     //  发送确认收到消息
             //      保存密钥
-        }else if(((MessageHeader*)Header)->MessageType == NORMAL_MESSAGE){      //  如果是普通数据
-            if(___LinkC_Recv(Socket,Message,((MessageHeader*)Header)->MessageLength,MSG_DONTWAIT) != 0){    // 如果接收剩余数据失败
-                AskForResend(Socket,((MessageHeader*)Header)->MessageCounts);   //  请求重发
+        }else if(((MessageHeader*)Message)->MessageType == NORMAL_MESSAGE){     //  如果是普通数据
+            if(___LinkC_Recv(Socket,(char *)Message+8,((MessageHeader*)Message)->MessageLength,Flag) != 0){     // 如果接收剩余数据失败
+                AskForResend(Socket,((MessageHeader*)Message)->MessageCounts);  //  请求重发
                return 0;                                                        //  返回无数据
             }
-            ConfirmRecved(Socket,((MessageHeader*)Header)->MessageCounts);      //  发送确认收到消息
-            InsertPackageListNode(Socket->SendList,Message,((MessageHeader*)Header)->MessageCounts);        //  插入已经收到的消息
+            ConfirmRecved(Socket,((MessageHeader*)Message)->MessageCounts);     //  发送确认收到消息
+            void *Package = malloc(((MessageHeader*)Message)->MessageLength+8); //  为插入的数据单独分配内存
+            memcpy(Package,Message,((MessageHeader*)Message)->MessageLength+8); //  复制内存
+            InsertPackageListNode(Socket->SendList,Package,((MessageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
         }
     }
     return Byte;
