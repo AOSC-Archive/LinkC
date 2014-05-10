@@ -37,7 +37,7 @@ void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
                 if(PackNode->ResendTime > MAX_RESEND_TIME){         //  如果大于最大重发次数
                     //  执行断线操作
                 }else if(PackNode->TimeToLive == 0){                //  在没有断线的情况下如果当前数据剩迟迟没有收到收到确认
-                    ResendMessage(Node->Socket,PackNode->Package ,PackNode->MessageLength); //  重发消息
+                    ResendMessage(Node->Socket,PackNode->Package ,MSG_DONTWAIT);    //  重发消息
                     PackNode->TimeToLive = MAX_TIME_TO_LIVE;        //  重设剩余生存时间
                     PackNode->ResendTime ++;                        //  重发次数自增加一
                 }else{
@@ -76,15 +76,13 @@ int AskForResend(LinkC_Socket *Socket, int Count){
     return 0;                                                           //  返回成功
 }
 int ConfirmRecved(LinkC_Socket *Socket, int Count){
-    ConfirmationMessage confirm;                                        //  数据结构
-    confirm.isRecved    = 1;                                            //  说明收到
-    confirm.Count       = Count;                                        //  说明哪个包收到
-    void *Buffer = malloc(STD_PACKAGE_SIZE);                            //  分配内存
-    int Length = PackMessage((void *)&confirm,sizeof(confirm),Buffer);  //  打包数据
-    ___LinkC_Send(Socket,Buffer,Length,MSG_DONTWAIT);                   //  发送数据
-    free (Buffer);                                                      //  释放内存
-    Buffer = NULL;                                                      //  挂空指针
-    return 0;                                                           //  返回成功
+    ((MessageHeader*)Socket->SendBuffer)->MessageType       = CONFIRMATION_MESSAGE;
+    ((MessageHeader*)Socket->SendBuffer)->MessageLength     = sizeof(ConfirmationMessage);
+    ((MessageHeader*)Socket->SendBuffer)->ProtocolVersion   = PROTOCOL_VERSION;
+    ((MessageHeader*)Socket->SendBuffer)->MessageCounts     = 0;
+    ((ConfirmationMessage*)Socket->SendBuffer+8)->isRecved  = 0;
+    ((ConfirmationMessage*)Socket->SendBuffer+8)->Count     = Count;
+    return ___LinkC_Send(Socket,Socket->SendBuffer,sizeof(ConfirmationMessage)+8,MSG_DONTWAIT); // 
 }
 
 int _LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
@@ -150,6 +148,34 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             }
             ConfirmRecved(Socket,((MessageHeader*)Message)->MessageCounts);     //  发送确认收到消息
             //      保存密钥
+        }else if(((MessageHeader*)Message)->MessageType == CONFIRMATION_MESSAGE){
+            if(___LinkC_Recv(Socket,(char *)Message+8,((MessageHeader*)Message)->MessageLength,Flag) != 0){     // 如果接收剩余数据失败
+                AskForResend(Socket,((MessageHeader*)Message)->MessageCounts);  //  请求重发
+                return 0;                                                       //  返回无数据
+            }
+            if(((ConfirmationMessage*)Message+8)->isRecved == 0){               //  if not recved
+                PackageListNode *Node = Socket->SendList->StartNode;
+                while(Node){
+                    if(Node->Count == ((ConfirmationMessage*)Message+8)->Count){
+                        int result = ResendMessage(Socket,Node->Package,MSG_DONTWAIT);
+                        if(result != 0){
+                            Node = NULL;
+                            return -1;
+                        }else{
+                            Node->TimeToLive = MAX_TIME_TO_LIVE;
+                            Node->ResendTime++;
+                            Node = NULL;
+                            return 0;
+                        }
+                    }
+                    Node = Node->Next;
+                }
+                Node = NULL;
+                return -1;
+            }else{
+                RemovePackageListNode(Socket->SendList,((ConfirmationMessage*)Message+8)->Count);
+                return 0;
+            }
         }else if(((MessageHeader*)Message)->MessageType == NORMAL_MESSAGE){     //  如果是普通数据
             if(___LinkC_Recv(Socket,(char *)Message+8,((MessageHeader*)Message)->MessageLength,Flag) != 0){     // 如果接收剩余数据失败
                 AskForResend(Socket,((MessageHeader*)Message)->MessageCounts);  //  请求重发
@@ -274,6 +300,8 @@ int CreateSocket(const struct sockaddr *MyAddr){
     Socket->Available       =   0;                                              //  将可用包数设置为0
     Socket->SendList        =   BuildPackageList();                             //  创建链表
     Socket->RecvList        =   BuildPackageList();                             //  创建链表
+    Socket->RecvBuffer      =   malloc(STD_BUFFER_SIZE);                        //  
+    Socket->SendBuffer      =   malloc(STD_BUFFER_SIZE);                        //
 
     AddSocketToList(Socket);                                                    //  将当前套接字加入到片轮列表
     return Socket->Sockfd;                                                      //  返回创建的套接子
@@ -324,6 +352,8 @@ int DestroySocketList(){
         }
         DestroyPackageList(NowNode->Socket->RecvList);  //  释放接收缓冲区
         DestroyPackageList(NowNode->Socket->SendList);  //  释放发送缓冲区
+        free(NowNode->Socket->RecvBuffer);              //  
+        free(NowNode->Socket->SendBuffer);              //  
         pthread_mutex_unlock(NowNode->Mutex_Lock);      //  解锁互斥锁
         pthread_mutex_destroy(NowNode->Mutex_Lock);     //  销毁互斥锁
         if(NowNode->Next != NULL){
@@ -349,6 +379,8 @@ int DeleteSocket(int Socket){
             }
             DestroyPackageList(NowNode->Socket->RecvList);  //  释放接收缓冲区
             DestroyPackageList(NowNode->Socket->SendList);  //  释放发送缓冲区
+            free(NowNode->Socket->RecvBuffer);              //  
+            free(NowNode->Socket->SendBuffer);              //  
             if(NowNode->Perv != NULL){                  //  如果当前节点的前一个节点不为空
                 NowNode->Perv->Next = NowNode->Next;    //  设置当前节点的前一个节点的后一个节点为当前节点的后一个节点
             }else{                                      //  否则
@@ -367,16 +399,13 @@ int DeleteSocket(int Socket){
     return 1;                                           //  返回失败
 }
 
-int ResendMessage(LinkC_Socket *Socket, void *Message, size_t Length){
+int ResendMessage(LinkC_Socket *Socket, void *Message, int Flag){
     if(Socket == NULL){                         //  如果参数为空
         printf("Argument is NULL!\n");          //  打印出错信息
-        return 1;                               //  返回错误
+        return -1;                              //  返回错误
     }
-    void *Package = malloc(Length + 2);         //  分配内存
     int Byte = 0;                               //  保存发送状态
-    strncpy((char *)Package,RESEND_PACKAGE,2);  //  设置重发标志
-    memcpy((char *)Package+2,Message,Length);   //  复制消息数据  
-    Byte = __LinkC_Send(Socket,Package,Length+2,MSG_DONTWAIT); //  发送消息
-    free(Package);
+    ((MessageHeader*)Message)->MessageType  = RESEND_MESSAGE;   //  
+    Byte = __LinkC_Send(Socket,Message,((MessageHeader*)Message)->MessageLength,Flag); //  发送消息
     return Byte;
 }
