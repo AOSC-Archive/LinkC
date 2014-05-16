@@ -9,6 +9,10 @@
 #include <signal.h>                 //  For 信号控制
 #include <unistd.h>                 //  For 时钟信号
 #include <pthread.h>
+#include <fcntl.h>           /* For O_* constants */
+#include <sys/stat.h>        /* For mode constants */
+#include <sys/types.h>
+#include <semaphore.h>
 
 SocketList *List = NULL;            //  全局变量，套接字的链表
 
@@ -63,6 +67,16 @@ void IOReadyInt(int SigNo, siginfo_t *SigInfo, void *Arg){
     printf("IOReady\n");
     PackageListNode *PackNode   = NULL;                                 //  缓冲区链表节点指针
     SocketListNode  *Node       = List->StartNode;                      //  赋值为开始节点
+
+    while(Node){
+        if(pthread_mutex_trylock(Node->Mutex_Lock)==0){
+            if(__LinkC_Recv(Node->Socket,Node->Socket->RecvBuffer,STD_BUFFER_SIZE,MSG_DONTWAIT)>0){
+                printf("Recved!\n");
+                pthread_mutex_unlock(Node->Mutex_Lock);
+            }
+        }
+        Node=Node->Next;
+    }
 }
 int AskForResend(LinkC_Socket *Socket, int Count){
     ConfirmationMessage confirm;                                        //  数据结构
@@ -86,11 +100,40 @@ int ConfirmRecved(LinkC_Socket *Socket, int Count){
 }
 
 int _LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
-    return 0;
+    return __LinkC_Send(Socket,Message,size,Flag);
 }
 
 int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
-    return 0;
+    int Result=0;
+    if(Flag == 0)
+        Result = sem_wait(Socket->RecvList->Semaphore);             //  阻塞请求数据
+    else
+        Result = sem_trywait(Socket->RecvList->Semaphore);          //  非阻塞请求数据
+    if(Result < 0){
+        perror("Sem Wait[Trywate]");
+        return 0;
+    }
+    pthread_mutex_lock(Socket->RecvList->MutexLock);                //  上互斥锁
+    if(Socket->RecvList->TotalNode <= 0){
+        printf("出现错误[file = %s\tline = %d]\n",__FILE__,__LINE__);
+        pthread_mutex_unlock(Socket->RecvList->MutexLock);          //  解锁
+        return -1;
+    }
+    PackageListNode *Node = Socket->RecvList->StartNode;
+    while(Node->Next)   Node = Node->Next;                          //  跳转到最后一个Node
+    if(Node->MessageLength+8 > size){
+        printf("传入缓冲区过小\n");
+        sem_post(Socket->RecvList->Semaphore);
+        pthread_mutex_unlock(Socket->RecvList->MutexLock);
+        return -1;
+    }
+    memcpy(Message,Node->Package,Node->MessageLength+8);
+    Node->Perv->Next = NULL;
+    free(Node->Package);
+    free(Node);
+    Socket->RecvList->TotalNode--;
+    pthread_mutex_unlock(Socket->RecvList->MutexLock);
+    return ((MessageHeader*)Message)->MessageLength+8;
 }
 
 int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
@@ -99,8 +142,7 @@ int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         return 1;
     }
     Socket->SendList->NowCount ++;                                                          //  发送缓冲区总计数自增加一
-    ___LinkC_Send(Socket,Message,size,Flag);
-    return 0;
+    return ___LinkC_Send(Socket,Message,size,Flag);
 }
 
 int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
