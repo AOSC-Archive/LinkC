@@ -77,6 +77,7 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
         Node->Count         = Count;            //  计数次数为当前传入参数的计数次数
         Node->Package       = Package;          //  新建节点的数据包设置为传入参数的数据包
         Node->MessageLength = ((MessageHeader*)Package)->MessageLength;
+        List->StartNode     = Node;
         List->TotalNode ++;                     //  当前总包数自增加一
     }else{
         NowNode = List->StartNode;              //  将当前节点设置为开始节点
@@ -125,6 +126,7 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
     NowNode = List->StartNode;
     int Avliable = 1;
     while(NowNode->Next)  NowNode = NowNode->Next;      //  跳转到最后一个节点
+    printf("Check\n");
     while(NowNode->Perv){
         if(NowNode->Perv->Count != NowNode->Count + 1)  break;
         Avliable++;

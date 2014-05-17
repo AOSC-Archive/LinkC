@@ -69,11 +69,8 @@ void IOReadyInt(int SigNo, siginfo_t *SigInfo, void *Arg){
     SocketListNode  *Node       = List->StartNode;                      //  赋值为开始节点
 
     while(Node){
-        if(pthread_mutex_trylock(Node->Mutex_Lock)==0){
-            if(__LinkC_Recv(Node->Socket,Node->Socket->RecvBuffer,STD_BUFFER_SIZE,MSG_DONTWAIT)>0){
-                printf("Recved!\n");
-                pthread_mutex_unlock(Node->Mutex_Lock);
-            }
+        if(__LinkC_Recv(Node->Socket,Node->Socket->RecvBuffer,STD_BUFFER_SIZE,0)>0){
+            printf("Recved!\n");
         }
         Node=Node->Next;
     }
@@ -97,6 +94,14 @@ int ConfirmRecved(LinkC_Socket *Socket, int Count){
     ((ConfirmationMessage*)Socket->SendBuffer+8)->isRecved  = 0;
     ((ConfirmationMessage*)Socket->SendBuffer+8)->Count     = Count;
     return ___LinkC_Send(Socket,Socket->SendBuffer,sizeof(ConfirmationMessage)+8,MSG_DONTWAIT); // 
+}
+int SendMessage(int Sockfd, void *Message, size_t Length, int Flag){
+    LinkC_Socket *Socket = NULL;
+    if(IsSocketInList(Sockfd,&Socket) == 1){
+        return -1;
+    }
+    return _LinkC_Send(Socket,Message,Length,Flag);
+
 }
 
 int _LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
@@ -137,11 +142,14 @@ int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
 }
 
 int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
+    printf("this\n");
+    printf("NowCount = %d\n",Socket->SendList->NowCount);
     ((MessageHeader *)Message)->MessageCounts = Socket->SendList->NowCount+1;               //  将本数据包的计数次设置为之前发送的数据包总数加一
     if(InsertPackageListNode(Socket->SendList,Message,Socket->SendList->NowCount +1) != 0){ //  将本数据包存入发送缓冲区失败
         return 1;
     }
     Socket->SendList->NowCount ++;                                                          //  发送缓冲区总计数自增加一
+    printf("this\n");
     return ___LinkC_Send(Socket,Message,size,Flag);
 }
 
@@ -151,7 +159,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         printf("RecvBuffer is too small to save message!\n");
         return 1;
     }
-    Byte = recvfrom(Socket->Sockfd,Message,8,Flag,(struct sockaddr*)&(Socket->Addr),NULL);   //  先接收消息头大小的数据
+    Byte = recvfrom(Socket->Sockfd,Message,8,Flag,NULL,NULL);                   //  先接收消息头大小的数据
     if(Byte < 8){                                                               //  recvfrom返回收到数据长度小于8[出错或者无数据]
         if(Byte == 0){                                                          //  recvfrom返回收到数据长度为0[断开链接或者无数据]
             return 0;                                                           //  返回0
@@ -227,6 +235,9 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             void *Package = malloc(((MessageHeader*)Message)->MessageLength+8); //  为插入的数据单独分配内存
             memcpy(Package,Message,((MessageHeader*)Message)->MessageLength+8); //  复制内存
             InsertPackageListNode(Socket->SendList,Package,((MessageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+        }else{
+            printf("Message Header Incorrect!\n");
+            return 0;
         }
     }
     return Byte;
@@ -243,7 +254,7 @@ int ___LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
     size_t Length = 0;                                                      //  保存已经接收的长度
     while(1)
     {
-        Byte = recvfrom(Socket->Sockfd,(char *)Message+Length,size-Length,Flag,(struct sockaddr*)&(Socket->Addr),&(Socket->SockLen));   //  接收数据
+        Byte = recvfrom(Socket->Sockfd,(char *)Message+Length,size-Length,Flag,NULL,NULL);   //  接收数据
         if(Byte < 0){                                                       //  recvfrom返回小于等于0 [1]没有数据 [2]链接关闭 [3]出错
             perror("RecvFrom");                                             //  打印错误信息
             return -1;                                                      //  返回出错
@@ -293,13 +304,16 @@ int InitSocketList(void){
     return 0;                                       //  返回0
 }
 
-int IsSocketInList(int Socket){
+int IsSocketInList(int Sockfd, LinkC_Socket** Socket){
     SocketListNode *NowNode = List->StartNode;      //  新建一个节点，指向链表的开始节点
     while(NowNode){                                 //  循环[当前节点不为空]
-        if(NowNode->Socket->Sockfd == Socket)       //  如果当前Socket等于传入的Socket
+        if(NowNode->Socket->Sockfd == Sockfd){      //  如果当前Socket等于传入的Socket
+            *Socket = NowNode->Socket;
             return 0;                               //  返回找到
+        }
         NowNode = NowNode->Next;                    //  设置为下一个节点
     }
+    Socket = NULL;
     return 1;                                       //  返回未找到
 }
 int CreateSocket(const struct sockaddr *MyAddr){
@@ -354,7 +368,7 @@ int AddSocketToList(LinkC_Socket *Socket){
         printf("The Argument is NULL\n");           //  打印错误信息
         return 1;
     }
-    if(IsSocketInList(Socket->Sockfd) == 0){        //  当前Socket是否已经存在于链表中，如果存在
+    if(IsSocketInList(Socket->Sockfd,NULL) == 0){   //  当前Socket是否已经存在于链表中，如果存在
         printf("Bad addition\n");                   //  打印错误信息
         return 1;
     }
