@@ -1,5 +1,6 @@
 #include "PackageList.h"
 #include "../../Protocol/LinkC_NetWorkProtocol.h"
+#include "../../Def/LinkC_Error.h"
 #include "../Package.h"
 #include <string.h>
 #include <stdlib.h>
@@ -39,8 +40,8 @@ PackageList* BuildPackageList(void){
 
 int DestroyPackageList(PackageList *List){
     if(List == NULL){                           //  如果指针为空
-        printf("PackageList is NULL!\n");       //  输出出错
-        return 1;                               //  返回错误
+        LinkC_Debug("PackageList is NULL",LINKC_FAILURE);
+        return LINKC_FAILURE;                   //  返回错误
     }
     pthread_mutex_destroy(List->MutexLock);     //  销毁互斥锁
     sem_destroy(List->Semaphore);               //  销毁信号量
@@ -60,8 +61,8 @@ int DestroyPackageList(PackageList *List){
 
 int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
     if(List == NULL || Package == NULL){        //  如果指针为空
-        printf("Argument is NULL!\n");          //  输出出错
-        return 1;                               //  返回错误
+        LinkC_Debug("PackageList is NULL",LINKC_FAILURE);
+        return LINKC_FAILURE;                   //  返回错误
     }
     PackageListNode *Node       = NULL;         //  声明节点[最好把变量声明在上锁之前,使上锁后执行时间最短]
     PackageListNode *NowNode    = NULL;         //  当前节点
@@ -126,7 +127,6 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
     NowNode = List->StartNode;
     int Avliable = 1;
     while(NowNode->Next)  NowNode = NowNode->Next;      //  跳转到最后一个节点
-    printf("Check\n");
     while(NowNode->Perv){
         if(NowNode->Perv->Count != NowNode->Count + 1)  break;
         Avliable++;
@@ -154,8 +154,8 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
 
 int FindPackageListNode (PackageList *List, uint32_t Count, PackageListNode *Node){
     if(List == NULL){                               //  如果链表指针为空
-        printf("Argument is NULL\n");               //  打印错误信息
-        return LINKC_PACKAGE_LIST_ERROR;            //  返回错误
+        LinkC_Debug("PackageList is NULL",LINKC_FAILURE);
+        return LINKC_FAILURE;                   //  返回错误
     }
     Node = List->StartNode;                         //  设置节点为链表起始节点
     while(Node){                                    //  如果节点不为空
@@ -169,8 +169,8 @@ int FindPackageListNode (PackageList *List, uint32_t Count, PackageListNode *Nod
 
 int RemovePackageListNode (PackageList *List, uint32_t Count){
     if(List == NULL){                           //  如果链表指针为空
-        printf("Argument is NULL\n");           //  打印错误信息
-        return LINKC_PACKAGE_LIST_ERROR;        //  返回错误
+        LinkC_Debug("PackageList is NULL",LINKC_FAILURE);
+        return LINKC_FAILURE;                   //  返回错误
     }
     PackageListNode *Node;                      //  声明一个节点指针
     Node = List->StartNode;                     //  设置节点为链表起始节点
