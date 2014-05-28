@@ -21,7 +21,11 @@ int	PackMessage(void* Message, size_t Length, void* Output){
         printf("Package Message Error [Argument [Message] is NULL]\n");     //  打印错误信息
         return 1;
     }
-    return 0;
+    ((MessageHeader*)Output)->MessageType       = NORMAL_MESSAGE;       //  设置传出数据包头为标准数据
+    ((MessageHeader*)Output)->ProtocolVersion   = PROTOCOL_VERSION;     //  设置协议版本号
+    ((MessageHeader*)Output)->MessageLength     = Length + 8;
+    memcpy((char *)Output+8,Message,Length);
+    return Length + 8;
 }
 
 int	EncryptPackage(void* Message, size_t Length, void* Output){

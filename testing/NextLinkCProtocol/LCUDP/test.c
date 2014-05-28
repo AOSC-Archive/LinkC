@@ -20,12 +20,11 @@ int main(){
     SetDestAddr(RecvSock,addr);
     char Buffer[512];
     LinkC_Socket *Socket = NULL;
-    socklen_t len;
     IsSocketInList(RecvSock,&Socket);
     while(1){
-        //___LinkC_Recv(Socket,Buffer,512,0);
-        recvfrom(RecvSock,Buffer,512,0,(struct sockaddr*)&addr,&len);
-        printf("Recved [%s]\n",Buffer);
+        __LinkC_Recv(Socket,Buffer,512,0);
+        //recvfrom(RecvSock,Buffer,512,0,(struct sockaddr*)&addr,&len);
+        printf("Recved [%s]\n",Buffer+8);
     }
     DestroySocketList();
     return 0;

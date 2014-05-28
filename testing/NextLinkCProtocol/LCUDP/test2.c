@@ -19,10 +19,13 @@ int main(){
     addr.sin_port = htons(2341);
     SetDestAddr(SendSock,addr);
     char ch[16] = "Hello!";
+    char Buffer[512];
+    int Length = PackMessage(ch,6,Buffer);
     socklen_t len = sizeof(struct sockaddr_in);
+    printf("Length == %d\n",Length);
     while(1){
         sleep(2);
-        sendto(SendSock,ch,6,0,(struct sockaddr *)&addr,len);
+        sendto(SendSock,Buffer,Length,0,(struct sockaddr *)&addr,len);
         perror(":");
     }
     DestroySocketList();
