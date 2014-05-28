@@ -2,6 +2,7 @@
 #include "Package.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 int	PackMessage(void* Message, size_t Length, void* Output){
     if(Output == NULL){                                                     //  如果传出指针为空[这是不允许的]
@@ -36,4 +37,9 @@ int	EncryptPackage(void* Message, size_t Length, void* Output){
     }
     memcpy(Output,Message,Length);                                          //  暂时不加密
     return 0;                                                               //  返回函数
+}
+
+int	UnPackMessage(void* Message, void* Output){
+    memcpy((char*)Message+8,Output,((MessageHeader*)Message)->MessageLength);
+    return 0;
 }

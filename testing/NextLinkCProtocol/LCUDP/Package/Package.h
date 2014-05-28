@@ -36,6 +36,7 @@ typedef struct ConfirmationMessage_t    ConfirmationMessage;
 #define STD_PACKAGE_SIZE        524         //  标准包大小 
 
 //  ####    MessageHeader   ####    MessageType ####
+#define DEBUG_MESSAGE           0x00        //  测试时用的数据
 #define NORMAL_MESSAGE          0x01        //  一般的数据
 #define HEART_BEATS             0x02        //  心跳包
 #define RESEND_MESSAGE          0x03        //  重发的数据

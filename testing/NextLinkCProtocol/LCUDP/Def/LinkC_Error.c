@@ -33,6 +33,12 @@ void LinkC_Debug(const char *Target,int Status){
 #else
         printf("[STARTED]\t%s\n",Target);
 #endif
+    else if(Status == LINKC_DEBUG)
+#ifdef linux
+        printf("[\033[34mDEBUG\033[0m]\t%s\n",Target);
+#else
+        printf("[DEBUG]\t%s\n",Target);
+#endif
 #endif
 
     if(Status == LINKC_FAILURE)

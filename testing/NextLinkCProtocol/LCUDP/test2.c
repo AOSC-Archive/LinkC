@@ -17,11 +17,13 @@ int main(){
     SendSock = CreateSocket((struct sockaddr *)&(addr));
     addr.sin_addr.s_addr = inet_addr("127.0.0.1");
     addr.sin_port = htons(2341);
-    SetDestAddr(SendSock,(struct sockaddr*)&addr);
+    SetDestAddr(SendSock,addr);
+    char ch[16] = "Hello!";
     socklen_t len = sizeof(struct sockaddr_in);
     while(1){
         sleep(2);
-        sendto(SendSock,".....",6,0,(struct sockaddr*)&addr,len);                //  标准数据发送
+        sendto(SendSock,ch,6,0,(struct sockaddr *)&addr,len);
+        perror(":");
     }
     DestroySocketList();
     return 0;

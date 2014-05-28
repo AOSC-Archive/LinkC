@@ -140,13 +140,13 @@ int     CreateSocket(const struct sockaddr *MyAddr);
  *      [0] 失败
  */
 
-int     SetDestAddr(int Socket, const struct sockaddr* DestAddr);
+int     SetDestAddr(int Socket, struct sockaddr_in DestAddr);
 /*
  * TODO:    设置连接对象的地址
  *
  * ARGS:
  *      [1] Tyep :  int                     一个创建好了并添加在片轮链表中的Socket，做为设置目标
- *      [2] Type :  const struct sockaddr*  一个静态的sockaddr结构体，用于传入目标的地址
+ *      [2] Type :  const struct sockaddr_in* 一个静态的sockaddr结构体，用于传入目标的地址
  * RETN:
  *      [0] 成功
  *      [1] 失败
