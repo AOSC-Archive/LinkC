@@ -4,6 +4,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <stdint.h>
+#include <semaphore.h>  //  for POSIX 信号量
 
 
 /* Error Code 定义 */
@@ -27,8 +28,9 @@ struct PackageListNode_t{
 };
 
 struct PackageList_t{
-    uint32_t                    TotalNode;      //  现在节点的总数  
+    uint32_t                    TotalNode;      //  现在节点的总数 
     uint32_t                    NowCount;       //  总计发送数据包数
+    sem_t                       *Semaphore;     //  信号量
     pthread_mutex_t             *MutexLock;     //  互斥锁
     struct PackageListNode_t    *StartNode;     //  起始节点
 };

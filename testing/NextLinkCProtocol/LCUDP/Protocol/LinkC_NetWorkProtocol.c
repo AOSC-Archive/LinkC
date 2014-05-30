@@ -300,8 +300,8 @@ int CreateSocket(const struct sockaddr *MyAddr){
     Socket->Available       =   0;                                              //  将可用包数设置为0
     Socket->SendList        =   BuildPackageList();                             //  创建链表
     Socket->RecvList        =   BuildPackageList();                             //  创建链表
-    Socket->RecvBuffer      =   malloc(STD_BUFFER_SIZE);                        //  
-    Socket->SendBuffer      =   malloc(STD_BUFFER_SIZE);                        //
+    Socket->RecvBuffer      =   malloc(STD_BUFFER_SIZE);                        //  建立接收缓冲区
+    Socket->SendBuffer      =   malloc(STD_BUFFER_SIZE);                        //  建立发送缓冲区
 
     AddSocketToList(Socket);                                                    //  将当前套接字加入到片轮列表
     return Socket->Sockfd;                                                      //  返回创建的套接子

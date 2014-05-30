@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 PackageList* BuildPackageList(void){
     PackageList *List = (PackageList*)malloc(sizeof(PackageList));  // 为链表分配内存
@@ -11,6 +12,17 @@ PackageList* BuildPackageList(void){
     List->TotalNode = 0;                        //  初始化TotalNode为0
     List->NowCount  = 0;                        //  初始化NowCount 为0
     List->StartNode = NULL;                     //  挂空指针
+
+    List->Semaphore = (sem_t *)malloc(sizeof(sem_t));
+    if(sem_init(List->Semaphore,0,0) < 0){      //  初始化信号量
+        perror("Semaphore Init");               //  --> [1] 信号量的指针
+        free(List->Semaphore);                  //  --> [2] share 作用范围 = 0，进程独享
+        free(List);                             //  --> [3] vlaue 初始值
+        return NULL;
+    }
+
+
+    
     List->MutexLock = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));    //  为互斥锁分配内存空间
 
     pthread_mutex_init(List->MutexLock,NULL);   //  默认形式初始化互斥锁
@@ -30,6 +42,7 @@ int DestroyPackageList(PackageList *List){
         return 1;                               //  返回错误
     }
     pthread_mutex_destroy(List->MutexLock);     //  销毁互斥锁
+    sem_destroy(List->Semaphore);               //  销毁信号量
     PackageListNode *Node;                      //  用于保存当前节点
     PackageListNode *Next;                      //  用于保存下一个节点
     Node = List->StartNode;                     //  当前节点设置为链表开始节点
@@ -63,8 +76,6 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
         Node->Count         = Count;            //  计数次数为当前传入参数的计数次数
         Node->Package       = Package;          //  新建节点的数据包设置为传入参数的数据包
         List->TotalNode ++;                     //  当前总包数自增加一
-        pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
-        return 0;                               //  函数返回
     }else{
         NowNode = List->StartNode;              //  将当前节点设置为开始节点
         while(1){                               //  永久循环
@@ -79,8 +90,7 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
                     Node->TimeToLive    = MAX_TIME_TO_LIVE; //  剩余生存时间为最大生存时间
                     Node->Count         = Count;            //  计数次数为当前传入参数的计数次数
                     List->TotalNode ++;                     //  当前总包数自增加一
-                    pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
-                    return 0;                               //  退出函数
+                    break;                                  //  跳出循环
                 }else{                                      //  如果当前节点的前一个节点为空[意味着当前节点为首节点]
                     Node->Next      = List->StartNode;      //  将新建的节点的下一个设置为链表的开始节点
                     Node->Perv      = NULL;                 //  将新建的节点的前一个设置为空
@@ -91,12 +101,12 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
                     List->StartNode = Node;                 //  将链表的开始节点设置为新建节点
                     List->TotalNode ++;                     //  当前总包数自增加一
                     pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
-                    return 0;                               //  函数返回
+                    break;                                  //  跳出循环
                 }
             }else if(NowNode->Count == Count){          //  当前节点的计数次等于传入参数的计数次
                 free(Node);                             //  释放分配的内存
                 pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
-                return 1;                               //  返回错误
+                return -1;                              //  返回错误
             }else if(NowNode->Next == NULL){            //  如果这是最后一个节点[当前节点的下一个节点为空]
                 Node->Perv      = NowNode;              //  新建节点的前一个节点为当前节点
                 Node->Next      = NULL;                 //  新建节点的下一个节点为空
@@ -105,12 +115,33 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
                 Node->Package   = Package;              //  数据包为当前传入数据的数据包
                 List->TotalNode ++;                     //  当前总包数自增加一
                 pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
-                return 0;                               //  函数返回0
+                break;
             }else   NowNode = NowNode->Next;            //  设置当前节点为当前节点的下一个节点
         }
     }
+    NowNode = List->StartNode;
+    int Avliable = 1;
+    while(NowNode->Next)  NowNode = NowNode->Next;      //  跳转到最后一个节点
+    while(NowNode->Perv){
+        if(NowNode->Perv->Count != NowNode->Count + 1)  break;
+        Avliable++;
+        NowNode = NowNode->Perv;
+    }
+    int NowAvliable;
+    if(sem_getvalue(List->Semaphore,&NowAvliable) < 0){ //  获取当前的信号量的值
+        
+    }
+    int i = 0;
+    while(1){
+        if((Avliable - NowAvliable) < i)    break;
+        if(sem_post(List->Semaphore) < 0){
+            perror("Semaphore Post");
+            continue;
+        }
+        i++;
+    }
     pthread_mutex_unlock(List->MutexLock);              //  解锁互斥锁
-    return 1;                                           //  按照上面的逻辑顺序是不可能到达这里的
+    return 0;
 }
 
 
