@@ -23,6 +23,7 @@ int main(){
     int Length = PackMessage(ch,6,Buffer);
     socklen_t len = sizeof(struct sockaddr_in);
     printf("Length == %d\n",Length);
+    printf("Sockfd = %d\n",SendSock);
     while(1){
         sleep(2);
         sendto(SendSock,Buffer,Length,0,(struct sockaddr *)&addr,len);

@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include "LinkC_NetWorkProtocol.h"
 #include "../Package/PackageList/PackageList.h"
 #include "../Package/Package.h"
@@ -62,10 +63,10 @@ void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
 }
 
 void IOReadyInt(int SigNo, siginfo_t *SigInfo, void *Arg){
-    return;
     printf("SigNo = %d\nSigCode = %d\n",SigNo,SigInfo->si_code);
     printf("Arg's Addr = [%lx]\n",      (unsigned long)Arg);
     printf("Now Totle Socket is %d\n",  List->TotalSocket);
+    printf("Now Sockfd = %d\n",SigInfo->si_fd);
 //    LinkC_Debug("IOReady函数",LINKC_STARTED);
     if(!SigNo)   perror("SigNo");
     if(!SigInfo) perror("SigInfo");
@@ -163,7 +164,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         LinkC_Debug("传入缓冲区过小",LINKC_FAILURE);
         return LINKC_FAILURE;
     }
-    Byte = ___LinkC_Recv(Socket,Message,8,Flag);
+    Byte = ___LinkC_Recv(Socket,Message,STD_PACKAGE_SIZE,Flag);
     if(Byte < 8){                                                               //  recvfrom返回收到数据长度小于8[出错或者无数据]
         if(Byte == 0){                                                          //  recvfrom返回收到数据长度为0[断开链接或者无数据]
             LinkC_Debug("未收到数据",LINKC_WARNING);
@@ -177,7 +178,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             return -1;                                                          //  返回错误
         }
     }else{                                                                      //  recvfrom返回收到数据长度为8[可能为一个消息头]
-        LinkC_Debug("There's Message",LINKC_DEBUG);
+        printf("Byte = %d\n",Byte);
         if(((MessageHeader*)Message)->ProtocolVersion != PROTOCOL_VERSION){     //  如果协议版本号不一致
             printf("Version = %d\nMy Version = %d\n",((MessageHeader*)Message)->ProtocolVersion,PROTOCOL_VERSION);
             LinkC_Debug("协议版本不一致",LINKC_WARNING);
@@ -235,11 +236,13 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
                 return 0;
             }
         }else if(((MessageHeader*)Message)->MessageType == NORMAL_MESSAGE){     //  如果是普通数据
-            if(___LinkC_Recv(Socket,(char *)Message+8,((MessageHeader*)Message)->MessageLength-8,Flag) <= 0){     // 如果接收剩余数据失败
+            LinkC_Debug("Normal Message",LINKC_DEBUG);
+            if(___LinkC_Recv(Socket,(char *)Message+8,((MessageHeader*)Message)->MessageLength,Flag) <= 0){     // 如果接收剩余数据失败
                 LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
                 AskForResend(Socket,((MessageHeader*)Message)->MessageCounts);  //  请求重发
                return 0;                                                        //  返回无数据
             }
+            LinkC_Debug("Recved",LINKC_DEBUG);
             ConfirmRecved(Socket,((MessageHeader*)Message)->MessageCounts);     //  发送确认收到消息
             void *Package = malloc(((MessageHeader*)Message)->MessageLength+8); //  为插入的数据单独分配内存
             memcpy(Package,Message,((MessageHeader*)Message)->MessageLength+8); //  复制内存
@@ -285,29 +288,23 @@ int ___LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
 int InitLCUDPEnvironment(void){
 	    if(InitSocketList()!=0)                 //  如果初始化链表失败
             return 1;                           //  返回错误
-        struct sigaction sigact;
-        sigemptyset(&sigact.sa_mask);
-        sigact.sa_flags = 0;
-        sigact.sa_flags = sigact.sa_flags | SA_SIGINFO;
-        sigact.sa_sigaction = TimerInt;
-        sigaction(SIGALRM,&sigact,NULL);
-	    /*struct sigaction Act;                   //  定义处理信号的参数集合
+	    struct sigaction Act;                   //  定义处理信号的参数集合
 	    sigemptyset(&Act.sa_mask);              //  将数据清空
 	    Act.sa_sigaction=TimerInt;              //  设置回调函数[上面第一个函数]
 	    Act.sa_flags=SA_SIGINFO;                //  使用sa_sigaction参数的函数最为信号发来后的处理函数[也就是上面定义的]
         if(sigaction(SIGALRM,&Act,NULL)==-1){   //  安装SIGALRM信号
             perror("Signal");                   //  打印错误信息
             return 1;                           //  返回错误
-        }*/
-	   /* sigemptyset(&Act.sa_mask);              //  将数据清空
+        }
+	    sigemptyset(&Act.sa_mask);              //  将数据清空
 	    Act.sa_sigaction=IOReadyInt;            //  设置回调函数[上面第二个函数]
-	    Act.sa_flags=0;                         //  使用sa_sigaction参数的函数最为信号发来后的处理函数[也就是上面定义的]
+	    Act.sa_flags=SA_SIGINFO;                //  使用sa_sigaction参数的函数最为信号发来后的处理函数[也就是上面定义的]
         if(sigaction(SIGIO,&Act,NULL)==-1){     //  安装SIGIO信号
             perror("Signal");                   //  打印错误信息
             return 1;                           //  返回错误
-        }*/
+        }
         
-        //alarm(1);                               //  1秒后发射信号
+        alarm(1);                               //  1秒后发射信号
         return 0;                               //  返回成功
 }
 
@@ -343,7 +340,6 @@ int CreateSocket(const struct sockaddr *MyAddr){
         return 1;                                                               //  返回错误
     }
     /*  我也不知道这段是什么意思，不过大概就是说设置成在收到数据的时候发送一个信息这么回事    */
-    /*
     if(fcntl(Socket->Sockfd,F_SETOWN,getpid()) == -1){
         perror("Set Own");
         close(Socket->Sockfd);                                                  //  关闭套接字
@@ -363,7 +359,9 @@ int CreateSocket(const struct sockaddr *MyAddr){
         free(Socket);                                                           //  释放内存
         return 1;                                                               //  返回错误
     }
-    */
+    if (fcntl(Socket->Sockfd,F_SETSIG,SIGIO) == -1){
+        perror("fault");
+    }
     if(bind(Socket->Sockfd,MyAddr,sizeof(struct sockaddr_in)) < 0){             //  绑定地址
         perror("Bind LCUDP");                                                   //  输出错误信息
         close(Socket->Sockfd);                                                  //  关闭套接字

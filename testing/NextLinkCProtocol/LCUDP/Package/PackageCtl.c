@@ -23,7 +23,7 @@ int	PackMessage(void* Message, size_t Length, void* Output){
     }
     ((MessageHeader*)Output)->MessageType       = NORMAL_MESSAGE;       //  设置传出数据包头为标准数据
     ((MessageHeader*)Output)->ProtocolVersion   = PROTOCOL_VERSION;     //  设置协议版本号
-    ((MessageHeader*)Output)->MessageLength     = Length + 8;
+    ((MessageHeader*)Output)->MessageLength     = Length;
     memcpy((char *)Output+8,Message,Length);
     return Length + 8;
 }
