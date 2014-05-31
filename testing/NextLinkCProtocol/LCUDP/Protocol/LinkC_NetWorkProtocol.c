@@ -65,25 +65,18 @@ void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
 }
 
 void IOReadyInt(int SigNo, siginfo_t *SigInfo, void *Arg){
-    /*printf("SigNo = %d\nSigCode = %d\n",SigNo,SigInfo->si_code);
-    printf("Arg's Addr = [%lx]\n",      (unsigned long)Arg);
-    printf("Now Totle Socket is %d\n",  List->TotalSocket);
-    printf("Now Sockfd = %d\n",SigInfo->si_fd);*/
-//    LinkC_Debug("IOReady函数",LINKC_STARTED);
     if(!SigNo)   perror("SigNo");
     if(!SigInfo) perror("SigInfo");
     if(!Arg)     perror("Arg");
     SocketListNode  *Node       = List->StartNode;                      //  赋值为开始节点
-    int t = 0;
     while(Node) if(Node->Socket->Sockfd == SigInfo->si_fd){
-        t = 1;
-        break;
+        if(__LinkC_Recv(Node->Socket,Node->Socket->RecvBuffer,STD_BUFFER_SIZE,MSG_DONTWAIT)>0){
+            LinkC_Debug("收到信息",LINKC_DONE);
+            return;
+        }
+        Node = Node->Next;
     }
-    if(t == 0)  return;
-    if(__LinkC_Recv(Node->Socket,Node->Socket->RecvBuffer,STD_BUFFER_SIZE,MSG_DONTWAIT)>0){
-        LinkC_Debug("收到信息",LINKC_DONE);
-    }
-//    LinkC_Debug("IOReady函数",LINKC_DONE);
+    return;
 }
 
 int AskForResend(LinkC_Socket *Socket, int Count){
