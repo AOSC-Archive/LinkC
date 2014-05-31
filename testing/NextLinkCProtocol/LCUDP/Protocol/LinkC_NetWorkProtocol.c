@@ -74,12 +74,14 @@ void IOReadyInt(int SigNo, siginfo_t *SigInfo, void *Arg){
     if(!SigInfo) perror("SigInfo");
     if(!Arg)     perror("Arg");
     SocketListNode  *Node       = List->StartNode;                      //  赋值为开始节点
-    while(Node){
-        LinkC_Debug("接收信息",LINKC_DEBUG);
-            if(__LinkC_Recv(Node->Socket,Node->Socket->RecvBuffer,STD_BUFFER_SIZE,MSG_DONTWAIT)>0){
-                LinkC_Debug("收到信息",LINKC_DONE);
-            }
-        Node=Node->Next;
+    int t = 0;
+    while(Node) if(Node->Socket->Sockfd == SigInfo->si_fd){
+        t = 1;
+        break;
+    }
+    if(t == 0)  return;
+    if(__LinkC_Recv(Node->Socket,Node->Socket->RecvBuffer,STD_BUFFER_SIZE,MSG_DONTWAIT)>0){
+        LinkC_Debug("收到信息",LINKC_DONE);
     }
 //    LinkC_Debug("IOReady函数",LINKC_DONE);
 }
