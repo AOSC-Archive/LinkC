@@ -18,12 +18,15 @@ int main(){
     addr.sin_addr.s_addr = inet_addr("127.0.0.1");
     addr.sin_port = htons(2342);
     SetDestAddr(RecvSock,addr);
-//    char Buffer[512];
     LinkC_Socket *Socket = NULL;
     IsSocketInList(RecvSock,&Socket);
     printf("Sockfd = %d\n",RecvSock);
+    char Buf[512];
+    int Byte;
     while(1){
-        sleep(10);
+        Byte = RecvMessage(RecvSock,Buf,512,0);
+        if(Byte > 0)
+            printf("I Recved %s\n",(char *)Buf+8);
     }
     DestroySocketList();
     return 0;

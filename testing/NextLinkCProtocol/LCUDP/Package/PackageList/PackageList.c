@@ -16,7 +16,7 @@ PackageList* BuildPackageList(void){
     List->StartNode = NULL;                     //  挂空指针
 
     List->Semaphore = (sem_t *)malloc(sizeof(sem_t));
-    if(sem_init(List->Semaphore,0,0) < 0){      //  初始化信号量
+    if(sem_init(List->Semaphore,1,0) < 0){      //  初始化信号量
         perror("Semaphore Init");               //  --> [1] 信号量的指针
         free(List->Semaphore);                  //  --> [2] share 作用范围 = 0，进程独享
         free(List);                             //  --> [3] vlaue 初始值
@@ -69,6 +69,7 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
 
     pthread_mutex_lock  (List->MutexLock);      //  上锁互斥锁[上锁后才进行操作]
     Node = (PackageListNode *)malloc(sizeof(PackageListNode));  //  分配内存
+    Node->Package = malloc(((MessageHeader*)Package)->MessageLength+8);
 
     if(List->TotalNode == 0){                   //  如果节点总数为0
         Node->Next          = NULL;             //  设置下一个节点为NULL
@@ -76,7 +77,7 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
         Node->ResendTime    = 0;                //  现在重发次数为0
         Node->TimeToLive    = MAX_TIME_TO_LIVE; //  剩余生存时间为最大生存时间
         Node->Count         = Count;            //  计数次数为当前传入参数的计数次数
-        Node->Package       = Package;          //  新建节点的数据包设置为传入参数的数据包
+        memcpy(Node->Package,Package,((MessageHeader*)Package)->MessageLength+8);   //  新建节点的数据包设置为传入参数的数据包
         Node->MessageLength = ((MessageHeader*)Package)->MessageLength;
         List->StartNode     = Node;
         List->TotalNode ++;                     //  当前总包数自增加一
@@ -89,7 +90,7 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
                     Node->Perv->Next= Node;         //  新建节点的上一个的下一个设置为新建节点
                     NowNode->Perv   = Node;         //  当前节点的上一个设置为新建节点
                     Node->Next      = NowNode;      //  新建节点的下一个设置为当前节点
-                    Node->Package   = Package;      //  新建节点的数据包设置为传入参数的数据包
+                    memcpy(Node->Package,Package,((MessageHeader*)Package)->MessageLength+8);   //  新建节点的数据包设置为传入参数的数据包
                     Node->ResendTime    = 0;                //  现在重发次数为0
                     Node->TimeToLive    = MAX_TIME_TO_LIVE; //  剩余生存时间为最大生存时间
                     Node->Count         = Count;            //  计数次数为当前传入参数的计数次数
@@ -101,7 +102,8 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
                     Node->Perv      = NULL;                 //  将新建的节点的前一个设置为空
                     Node->TimeToLive= MAX_TIME_TO_LIVE;     //  设置剩余生存时间为最大生存时间
                     Node->ResendTime= 0;                    //  设置重发次数为0
-                    Node->Package   = Package;              //  保存数据包
+                    memcpy(Node->Package,Package,((MessageHeader*)Package)->MessageLength+8);   //  新建节点的数据包设置为传入参数的数据包
+                    Node->Count     = Count;
                     List->StartNode->Perv = Node;           //  将链表的开始节点的前一个个设置为新建节点
                     List->StartNode = Node;                 //  将链表的开始节点设置为新建节点
                     List->TotalNode ++;                     //  当前总包数自增加一
@@ -117,7 +119,8 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
                 Node->Next      = NULL;                 //  新建节点的下一个节点为空
                 Node->TimeToLive= MAX_TIME_TO_LIVE;     //  设置剩余生存时间为最大生存时间
                 Node->ResendTime= 0;                    //  设置重发次数为0
-                Node->Package   = Package;              //  数据包为当前传入数据的数据包
+                memcpy(Node->Package,Package,((MessageHeader*)Package)->MessageLength+8);   //  新建节点的数据包设置为传入参数的数据包
+                Node->Count     = Count;
                 List->TotalNode ++;                     //  当前总包数自增加一
                 Node->MessageLength = ((MessageHeader*)Package)->MessageLength;
                 break;
@@ -126,11 +129,10 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
     }
     NowNode = List->StartNode;
     int Avliable = 1;
-    while(NowNode->Next)  NowNode = NowNode->Next;      //  跳转到最后一个节点
-    while(NowNode->Perv){
-        if(NowNode->Perv->Count != NowNode->Count + 1)  break;
+    while(NowNode->Next){
+        if(NowNode->Next->Count != (NowNode->Count - 1))  break;
         Avliable++;
-        NowNode = NowNode->Perv;
+        NowNode = NowNode->Next;
     }
     int NowAvliable;
     if(sem_getvalue(List->Semaphore,&NowAvliable) < 0){ //  获取当前的信号量的值
@@ -139,13 +141,16 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
         return -1;
     }
     int i = 0;
-    while(1){
-        if((Avliable - NowAvliable) < i)    break;
+    if(Avliable >= 255){
+        LinkC_Debug("缓冲区溢出(雾)，剩下的包将无法读取",LINKC_WARNING);
+        return -1;
+    }
+    for(i=0;i<(Avliable-NowAvliable);i++){
+        LinkC_Debug("Sem Post",LINKC_DEBUG);
         if(sem_post(List->Semaphore) < 0){
             perror("Semaphore Post");
             continue;
         }
-        i++;
     }
     pthread_mutex_unlock(List->MutexLock);              //  解锁互斥锁
     return 0;
@@ -172,10 +177,18 @@ int RemovePackageListNode (PackageList *List, uint32_t Count){
         LinkC_Debug("PackageList is NULL",LINKC_FAILURE);
         return LINKC_FAILURE;                   //  返回错误
     }
+    LinkC_Debug("Remove Node",LINKC_DEBUG);
     PackageListNode *Node;                      //  声明一个节点指针
     Node = List->StartNode;                     //  设置节点为链表起始节点
-    pthread_mutex_lock  (List->MutexLock);      //  上锁互斥锁
-    if(FindPackageListNode(List,Count,Node) == LINKC_PACKAGE_LIST_OK){    //  如果找到
+    int found = 0;
+    while(Node){
+        if(Node->Count == Count){
+            found = 1;
+            break;
+        }
+        Node = Node->Next;
+    }
+    if(found == 1){
         if(Node->Next != NULL){                 //  如果节点后面还有节点
             Node->Next->Perv = Node->Perv;      //  则节点后面一个节点的前一个为当前节点的前一个
         }
@@ -184,12 +197,12 @@ int RemovePackageListNode (PackageList *List, uint32_t Count){
         }else{                                  //  如果前面没有节点了[也就是说是首节点]
             List->StartNode = NULL;             //  链表的开始节点挂空
         }
-        List->TotalNode --;                     //  总节点减一
         free(Node->Package);                    //  释放内存
         free(Node);                             //  释放内存
-        pthread_mutex_unlock(List->MutexLock);  //  解锁互斥锁
+        List->TotalNode --;
+        LinkC_Debug("Remove Node DONE",LINKC_DEBUG);
         return LINKC_PACKAGE_LIST_OK;           //  返回成功
     }
-    pthread_mutex_unlock(List->MutexLock);      //  解锁互斥锁
+    LinkC_Debug("Remove Node",LINKC_FAILURE);
     return LINKC_PACKAGE_LIST_NOT_FOUNT;
 }

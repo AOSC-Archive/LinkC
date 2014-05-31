@@ -21,13 +21,15 @@ int main(){
     char ch[16] = "Hello!";
     char Buffer[512];
     int Length = PackMessage(ch,6,Buffer);
-    socklen_t len = sizeof(struct sockaddr_in);
     printf("Length == %d\n",Length);
     printf("Sockfd = %d\n",SendSock);
+    LinkC_Socket *Socket = NULL;
+    IsSocketInList(SendSock,&Socket);
+    char c;
     while(1){
-        sleep(2);
-        sendto(SendSock,Buffer,Length,0,(struct sockaddr *)&addr,len);
-        perror(":");
+        c = getchar();
+        if(c != 'c')   continue;
+        __LinkC_Send(Socket,Buffer,Length,0);
     }
     DestroySocketList();
     return 0;
