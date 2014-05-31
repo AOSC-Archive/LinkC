@@ -1,4 +1,6 @@
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include "LinkC_NetWorkProtocol.h"
 #include "../Package/PackageList/PackageList.h"
 #include "../Package/Package.h"
@@ -63,10 +65,10 @@ void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
 }
 
 void IOReadyInt(int SigNo, siginfo_t *SigInfo, void *Arg){
-    printf("SigNo = %d\nSigCode = %d\n",SigNo,SigInfo->si_code);
+    /*printf("SigNo = %d\nSigCode = %d\n",SigNo,SigInfo->si_code);
     printf("Arg's Addr = [%lx]\n",      (unsigned long)Arg);
     printf("Now Totle Socket is %d\n",  List->TotalSocket);
-    printf("Now Sockfd = %d\n",SigInfo->si_fd);
+    printf("Now Sockfd = %d\n",SigInfo->si_fd);*/
 //    LinkC_Debug("IOReady函数",LINKC_STARTED);
     if(!SigNo)   perror("SigNo");
     if(!SigInfo) perror("SigInfo");
@@ -98,9 +100,9 @@ int ConfirmRecved(LinkC_Socket *Socket, int Count){
     ((MessageHeader*)Socket->SendBuffer)->MessageLength     = sizeof(ConfirmationMessage);
     ((MessageHeader*)Socket->SendBuffer)->ProtocolVersion   = PROTOCOL_VERSION;
     ((MessageHeader*)Socket->SendBuffer)->MessageCounts     = 0;
-    ((ConfirmationMessage*)Socket->SendBuffer+8)->isRecved  = 0;
+    ((ConfirmationMessage*)Socket->SendBuffer+8)->isRecved  = 1;
     ((ConfirmationMessage*)Socket->SendBuffer+8)->Count     = Count;
-    return ___LinkC_Send(Socket,Socket->SendBuffer,sizeof(ConfirmationMessage)+8,MSG_DONTWAIT); // 
+    return ___LinkC_Send(Socket,Socket->SendBuffer,sizeof(ConfirmationMessage)+8,0); // 
 }
 int SendMessage(int Sockfd, void *Message, size_t Length, int Flag){
     LinkC_Socket *Socket = NULL;
@@ -164,7 +166,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         LinkC_Debug("传入缓冲区过小",LINKC_FAILURE);
         return LINKC_FAILURE;
     }
-    Byte = ___LinkC_Recv(Socket,Message,STD_PACKAGE_SIZE,Flag);
+    Byte = ___LinkC_Recv(Socket,Message,8,MSG_PEEK);
     if(Byte < 8){                                                               //  recvfrom返回收到数据长度小于8[出错或者无数据]
         if(Byte == 0){                                                          //  recvfrom返回收到数据长度为0[断开链接或者无数据]
             LinkC_Debug("未收到数据",LINKC_WARNING);
@@ -178,7 +180,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             return -1;                                                          //  返回错误
         }
     }else{                                                                      //  recvfrom返回收到数据长度为8[可能为一个消息头]
-        printf("Byte = %d\n",Byte);
+        uint16_t Length = ((MessageHeader*)Message)->MessageLength + 8;
         if(((MessageHeader*)Message)->ProtocolVersion != PROTOCOL_VERSION){     //  如果协议版本号不一致
             printf("Version = %d\nMy Version = %d\n",((MessageHeader*)Message)->ProtocolVersion,PROTOCOL_VERSION);
             LinkC_Debug("协议版本不一致",LINKC_WARNING);
@@ -187,19 +189,19 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         if(((MessageHeader*)Message)->MessageType == HEART_BEATS){              //  若是心跳包
             return 0;                                                           //  直接返回[忽略]
         }else if(((MessageHeader*)Message)->MessageType == RESEND_MESSAGE){     //  若是重发的数据包
-            if(___LinkC_Recv(Socket,(char *)Message+8,((MessageHeader*)Message)->MessageLength,Flag) != 0){     // 如果接收剩余数据失败
+            if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) < 0){          // 如果接收剩余数据失败
                 LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
                 AskForResend(Socket,((MessageHeader*)Message)->MessageCounts);  //  请求重发
                 return -1;                                                      //  返回无数据
             }
             ConfirmRecved(Socket,((MessageHeader*)Message)->MessageCounts);     //  发送确认收到消息
             LinkC_Debug("回复确认信息",LINKC_DONE);
-            void *Package = malloc(((MessageHeader*)Message)->MessageLength+8); //  为插入的数据单独分配内存
-            memcpy(Package,Message,((MessageHeader*)Message)->MessageLength+8); //  复制内存
+            void *Package = malloc(Length);                                     //  为插入的数据单独分配内存
+            memcpy(Package,Message,Length);                                     //  复制内存
             InsertPackageListNode(Socket->SendList,Package,((MessageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
             
         }else if(((MessageHeader*)Message)->MessageType == SSL_KEY_MESSAGE){    //  如果是SSL密钥
-            if(___LinkC_Recv(Socket,(char *)Message+8,((MessageHeader*)Message)->MessageLength,Flag) != 0){     // 如果接收剩余数据失败
+            if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) < 0){          // 如果接收剩余数据失败
                 LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
                 AskForResend(Socket,((MessageHeader*)Message)->MessageCounts);  //  请求重发
                 return 0;                                                       //  返回无数据
@@ -207,12 +209,14 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             ConfirmRecved(Socket,((MessageHeader*)Message)->MessageCounts);     //  发送确认收到消息
             //      保存密钥
         }else if(((MessageHeader*)Message)->MessageType == CONFIRMATION_MESSAGE){
-            if(___LinkC_Recv(Socket,(char *)Message+8,((MessageHeader*)Message)->MessageLength,Flag) != 0){     // 如果接收剩余数据失败
+            LinkC_Debug("Confirmation Message",LINKC_DEBUG);
+            if( ___LinkC_Recv(Socket,Message,Length,Flag) < 0){                  // 如果接收剩余数据失败
                 LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
                 AskForResend(Socket,((MessageHeader*)Message)->MessageCounts);  //  请求重发
                 return 0;                                                       //  返回无数据
             }
-            if(((ConfirmationMessage*)Message+8)->isRecved == 0){               //  如果说对面没有收到指定数据包
+            if(((ConfirmationMessage*)(char *)Message)->isRecved == 0){       //  如果说对面没有收到指定数据包
+                LinkC_Debug("Peer Do not recved!",LINKC_DEBUG);
                 PackageListNode *Node = Socket->SendList->StartNode;
                 while(Node){
                     if(Node->Count == ((ConfirmationMessage*)Message+8)->Count){
@@ -232,20 +236,21 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
                 Node = NULL;
                 return -1;
             }else{                                                              //  如果对面收到了这个数据包
-                RemovePackageListNode(Socket->SendList,((ConfirmationMessage*)Message+8)->Count);
+                LinkC_Debug("Peer recved!",LINKC_DEBUG);
+                RemovePackageListNode(Socket->SendList,((ConfirmationMessage*)Message)->Count);
                 return 0;
             }
         }else if(((MessageHeader*)Message)->MessageType == NORMAL_MESSAGE){     //  如果是普通数据
             LinkC_Debug("Normal Message",LINKC_DEBUG);
-            if(___LinkC_Recv(Socket,(char *)Message+8,((MessageHeader*)Message)->MessageLength,Flag) <= 0){     // 如果接收剩余数据失败
+            if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) <= 0){         // 如果接收剩余数据失败
                 LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
                 AskForResend(Socket,((MessageHeader*)Message)->MessageCounts);  //  请求重发
                return 0;                                                        //  返回无数据
             }
             LinkC_Debug("Recved",LINKC_DEBUG);
             ConfirmRecved(Socket,((MessageHeader*)Message)->MessageCounts);     //  发送确认收到消息
-            void *Package = malloc(((MessageHeader*)Message)->MessageLength+8); //  为插入的数据单独分配内存
-            memcpy(Package,Message,((MessageHeader*)Message)->MessageLength+8); //  复制内存
+            void *Package = malloc(Length);                                     //  为插入的数据单独分配内存
+            memcpy(Package,Message,Length);                                     //  复制内存
             InsertPackageListNode(Socket->SendList,Package,((MessageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
         }else{
             LinkC_Debug("消息头已经损毁",LINKC_WARNING);
@@ -304,7 +309,7 @@ int InitLCUDPEnvironment(void){
             return 1;                           //  返回错误
         }
         
-        alarm(1);                               //  1秒后发射信号
+        //alarm(1);                               //  1秒后发射信号
         return 0;                               //  返回成功
 }
 
@@ -339,6 +344,7 @@ int CreateSocket(const struct sockaddr *MyAddr){
         free(Socket);                                                           //  释放内存
         return 1;                                                               //  返回错误
     }
+    printf("Socket = [%d]\n",Socket->Sockfd);
     /*  我也不知道这段是什么意思，不过大概就是说设置成在收到数据的时候发送一个信息这么回事    */
     if(fcntl(Socket->Sockfd,F_SETOWN,getpid()) == -1){
         perror("Set Own");
