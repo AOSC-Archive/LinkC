@@ -1,5 +1,5 @@
 
-LinkC
+### LinkC
 =====
 An simple IM client based on Qt and use POSIX socket.
 
