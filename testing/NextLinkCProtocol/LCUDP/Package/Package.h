@@ -42,6 +42,7 @@ typedef struct ConfirmationMessage_t    ConfirmationMessage;
 #define RESEND_MESSAGE          0x03        //  重发的数据
 #define SSL_KEY_MESSAGE         0x04        //  交换SSL证书
 #define CONFIRMATION_MESSAGE    0x05        //  收到确认消息
+#define CONNECTION_MESSAGE      0x06        //  连接包
 //  ####    MessageHeader   ####    MessageType ####    结束    ####
 
 //  ####    定义区域    ####    结束    ####

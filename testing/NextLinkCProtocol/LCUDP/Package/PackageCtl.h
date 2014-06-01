@@ -21,6 +21,8 @@ int	PackMessage(void* Message, size_t Length, LinkC_Socket* Socket, void* Output
  *	[FAILURE]	1
  */
 
+ int _PackMessage(int Type, void* Message, size_t Length, LinkC_Socket *Socket, void* Output);
+
 int	UnPackMessage(void* Message, LinkC_Socket* Socket, void* Output);
 /*
  * TODO:	Package a message for sending

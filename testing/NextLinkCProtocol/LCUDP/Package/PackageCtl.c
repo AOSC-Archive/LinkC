@@ -10,12 +10,15 @@
 #include "../Def/LinkC_Error.h"
 
 int	PackMessage(void* Message, size_t Length, LinkC_Socket *Socket, void* Output){
+    return _PackMessage(NORMAL_MESSAGE,Message,Length,Socket,Output);
+}
+int _PackMessage(int Type, void* Message, size_t Length, LinkC_Socket *Socket, void* Output){
     if(Output == NULL){                                                     //  如果传出指针为空[这是不允许的]
         printf("Package Message Error [Argument [Output[ is NULL]\n");      //  打印错误信息
         return 1;
     }
     if(Length == 0){                                                        //  如果指明传入数据为空
-        ((MessageHeader*)Output)->MessageType       = NORMAL_MESSAGE;       //  设置传出数据包头为标准数据
+        ((MessageHeader*)Output)->MessageType       = Type;                 //  设置传出数据包头为标准数据
         ((MessageHeader*)Output)->MessageLength     = 0;                    //  设置后面数据长度为0
         ((MessageHeader*)Output)->ProtocolVersion   = PROTOCOL_VERSION;     //  设置协议版本号
         //  当前包的计数次并不在这里设置，而是在send函数中进行设置
@@ -25,8 +28,8 @@ int	PackMessage(void* Message, size_t Length, LinkC_Socket *Socket, void* Output
         printf("Package Message Error [Argument [Message] is NULL]\n");     //  打印错误信息
         return 1;
     }
-    ((MessageHeader*)Output)->MessageType       = NORMAL_MESSAGE;       //  设置传出数据包头为标准数据
-    ((MessageHeader*)Output)->ProtocolVersion   = PROTOCOL_VERSION;     //  设置协议版本号
+    ((MessageHeader*)Output)->MessageType       = Type;                     //  设置传出数据包头为标准数据
+    ((MessageHeader*)Output)->ProtocolVersion   = PROTOCOL_VERSION;         //  设置协议版本号
     if(Socket->IsSecurity == 1){
         int len = 0;
         len = EncryptPackage(Message,Length,(void *)(((char *)Output)+8),Socket->PublicKey);

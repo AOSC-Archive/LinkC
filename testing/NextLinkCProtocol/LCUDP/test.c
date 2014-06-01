@@ -23,13 +23,22 @@ int main(){
 
 
     FILE *file;
+    if((file=fopen("./test_pub.key","r"))==NULL){
+        perror("open key file error");
+        return -1;
+    }   
+    if((Socket->PublicKey=PEM_read_RSA_PUBKEY(file,NULL,NULL,NULL))==NULL){
+        ERR_print_errors_fp(stdout);
+        DestroySocketList();
+        return -1;
+    }   
     if((file=fopen("./test.key","r"))==NULL){
         perror("open key file error");
         return -1;
     }   
     if((Socket->PrivateKey=PEM_read_RSAPrivateKey(file,NULL,NULL,NULL))==NULL){
         ERR_print_errors_fp(stdout);
-    DestroySocketList();
+        DestroySocketList();
         return -1;
     }
     Socket->IsSecurity = 1;
@@ -43,9 +52,12 @@ int main(){
     char plainText[512];
     int Byte;
     while(1){
+        /*
         Byte = RecvMessage(RecvSock,Buf,512,0);
         UnPackMessage(Buf,Socket,plainText);
-        printf("I Recv [%s]\n",plainText);
+        printf("I Recv [%s]\n",plainText);*/
+        Accept(RecvSock,addr);
+        sleep(100);
 
     }
     DestroySocketList();

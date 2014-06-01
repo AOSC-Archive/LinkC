@@ -43,7 +43,7 @@ int DestroyPackageList(PackageList *List){
         LinkC_Debug("PackageList is NULL",LINKC_FAILURE);
         return LINKC_FAILURE;                   //  返回错误
     }
-    pthread_mutex_destroy(List->MutexLock);     //  销毁互斥锁
+    pthread_mutex_lock(List->MutexLock);
     sem_destroy(List->Semaphore);               //  销毁信号量
     PackageListNode *Node;                      //  用于保存当前节点
     PackageListNode *Next;                      //  用于保存下一个节点
@@ -55,9 +55,20 @@ int DestroyPackageList(PackageList *List){
         if(Next == NULL)    break;              //  如果下一个节点为空，则跳出循环
         Node = Next;                            //  将当前节点设置为下一个节点
     }
+    pthread_mutex_unlock(List->MutexLock);
+    pthread_mutex_destroy(List->MutexLock);     //  销毁互斥锁
     return 0;
 }
 
+int EmptyPackageList(PackageList *List){
+    if(List == NULL){
+        LinkC_Debug("PackageList is NULL",LINKC_FAILURE);
+        return LINKC_FAILURE;                   //  返回错误
+    }
+    DestroyPackageList(List);
+    List = BuildPackageList();
+    return 0;
+}
 
 int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
     if(List == NULL || Package == NULL){        //  如果指针为空

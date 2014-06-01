@@ -43,6 +43,7 @@ typedef struct PackageList_t        PackageList;
 /* 函数部分 */
 PackageList*    BuildPackageList                (void);
 int             DestroyPackageList              (PackageList *List);
+int             EmptyPackageList                (PackageList *List);
 int             InsertPackageListNode           (PackageList *List, void *Package, uint32_t Count);
 int             FindPackageListNode             (PackageList *List, uint32_t Count, PackageListNode* Node);
 int             RemovePackageListNode           (PackageList *List, uint32_t Count);

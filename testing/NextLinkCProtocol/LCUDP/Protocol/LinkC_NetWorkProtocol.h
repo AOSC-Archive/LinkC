@@ -161,6 +161,7 @@ int     DeleteSocket(int Socket);
 #define LINKC_NETWORK_IO
 /*  High level functions    */
 int     Connect         (int Sockfd, struct sockaddr_in Dest);                              //  基准连接函数
+int     Accept          (int Sockfd, struct sockaddr_in Dest);                              //  基准接受函数
 int     SecurityConnect (int Sockfd, struct sockaddr_in Dest, char* PublicKey, char* MyKey);//  安全连接函数
 int     SendMessage     (int Sockfd, void *Message, size_t Length, int Flag);               //  标准数据发送
 int     RecvMessage     (int Sockfd, void *Buffers, size_t MaxBuf, int Flag);               //  标准数据接收
