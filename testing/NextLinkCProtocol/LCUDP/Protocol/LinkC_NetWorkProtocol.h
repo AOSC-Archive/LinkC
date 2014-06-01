@@ -7,6 +7,9 @@
 #include <stdint.h>
 #include <time.h>
 #include <netinet/in.h>
+#include <openssl/rsa.h>
+#include <openssl/pem.h>
+//#include <openssl/err.h>
 #include "../Package/PackageList/PackageList.h"
 
 /* 系统 */
@@ -38,6 +41,9 @@
 struct LinkC_Socket_t{
     int                     Sockfd;                 //  基础网络句柄
     int                     Available;              //  剩余可从缓冲区读出的数据包个数
+    int                     IsSecurity;             //  是否为安全套接字
+    RSA*                    PublicKey;              //  私钥
+    RSA*                    PrivateKey;             //  公钥
     struct sockaddr_in      Addr;                   //  目标地址
     socklen_t               SockLen;                //  长度
     void                    *RecvBuffer;            //  接收缓冲区
@@ -47,16 +53,6 @@ struct LinkC_Socket_t{
     PackageList             *RecvList;              //  接收链表
 };
 
-struct LinkC_Message_Header_t
-{
-    uint8_t  Version;                               // 协议版本
-    uint8_t  Totle;                                 // 总包数
-    uint8_t  Current;                               // 当前包标记
-    uint8_t  MessageHeader;                         // 服务类型
-    uint16_t MessageLength;                         // 数据总长度
-    time_t   Time;                                  // 时间戳
-};
-typedef struct LinkC_Message_Header_t   LinkC_Message_Header;
 typedef struct LinkC_Socket_t           LinkC_Socket;
 
 /* 链表定义 */
@@ -164,8 +160,10 @@ int     DeleteSocket(int Socket);
 #ifndef LINKC_NETWORK_IO
 #define LINKC_NETWORK_IO
 /*  High level functions    */
-int     SendMessage(int Sockfd, void *Message, size_t Length, int Flag);                //  标准数据发送
-int     RecvMessage(int Sockfd, void *Buffers, size_t MaxBuf, int Flag);                //  标准数据接收
+int     Connect         (int Sockfd, struct sockaddr_in Dest);                              //  基准连接函数
+int     SecurityConnect (int Sockfd, struct sockaddr_in Dest, char* PublicKey, char* MyKey);//  安全连接函数
+int     SendMessage     (int Sockfd, void *Message, size_t Length, int Flag);               //  标准数据发送
+int     RecvMessage     (int Sockfd, void *Buffers, size_t MaxBuf, int Flag);               //  标准数据接收
 /*  High level functions    */
 
 /*  Basic functions         */

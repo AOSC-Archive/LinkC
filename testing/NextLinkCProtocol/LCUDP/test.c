@@ -20,13 +20,33 @@ int main(){
     SetDestAddr(RecvSock,addr);
     LinkC_Socket *Socket = NULL;
     IsSocketInList(RecvSock,&Socket);
+
+
+    FILE *file;
+    if((file=fopen("./test.key","r"))==NULL){
+        perror("open key file error");
+        return -1;
+    }   
+    if((Socket->PrivateKey=PEM_read_RSAPrivateKey(file,NULL,NULL,NULL))==NULL){
+        ERR_print_errors_fp(stdout);
+    DestroySocketList();
+        return -1;
+    }
+    Socket->IsSecurity = 1;
+
+
+
+
+
     printf("Sockfd = %d\n",RecvSock);
     char Buf[512];
+    char plainText[512];
     int Byte;
     while(1){
         Byte = RecvMessage(RecvSock,Buf,512,0);
-        if(Byte > 0)
-            printf("I Recved %s\n",(char *)Buf+8);
+        UnPackMessage(Buf,Socket,plainText);
+        printf("I Recv [%s]\n",plainText);
+
     }
     DestroySocketList();
     return 0;

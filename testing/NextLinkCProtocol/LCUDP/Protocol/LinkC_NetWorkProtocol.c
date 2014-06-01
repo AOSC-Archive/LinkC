@@ -16,6 +16,9 @@
 #include <fcntl.h>           /* For O_* constants */
 #include <sys/stat.h>        /* For mode constants */
 #include <sys/types.h>
+#include <openssl/rsa.h>
+#include <openssl/pem.h>
+#include <openssl/err.h>
 #include <semaphore.h>
 
 SocketList *List = NULL;            //  全局变量，套接字的链表
@@ -84,7 +87,7 @@ int AskForResend(LinkC_Socket *Socket, int Count){
     confirm.isRecved    = 0;                                            //  说明没有收到
     confirm.Count       = Count;                                        //  说明哪个包没有收到
     void *Buffer = malloc(STD_PACKAGE_SIZE);                            //  分配内存
-    int Length = PackMessage((void *)&confirm,sizeof(confirm),Buffer);  //  打包数据
+    int Length = PackMessage((void *)&confirm,sizeof(confirm),Socket,Buffer);  //  打包数据
     ___LinkC_Send(Socket,Buffer,Length,MSG_DONTWAIT);                   //  发送数据
     free (Buffer);                                                      //  释放内存
     Buffer = NULL;                                                      //  挂空指针
@@ -146,11 +149,14 @@ int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         pthread_mutex_unlock(Socket->RecvList->MutexLock);
         return -1;
     }
-    LinkC_Debug("Memcpy",LINKC_STARTED);
     memcpy(Message,Node->Package,Node->MessageLength+8);
-    LinkC_Debug("Memcpy",LINKC_DONE);
-    RemovePackageListNode(Socket->RecvList,((MessageHeader*)Message)->MessageCounts);
-    pthread_mutex_unlock(Socket->RecvList->MutexLock);
+    if(Flag == MSG_PEEK){
+        pthread_mutex_unlock(Socket->RecvList->MutexLock);
+        sem_post(Socket->RecvList->Semaphore);
+    }else{
+        RemovePackageListNode(Socket->RecvList,((MessageHeader*)Message)->MessageCounts);
+        pthread_mutex_unlock(Socket->RecvList->MutexLock);
+    }
     return ((MessageHeader*)Message)->MessageLength;
 }
 
@@ -213,7 +219,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         }else if(((MessageHeader*)Message)->MessageType == CONFIRMATION_MESSAGE){
             LinkC_Debug("Confirmation Message",LINKC_DEBUG);
             printf("%d\n",((MessageHeader*)Message)->MessageType);
-            if(___LinkC_Recv(Socket,Message,Length,0) < 0){                    // 如果接收剩余数据失败
+            if(___LinkC_Recv(Socket,Message,Length,Flag) < 0){                    // 如果接收剩余数据失败
                 LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
                 AskForResend(Socket,((MessageHeader*)Message)->MessageCounts);  //  请求重发
                 return 0;                                                       //  返回无数据
@@ -438,6 +444,11 @@ int SetDestAddr(int Socket, struct sockaddr_in DestAddr){
         if(Node->Socket->Sockfd == Socket){
             pthread_mutex_lock(Node->Mutex_Lock);
             memcpy((void*)&(Node->Socket->Addr),(void *)&DestAddr,sizeof(struct sockaddr_in));
+            if(Node->Socket->IsSecurity == 1){
+                RSA_free(Node->Socket->PublicKey);
+                RSA_free(Node->Socket->PrivateKey);
+                Node->Socket->IsSecurity = 0;
+            }
             pthread_mutex_unlock(Node->Mutex_Lock);
             return 0;
         }

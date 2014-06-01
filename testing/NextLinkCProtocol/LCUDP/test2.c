@@ -20,11 +20,25 @@ int main(){
     SetDestAddr(SendSock,addr);
     char ch[16] = "Hello!";
     char Buffer[512];
-    int Length = PackMessage(ch,6,Buffer);
-    printf("Length == %d\n",Length);
-    printf("Sockfd = %d\n",SendSock);
     LinkC_Socket *Socket = NULL;
     IsSocketInList(SendSock,&Socket);
+
+    FILE *file;
+    if((file=fopen("./test_pub.key","r"))==NULL){
+        perror("open key file error");
+        return -1;
+    }   
+    if((Socket->PublicKey=PEM_read_RSA_PUBKEY(file,NULL,NULL,NULL))==NULL){
+        ERR_print_errors_fp(stdout);
+        return -1;
+    }   
+    Socket->IsSecurity = 1;
+
+
+
+    int Length = PackMessage(ch,6,Socket,Buffer);
+    printf("Length == %d\n",Length);
+    printf("Sockfd = %d\n",SendSock);
     char c;
     while(1){
         c = getchar();
