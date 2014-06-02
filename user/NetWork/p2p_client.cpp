@@ -16,6 +16,7 @@ p2p_client::p2p_client(QThread *parent):
 }
 
 p2p_client::~p2p_client(){
+	delete [] package;
 }
 
 int p2p_client::DirectConnect(){

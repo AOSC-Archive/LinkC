@@ -10,6 +10,10 @@ HeartBeats::HeartBeats(UDP_csocket sk, QThread *parent):
     SendBuffer = new char[128];
 }
 
+HeartBeats::~HeartBeats(){
+	delete [] SendBuffer;
+}
+
 void HeartBeats::run(){
     int length = pack_message(HEART_BEATS,NULL,0,SendBuffer);
     int status;

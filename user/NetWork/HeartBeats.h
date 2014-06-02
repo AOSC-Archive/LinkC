@@ -11,6 +11,7 @@ class HeartBeats : public QThread{
     Q_OBJECT
 public:
     HeartBeats(UDP_csocket sk, QThread *parent = 0);
+	~HeartBeats();
     void run();
 signals:
     void SendError(int);        // Use ErrorCode
