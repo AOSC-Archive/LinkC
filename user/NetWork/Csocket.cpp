@@ -40,6 +40,8 @@ socket_c::socket_c(){
 }
 
 socket_c::~socket_c(){
+	:close(Sockfd);
+	delete [] recv_buffer;
 }
 
 int socket_c::build_socket(int _Flage){
