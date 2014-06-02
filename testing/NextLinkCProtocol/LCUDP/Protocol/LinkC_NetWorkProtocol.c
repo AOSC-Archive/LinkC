@@ -24,9 +24,6 @@
 SocketList *List = NULL;            //  全局变量，套接字的链表
 
 void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
-/*    printf("SigNo = %d\nSigCode = %d\n",SigNo,SigInfo->si_code);
-    printf("Arg's Addr = [%lx]\n",      (unsigned long)Arg);
-    printf("Now Totle Socket is %d\n",  List->TotalSocket);*/
     if(!SigNo)   perror("SigNo");
     if(!SigInfo) perror("SigInfo");
     if(!Arg)     perror("Arg");
@@ -44,10 +41,10 @@ void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
             PackNode = Node->Socket->SendList->StartNode;           //  设置为链表开始节点
             while(PackNode){
                 if(PackNode->ResendTime > MAX_RESEND_TIME){         //  如果大于最大重发次数
-                    LinkC_Debug("断线",LINKC_WARNING);
+                    LinkC_Debug("TimerInt:断线",LINKC_WARNING);
                     //  执行断线操作
                 }else if(PackNode->TimeToLive == 0){                //  在没有断线的情况下如果当前数据剩迟迟没有收到收到确认
-                    LinkC_Debug("数据重发",LINKC_DEBUG);
+                    LinkC_Debug("TimerInt:数据重发",LINKC_DEBUG);
                     ResendMessage(Node->Socket,PackNode->Package ,MSG_DONTWAIT);    //  重发消息
                     PackNode->TimeToLive = MAX_TIME_TO_LIVE;        //  重设剩余生存时间
                     PackNode->ResendTime ++;                        //  重发次数自增加一
@@ -62,11 +59,11 @@ void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
         Node = Node->Next;
     }
     alarm(1);           //  1秒后发射信号
+    return;
 }
 
 void IOReadyInt(int SigNo, siginfo_t *SigInfo, void *Arg){
     if(!SigNo)   perror("SigNo");
-    if(!SigInfo) perror("SigInfo");
     if(!Arg)     perror("Arg");
     SocketListNode  *Node       = List->StartNode;                      //  赋值为开始节点
     while(Node){
@@ -77,17 +74,15 @@ void IOReadyInt(int SigNo, siginfo_t *SigInfo, void *Arg){
         }
         Node = Node->Next;
     }
+    return;
 }
 
 int AskForResend(LinkC_Socket *Socket, int Count){
     ConfirmationMessage confirm;                                        //  数据结构
     confirm.isRecved    = 0;                                            //  说明没有收到
     confirm.Count       = Count;                                        //  说明哪个包没有收到
-    void *Buffer = malloc(STD_PACKAGE_SIZE);                            //  分配内存
-    int Length = PackMessage((void *)&confirm,sizeof(confirm),Socket,Buffer);  //  打包数据
-    ___LinkC_Send(Socket,Buffer,Length,MSG_DONTWAIT);                   //  发送数据
-    free (Buffer);                                                      //  释放内存
-    Buffer = NULL;                                                      //  挂空指针
+    int Length = PackMessage((void *)&confirm,sizeof(confirm),Socket,Socket->SendBuffer);  //  打包数据
+    ___LinkC_Send(Socket,Socket->SendBuffer,Length,MSG_DONTWAIT);                   //  发送数据
     return 0;                                                           //  返回成功
 }
 int ConfirmRecved(LinkC_Socket *Socket, int Count){
@@ -101,6 +96,10 @@ int ConfirmRecved(LinkC_Socket *Socket, int Count){
 }
 
 int Connect (int Sockfd, struct sockaddr_in Dest){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("Connect:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     LinkC_Socket *Socket = NULL;
     if(IsSocketInList(Sockfd,&Socket)==0){
         LinkC_Debug("Connect:没有这个套接字",LINKC_FAILURE);
@@ -126,6 +125,10 @@ int Connect (int Sockfd, struct sockaddr_in Dest){
     return 0;
 }
 int Accept(int Sockfd, struct sockaddr_in Dest){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("Accept:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     LinkC_Socket *Socket = NULL;
     if(IsSocketInList(Sockfd,&Socket)==0){
         LinkC_Debug("Accept:没有这个套接字",LINKC_FAILURE);
@@ -147,6 +150,10 @@ int Accept(int Sockfd, struct sockaddr_in Dest){
     return 0;
 }
 int P2PConnect(int Sockfd, struct sockaddr_in Dest){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("P2PConnect:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     LinkC_Socket *Socket = NULL;
     if(IsSocketInList(Sockfd,&Socket)==0){
         LinkC_Debug("P2PConnect:没有这个套接字",LINKC_FAILURE);
@@ -169,6 +176,10 @@ int P2PConnect(int Sockfd, struct sockaddr_in Dest){
 }
 
 int P2PAccept(int Sockfd, struct sockaddr_in Dest, void(*Function) (void*), void* Arg){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("P2PAccept:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     LinkC_Socket *Socket = NULL;
     if(IsSocketInList(Sockfd,&Socket)==0){
         LinkC_Debug("P2PAccept:没有这个套接字",LINKC_FAILURE);
@@ -187,6 +198,10 @@ int P2PAccept(int Sockfd, struct sockaddr_in Dest, void(*Function) (void*), void
 }
 
 int SendMessage(int Sockfd, void *Message, size_t Length, int Flag){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("SendMessage:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     LinkC_Socket *Socket = NULL;
     if(IsSocketInList(Sockfd,&Socket) == 0){
         return -1;
@@ -194,6 +209,10 @@ int SendMessage(int Sockfd, void *Message, size_t Length, int Flag){
     return _LinkC_Send(Socket,Message,Length,Flag);
 }
 int RecvMessage(int Sockfd, void *Buffers, size_t MaxBuf, int Flag){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("RecvMessage:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     int Byte;
     LinkC_Socket *Socket = NULL;
     IsSocketInList(Sockfd,&Socket);
@@ -202,10 +221,18 @@ int RecvMessage(int Sockfd, void *Buffers, size_t MaxBuf, int Flag){
 }
 
 int _LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("_LinkC_Send:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     return __LinkC_Send(Socket,Message,size,Flag);
 }
 
 int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("_LinkC_Recv:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     int Result=0;
     if(Flag == MSG_DONTWAIT)
         Result = sem_trywait(Socket->RecvList->Semaphore);             //  非阻塞请求数据
@@ -213,11 +240,10 @@ int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         Result = sem_wait(Socket->RecvList->Semaphore);             //  阻塞请求数据
     }
     if(Result < 0){
-        perror("Sem Wait[Trywate]");
+        perror("Sem Wait[Trywait]");
         return 0;
     }
     pthread_mutex_lock(Socket->RecvList->MutexLock);                //  上互斥锁
-    LinkC_Debug("Mutex Locked",LINKC_DEBUG);
     if(Socket->RecvList->TotalNode <= 0){
         printf("出现错误[file = %s\tline = %d]\n",__FILE__,__LINE__);
         pthread_mutex_unlock(Socket->RecvList->MutexLock);          //  解锁
@@ -226,7 +252,7 @@ int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
     PackageListNode *Node = Socket->RecvList->StartNode;
     while(Node->Next)   Node = Node->Next;                          //  跳转到最后一个Node
     if((Node->MessageLength)+8 > size){
-        LinkC_Debug("传入缓冲区过小!",LINKC_FAILURE);
+        LinkC_Debug("_LinkC_Recv:传入缓冲区过小!",LINKC_FAILURE);
         sem_post(Socket->RecvList->Semaphore);
         pthread_mutex_unlock(Socket->RecvList->MutexLock);
         return -1;
@@ -243,9 +269,12 @@ int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
 }
 
 int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("__LinkC_Send:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     ((MessageHeader *)Message)->MessageCounts = Socket->SendList->NowCount+1;               //  将本数据包的计数次设置为之前发送的数据包总数加一
     if(InsertPackageListNode(Socket->SendList,Message,Socket->SendList->NowCount +1) != 0){ //  将本数据包存入发送缓冲区失败
-        LinkC_Debug("插入数据到链表",LINKC_FAILURE);
         return -1;
     }
     Socket->SendList->NowCount ++;                                                          //  发送缓冲区总计数自增加一
@@ -253,22 +282,26 @@ int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
 }
 
 int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("__LinkC_Recv:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     int Byte;
     if(size < 8){
-        LinkC_Debug("传入缓冲区过小",LINKC_FAILURE);
+        LinkC_Debug("__LinkC_Recv:传入缓冲区过小",LINKC_FAILURE);
         return LINKC_FAILURE;
     }
     Byte = ___LinkC_Recv(Socket,Message,8,MSG_PEEK);
     if(Byte < 8){                                                               //  recvfrom返回收到数据长度小于8[出错或者无数据]
         if(Byte == 0){                                                          //  recvfrom返回收到数据长度为0[断开链接或者无数据]
-            LinkC_Debug("未收到数据",LINKC_WARNING);
+            LinkC_Debug("__LinkC_Recv:未收到数据",LINKC_WARNING);
             return 0;                                                           //  返回0
         }else if(Byte < 0){                                                     //  recvfrom返回负数[出错]
-            LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
+            LinkC_Debug("__LinkC_Recv:错误",LINKC_FAILURE);
             perror("__LinkC_Recv");                                             //  打印错误细信息
             return -1;                                                          //  返回错误
         }else{                                                                  //  recvfrom返回收到数据长度介于0到8之间[残缺数据包，舍弃]
-            LinkC_Debug("未收到合法数据",LINKC_WARNING);
+            LinkC_Debug("__LinkC_Recv:未收到合法数据",LINKC_WARNING);
             return -1;                                                          //  返回错误
         }
     }else{                                                                      //  recvfrom返回收到数据长度为8[可能为一个消息头]
@@ -291,7 +324,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             
         }else if(((MessageHeader*)Message)->MessageType == SSL_KEY_MESSAGE){    //  如果是SSL密钥
             if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) < 0){          // 如果接收剩余数据失败
-                LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
+                LinkC_Debug("__LinkC_Recv:错误",LINKC_FAILURE);
                 AskForResend(Socket,((MessageHeader*)Message)->MessageCounts);  //  请求重发
                 return 0;                                                       //  返回无数据
             }
@@ -299,7 +332,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             //      保存密钥
         }else if(((MessageHeader*)Message)->MessageType == CONFIRMATION_MESSAGE){
             if(___LinkC_Recv(Socket,Message,Length,Flag) < 0){                    // 如果接收剩余数据失败
-                LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
+                LinkC_Debug("__LinkC_Recv:错误",LINKC_FAILURE);
                 AskForResend(Socket,((MessageHeader*)Message)->MessageCounts);  //  请求重发
                 return 0;                                                       //  返回无数据
             }
@@ -320,6 +353,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
                     }
                     Node = Node->Next;
                 }
+                LinkC_Debug("__LinkC_Recv:重发数据",LINKC_FAILURE);
                 Node = NULL;
                 return -1;
             }else{                                                              //  如果对面收到了这个数据包
@@ -345,7 +379,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             ConfirmRecved(Socket,((MessageHeader*)Message)->MessageCounts);     //  发送确认收到消息
             InsertPackageListNode(Socket->RecvList,Message,((MessageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
         }else{
-            LinkC_Debug("无法识别消息头",LINKC_WARNING);
+            LinkC_Debug("__LinkC_Recv:无法识别消息头",LINKC_WARNING);
             return 0;
         }
     }
@@ -354,6 +388,10 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
 
 
 int ___LinkC_Send(LinkC_Socket *Socket, void *Message, size_t Length, int Flag){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("___LinkC_Send:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     int Byte = 0;
     sigset_t set;
     sigemptyset(&set);
@@ -366,6 +404,10 @@ int ___LinkC_Send(LinkC_Socket *Socket, void *Message, size_t Length, int Flag){
 
 
 int ___LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("___LinkC_Recv:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     int Byte = 0;                                                         //  保存本次接收的长度
     size_t Length = 0;                                                      //  保存已经接收的长度
     sigset_t set;
@@ -376,7 +418,7 @@ int ___LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
     {
         Byte = recvfrom(Socket->Sockfd,(char *)Message+Length,size-Length,Flag,(struct sockaddr*)&(Socket->Addr),&(Socket->SockLen));   //  接收数据
         if(Byte < 0){                                                       //  recvfrom返回小于等于0 [1]没有数据 [2]链接关闭 [3]出错
-            perror("RecvFrom");                                             //  打印错误信息
+            perror("___LinkC_Recv");                                        //  打印错误信息
             sigprocmask(SIG_UNBLOCK,&set,NULL);
             return -1;                                                      //  返回出错
         }else if(Byte == 0){
@@ -416,13 +458,13 @@ int InitLCUDPEnvironment(void){
             return 1;                           //  返回错误
         }
         
-        //alarm(1);                               //  1秒后发射信号
+        alarm(1);                               //  1秒后发射信号
         return 0;                               //  返回成功
 }
 
 int InitSocketList(void){
     if(List != NULL){                                               //  如果链表为空
-        LinkC_Debug("LinkC Socket环境没有初始化",LINKC_FAILURE);
+        LinkC_Debug("InitSocketList:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
     List = (SocketList*)malloc(sizeof(SocketList)); //  为链表分配内存
@@ -432,6 +474,10 @@ int InitSocketList(void){
 }
 
 int IsSocketInList(int Sockfd, LinkC_Socket** Socket){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("IsSocketInList:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     SocketListNode *NowNode = List->StartNode;      //  新建一个节点，指向链表的开始节点
     while(NowNode){                                 //  循环[当前节点不为空]
         if(NowNode->Socket->Sockfd == Sockfd){      //  如果当前Socket等于传入的Socket
@@ -444,6 +490,10 @@ int IsSocketInList(int Sockfd, LinkC_Socket** Socket){
     return 0;                                       //  返回未找到
 }
 int CreateSocket(const struct sockaddr *MyAddr){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("CreateSocket:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     LinkC_Socket *Socket    =   (LinkC_Socket*)malloc(sizeof(LinkC_Socket));    //  为套接字结构体分配内存
     Socket->Sockfd          =   socket(AF_INET,SOCK_DGRAM,0);         //  创建UDP套接字
     if(Socket->Sockfd < 0){                                                     //  如果创建套接字失败
@@ -493,12 +543,16 @@ int CreateSocket(const struct sockaddr *MyAddr){
 }
 
 int AddSocketToList(LinkC_Socket *Socket){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("AddSocketToList:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     if(Socket == NULL){                             //  如果参数为空指针
         printf("The Argument is NULL\n");           //  打印错误信息
         return 1;
     }
     if(IsSocketInList(Socket->Sockfd,NULL) == 1){   //  当前Socket是否已经存在于链表中，如果存在
-        printf("Bad addition\n");                   //  打印错误信息
+        LinkC_Debug("AddSocketToList:重复添加",LINKC_FAILURE);
         return 1;
     }
     SocketListNode* Node;
@@ -521,6 +575,10 @@ int AddSocketToList(LinkC_Socket *Socket){
 }
 
 int SetDestAddr(int Socket, struct sockaddr_in DestAddr){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("SetDestAddr:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     SocketListNode *Node = List->StartNode;
     while(Node){
         if(Node->Socket->Sockfd == Socket){
@@ -540,9 +598,9 @@ int SetDestAddr(int Socket, struct sockaddr_in DestAddr){
 }
 
 int DestroySocketList(){
-    if(List == NULL){                                   //  如果链表没有初始化
-        printf("The LinkC Socket environment is not created!\n");
-        return 1;                                       //  返回1
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("DestroySocketList:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
     }
     if(List->TotalSocket == 0){                         //  如果没有套接字
         return 0;                                       //  返回0
@@ -574,6 +632,10 @@ int DestroySocketList(){
 }
 
 int DeleteSocket(int Socket){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("DeleteSocket:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     SocketListNode *NowNode = List->StartNode;          //  声明一个节点指针，指向链表的开头
     while(NowNode){
         if(NowNode->Socket->Sockfd == Socket){          //  如果找到
@@ -606,6 +668,10 @@ int DeleteSocket(int Socket){
 }
 
 int ResendMessage(LinkC_Socket *Socket, void *Message, int Flag){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("ResendMessage:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
     if(Socket == NULL){                         //  如果参数为空
         printf("Argument is NULL!\n");          //  打印出错信息
         return -1;                              //  返回错误
