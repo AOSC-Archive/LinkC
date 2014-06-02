@@ -25,7 +25,7 @@ void LinkC_Debug(const char *Target,int Status){
 #ifdef linux
         printf("[\033[32mDONE   \033[0m]\t%s\n",Target);
 #else
-        printf("[DONE]  \t%s\n",Target);
+        printf("[DONE   ]\t%s\n",Target);
 #endif
     else if(Status == LINKC_STARTED)
 #ifdef linux
@@ -37,7 +37,7 @@ void LinkC_Debug(const char *Target,int Status){
 #ifdef linux
         printf("[\033[34mDEBUG\033[0m]\t%s\n",Target);
 #else
-        printf("[DEBUG]\t%s\n",Target);
+        printf("[DEBUG  ]\t%s\n",Target);
 #endif
 #endif
 

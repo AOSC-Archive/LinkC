@@ -52,12 +52,17 @@ int main(){
     char plainText[512];
     int Byte;
     while(1){
-        /*
+        /*sleep(10);
+        perror(":");
         Byte = RecvMessage(RecvSock,Buf,512,0);
         UnPackMessage(Buf,Socket,plainText);
         printf("I Recv [%s]\n",plainText);*/
+        printf("Connectionn\n");
         Accept(RecvSock,addr);
-        sleep(100);
+        printf("Connected\n");
+        RecvMessage(RecvSock,Buf,512,0);
+        printf("All done\n");
+        perror(":");
 
     }
     DestroySocketList();

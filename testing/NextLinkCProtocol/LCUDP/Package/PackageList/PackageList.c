@@ -91,7 +91,7 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
         memcpy(Node->Package,Package,((MessageHeader*)Package)->MessageLength+8);   //  新建节点的数据包设置为传入参数的数据包
         Node->MessageLength = ((MessageHeader*)Package)->MessageLength;
         List->StartNode     = Node;
-        List->TotalNode ++;                     //  当前总包数自增加一
+        List->TotalNode = 1;                    //  当前总包数自增加一
     }else{
         NowNode = List->StartNode;              //  将当前节点设置为开始节点
         while(1){                               //  永久循环
@@ -157,7 +157,6 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
         return -1;
     }
     for(i=0;i<(Avliable-NowAvliable);i++){
-        LinkC_Debug("Sem Post",LINKC_DEBUG);
         if(sem_post(List->Semaphore) < 0){
             perror("Semaphore Post");
             continue;
@@ -188,7 +187,6 @@ int RemovePackageListNode (PackageList *List, uint32_t Count){
         LinkC_Debug("PackageList is NULL",LINKC_FAILURE);
         return LINKC_FAILURE;                   //  返回错误
     }
-    LinkC_Debug("Remove Node",LINKC_DEBUG);
     PackageListNode *Node;                      //  声明一个节点指针
     Node = List->StartNode;                     //  设置节点为链表起始节点
     int found = 0;
@@ -211,7 +209,6 @@ int RemovePackageListNode (PackageList *List, uint32_t Count){
         free(Node->Package);                    //  释放内存
         free(Node);                             //  释放内存
         List->TotalNode --;
-        LinkC_Debug("Remove Node DONE",LINKC_DEBUG);
         return LINKC_PACKAGE_LIST_OK;           //  返回成功
     }
     LinkC_Debug("Remove Node",LINKC_FAILURE);

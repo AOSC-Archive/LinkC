@@ -162,7 +162,10 @@ int     DeleteSocket(int Socket);
 /*  High level functions    */
 int     Connect         (int Sockfd, struct sockaddr_in Dest);                              //  基准连接函数
 int     Accept          (int Sockfd, struct sockaddr_in Dest);                              //  基准接受函数
+int     P2PConnect      (int Sockfd, struct sockaddr_in Dest);
+int     P2PAccept       (int Sockfd, struct sockaddr_in Dest, void(*Function) (void*), void* Arg);
 int     SecurityConnect (int Sockfd, struct sockaddr_in Dest, char* PublicKey, char* MyKey);//  安全连接函数
+int     SecurityAccept  (int Sockfd, struct sockaddr_in Dest, char* PublicKey, char* MyKey);
 int     SendMessage     (int Sockfd, void *Message, size_t Length, int Flag);               //  标准数据发送
 int     RecvMessage     (int Sockfd, void *Buffers, size_t MaxBuf, int Flag);               //  标准数据接收
 /*  High level functions    */

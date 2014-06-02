@@ -51,10 +51,11 @@ int main(){
     printf("Sockfd = %d\n",SendSock);
     char c;
     while(1){
-        /*c = getchar();
+       /* c = getchar();
         if(c != 'c')   continue;
         __LinkC_Send(Socket,Buffer,Length,0);*/
         Connect(SendSock,addr);
+        printf("Connected!\n");
         sleep(100);
     }
     DestroySocketList();
