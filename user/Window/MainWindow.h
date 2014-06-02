@@ -10,7 +10,7 @@
 #include "LinkC_GUI.h"
 #include "linkc_types.h"
 #include "MessageRecver.h"
-#include "LinkC_Utilities.h"
+#include "Def/LinkC_Error.h"
 #include "LinkC_Settings_Dialog.h"
 #include "LinkC_UserInfoSettings_Dialog.h"
 #include <QToolBox>

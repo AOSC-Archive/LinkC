@@ -7,12 +7,13 @@
 #include "linkc_types.h"
 #include "LinkC_Label.h"
 #include "LinkC_GUI.h"
-#include "linkc_network_protocol.h"
+#include <QWidget>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <QVariant>      // 为了注册数据类型
+#include "./../Protocol/LinkC_NetWorkProtocol.h"
 
 
 char buffer[MAXBUF];
@@ -123,11 +124,11 @@ MainWindow::~MainWindow(){
     server.Send_msg(buffer,length,MSG_DONTWAIT);
     Recver->terminate();
     LinkC_Debug("MainWindow",LINKC_EXITED);
-    LinkC_Debug("LinkC Exited Normally");
+    LinkC_Debug("LinkC Exited Normally",LINKC_DEBUG);
 }
 
 void MainWindow::SLOT_LoginWindowExit(){
-    LinkC_Debug("LinkC Exited Normally");
+    LinkC_Debug("LinkC Exited Normally",LINKC_DEBUG);
     exit(0);
 }
 

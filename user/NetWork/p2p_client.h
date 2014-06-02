@@ -12,8 +12,8 @@
 #endif
 
 #include "Csocket.h"
-#include "def.h"
-#include "LinkC_Utilities.h"
+#include "Def/LinkC_Error.h"
+#include "Def/LinkC_Error.h"
 #include <QTimer>
 #include <QObject>
 #include <QThread>

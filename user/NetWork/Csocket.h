@@ -6,7 +6,7 @@
 #define CSOCKET_H
 #include "linkc_types.h"
 #include "linkc_network_protocol.h"
-#include "LinkC_Utilities.h"
+#include "Def/LinkC_Error.h"
 #include <arpa/inet.h>
 #include <string.h>
 #include <linkc_types.h>

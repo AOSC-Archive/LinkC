@@ -1,17 +1,5 @@
-/*
- * Author		： Junfeng Zhang <564691478@qq.com>
- * Last-Change		： April 5, 2014
- */
-#include "LinkC_Utilities.h"
-#include "def.h"
+#include "LinkC_Error.h"
 #include <stdio.h>
-#include <string.h>
-
-void LinkC_Debug(const char *DebugMessage){
-#if _DEBUG_MOD_
-    printf("[\033[35mDEBUG  \033[0m]\t%s\n",DebugMessage);
-#endif
-}
 
 void LinkC_Debug(const char *Target,int Status){
 #if _DEBUG_MOD_
@@ -37,13 +25,19 @@ void LinkC_Debug(const char *Target,int Status){
 #ifdef linux
         printf("[\033[32mDONE   \033[0m]\t%s\n",Target);
 #else
-        printf("[DONE]  \t%s\n",Target);
+        printf("[DONE   ]\t%s\n",Target);
 #endif
     else if(Status == LINKC_STARTED)
 #ifdef linux
         printf("[\033[32mSTARTED\033[0m]\t%s\n",Target);
 #else
         printf("[STARTED]\t%s\n",Target);
+#endif
+    else if(Status == LINKC_DEBUG)
+#ifdef linux
+        printf("[\033[34mDEBUG\033[0m]\t%s\n",Target);
+#else
+        printf("[DEBUG  ]\t%s\n",Target);
 #endif
 #endif
 

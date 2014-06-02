@@ -7,6 +7,7 @@
 #include "linkc_types.h"
 #include <QMessageBox>
 #include <iostream>
+#include <stdio.h>
 using namespace std;
 
 TCP_MessageRecver::TCP_MessageRecver(class TCP_csocket *sk,QThread *parent):

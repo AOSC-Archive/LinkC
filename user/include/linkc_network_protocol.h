@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <time.h>
 #include <QMetaType>
-#include "def.h"
+#include "Def/LinkC_Error.h"
 #include "linkc_types.h"
 
 #define LINKC_STATUS

@@ -9,36 +9,46 @@ DEPENDPATH += . Gui include NetWork Window
 INCLUDEPATH += . Window NetWork include Utilities
 
 # Input
-HEADERS += include/def.h \
-           include/LinkC_GUI.h \
-           include/LinkC_Label.h \
-           include/linkc_network_protocol.h \
-           include/linkc_types.h \
-           include/ListWidget.h \
-           include/MessageBox.h \
-           NetWork/Csocket.h \
-           NetWork/HeartBeats.h \
-           NetWork/MessageRecver.h \
-           NetWork/p2p_client.h \
-           Window/MainWindow.h \
-	   Utilities/LinkC_Utilities.h \
-   	   include/LinkC_Settings_Dialog.h \
-    include/LinkC_UserInfoSettings_Dialog.h
+HEADERS +=  \
+            include/LinkC_GUI.h \
+            include/LinkC_Label.h \
+            include/linkc_network_protocol.h \
+            include/linkc_types.h \
+            include/ListWidget.h \
+            include/MessageBox.h \
+            NetWork/Csocket.h \
+            NetWork/HeartBeats.h \
+            NetWork/MessageRecver.h \
+            NetWork/p2p_client.h \
+            Window/MainWindow.h \
+   	        include/LinkC_Settings_Dialog.h \
+            include/LinkC_UserInfoSettings_Dialog.h\
+            Package/Package.h\
+            Package/PackageCtl.h\
+            Package/PackageList/PackageList.h\
+            Protocol/LinkC_NetWorkProtocol.h\
+            Def/LinkC_Error.h
 SOURCES += main.cpp \
-           Gui/ChatDialog.cpp \
-           Gui/Friend.cpp \
-           Gui/LinkC_Label.cpp \
-           Gui/MessageBox.cpp \
-	   Gui/SetupMenu.cpp \
-           NetWork/Csocket.cpp \
-           NetWork/HeartBeats.cpp \
-           NetWork/LinkC_Package_Ctl.cpp \
-           NetWork/MessageRecver.cpp \
-           NetWork/p2p_client.cpp \
-           Window/LoginWindow.cpp \
-           Window/MainWindow.cpp \
-	   Utilities/LinkC_Debug.cpp \
-	   Gui/LinkC_Settings_Dialog.cpp \
-    Gui/LinkC_UserInfoSettings_Dialog.cpp
+            Protocol/LinkC_NetWorkProtocol.cpp\
+            Gui/ChatDialog.cpp \
+            Gui/Friend.cpp \
+            Gui/LinkC_Label.cpp \
+            Gui/MessageBox.cpp \
+	        Gui/SetupMenu.cpp \
+            NetWork/Csocket.cpp \
+            NetWork/HeartBeats.cpp \
+            NetWork/LinkC_Package_Ctl.cpp \
+            NetWork/MessageRecver.cpp \
+            NetWork/p2p_client.cpp \
+            Window/LoginWindow.cpp \
+            Window/MainWindow.cpp \
+	        Gui/LinkC_Settings_Dialog.cpp \
+            Gui/LinkC_UserInfoSettings_Dialog.cpp\
+            Package/PackageCtl.cpp\
+            Package/PackageList/PackageList.cpp\
+            Def/LinkC_Error.cpp
 
 FORMS +=
+
+LIBS   +=   -lssl\
+            -lcrypto

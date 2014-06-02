@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/types.h>
-#include "def.h"
+#include "Def/LinkC_Error.h"
 
 #define uint32_t	id_t
 
