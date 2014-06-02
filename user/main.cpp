@@ -3,6 +3,7 @@
  * Last-Change		： Aprli 2, 2014
  */
 #include "Window/MainWindow.h"
+#include "Protocol/LinkC_NetWorkProtocol.h"
 #include <QApplication>
 #include <QPushButton>
 #include <QTextCodec>
@@ -17,6 +18,7 @@ int main(int argc, char *argv[])
 #else
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF8"));
 #endif
+    InitLCUDPEnvironment();
     QApplication a(argc, argv);
     MainWindow w;
     return a.exec();

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <memory>
 #include <string.h>
+#include <unistd.h>
 #include "Csocket.h"
 #include <string.h>
 #include <netinet/in.h>
@@ -40,8 +41,8 @@ socket_c::socket_c(){
 }
 
 socket_c::~socket_c(){
-	:close(Sockfd);
-	delete [] recv_buffer;
+    close(Sockfd);
+    delete [] (char *)recv_buffer;
 }
 
 int socket_c::build_socket(int _Flage){

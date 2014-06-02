@@ -1,5 +1,5 @@
-#ifndef LINKC_NETWORK_PROTOCOL_H
-#define LINKC_NETWORK_PROTOCOL_H
+#ifndef LINKC_UDP_NETWORK_PROTOCOL_H
+#define LINKC_UDP_NETWORK_PROTOCOL_H
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -14,7 +14,7 @@
 
 /* 系统 */
 #define MAX_MESSAGE_POOL_SIZE   15      //  最大缓冲区保存数据报的数量
-#define LINKC_MESSAGE_VERSION   2       //  协议版本
+//#define LINKC_MESSAGE_VERSION   2       //  协议版本
 #define ERROR_OUTPUT_TYPE       1       //  表示直接输出[2]为输出到指定文件
 #define NORMAL_PACKAGE          "NP"    //  表示正常的数据报
 #define RESEND_PACKAGE          "RP"    //  表示重发的数据报
@@ -25,15 +25,16 @@
 #define MAX_RESEND_TIME         3       //  最大重发次数
                                         //      --> 这里是指如果重发三次还是没有收到信息
                                         //      --> 则认定断开链接
+#ifndef STD_BUFFER_SIZE
 #define STD_BUFFER_SIZE         2048    //  标准缓冲区大小
+#endif
 
-/* Error_Code */
+/* Error_Code
 #define DIFF_VERSION            1       // 协议版本不一致
 #define EXCEED_THE_LIMIT        2       // 大小超出限制
 #define NOT_MESSAGE             3       // 非消息
 #define MESSAGE_INCOMPLETE      4       // 数据不完整
-#define OVER_RECV               5       // 收到的数据大于一个包，并且前面的是一个完整的包
-
+#define OVER_RECV               5       // 收到的数据大于一个包，并且前面的是一个完整的包*/
 
 /* 数据类型定义 */
 #ifndef LINKC_SOCKET_TYPES
@@ -183,4 +184,4 @@ int     ___LinkC_Send   (LinkC_Socket *Socket, void *Message, size_t size, int F
 /*  Basic functions         */
 #endif  /* LINKC_NETWORK_IO         */
 #endif  /* LINKC_SOCKET_FUNCTIONS   */
-#endif  /* LINKC_NETWORK_PROTOCO    */
+#endif  /* LINKC_UDP_NETWORK_PROTOCO*/

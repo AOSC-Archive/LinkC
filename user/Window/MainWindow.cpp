@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <QVariant>      // 为了注册数据类型
-#include "./../Protocol/LinkC_NetWorkProtocol.h"
+#include "Protocol/LinkC_NetWorkProtocol.h"
 
 
 char buffer[MAXBUF];
