@@ -15,6 +15,7 @@ HeartBeats::~HeartBeats(){
 }
 
 void HeartBeats::run(){
+    /*
     int length = pack_message(HEART_BEATS,NULL,0,SendBuffer);
     int status;
     LinkC_Debug("UDP Heart Beats",LINKC_STARTED);
@@ -25,7 +26,7 @@ void HeartBeats::run(){
             emit SendError(status);
         }
         sleep(HEART_BEATS_TIME);
-    }
+    }*/
 }
 
 void HeartBeats::HeartBeatsStop(){

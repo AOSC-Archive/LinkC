@@ -1,6 +1,7 @@
 #ifndef LINKC_PACKAGE
 #define LINKC_PACKAGE
 #include <stdint.h>
+#include "Def/LinkC_Def.h"
 #include <time.h>
 
 struct MessageHeader_t{
@@ -31,8 +32,6 @@ typedef struct ConfirmationMessage_t    ConfirmationMessage;
 
 
 //  ####    定义区域    ####
-
-#define PROTOCOL_VERSION        2           //  协议版本
 #define STD_PACKAGE_SIZE        524         //  标准包大小 
 
 //  ####    MessageHeader   ####    MessageType ####

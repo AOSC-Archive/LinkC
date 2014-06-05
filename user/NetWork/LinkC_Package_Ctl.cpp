@@ -3,6 +3,7 @@
  * Last-Change		： March 22, 2014
  */
 #include "linkc_network_protocol.h"
+#include "Protocol/LinkC_NetWorkProtocol.h"
 #include "Csocket.h"
 #include <string.h>
 #include <stdio.h>

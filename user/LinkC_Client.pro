@@ -27,7 +27,8 @@ HEADERS +=  \
             Package/PackageCtl.h\
             Package/PackageList/PackageList.h\
             Protocol/LinkC_NetWorkProtocol.h\
-            Def/LinkC_Error.h
+            Def/LinkC_Error.h \
+    Def/LinkC_Def.h
 SOURCES += main.cpp \
             Protocol/LinkC_NetWorkProtocol.cpp\
             Gui/ChatDialog.cpp \

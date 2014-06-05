@@ -18,3 +18,7 @@ rm -r src/utilities/user/Makefile
 rm -r src/utilities/Makefile
 rm -r src/utilities/db_ctl/Makefile
 rm -r src/utilities/list/Makefile
+rm -r autoscan.log
+rm -r aclocal.m4
+rm -r config.log
+rm -r autom4te.cache

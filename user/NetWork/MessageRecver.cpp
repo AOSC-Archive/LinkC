@@ -4,6 +4,7 @@
  */
 #include "MessageRecver.h"
 #include "linkc_network_protocol.h"
+#include "Protocol/LinkC_NetWorkProtocol.h"
 #include "linkc_types.h"
 #include <QMessageBox>
 #include <iostream>
@@ -98,8 +99,8 @@ void UDP_MessageRecver::run(){
             ((char *)package)[MsgLength] = 0;
             Message = (const char *)package;
             emit RecvedP2PMessage(Message);
-        }else if(header == HEART_BEATS)
-            emit HeartBeats();
+        }/*else if(header == HEART_BEATS)
+            emit HeartBeats();*/
         else
             LinkC_Debug("This Message is not supposed!",LINKC_WARNING);
     }

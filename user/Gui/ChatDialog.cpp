@@ -90,7 +90,7 @@ void ChatDialog::GetFriendData(LinkC_Friend_Data Data){
     MyFriend=Data;
     char title_tmp[32];
     QString Title;
-    if(Data.Info.status == STATUS_ONLINE){
+    if(Data.Info.status == 2){
         if(peer->IsPeerConnected() == false){
             emit StartP2PConnecting();
             sprintf(title_tmp,"[%s] CONNECTING",MyFriend.Info.username);

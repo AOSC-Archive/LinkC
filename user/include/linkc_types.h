@@ -12,7 +12,9 @@
 #include <sys/types.h>
 #include "Def/LinkC_Error.h"
 
-#define uint32_t	id_t
+typedef uint32_t	id_t;
+typedef uint32_t    ip_t;
+typedef uint32_t    port_t;
 
 typedef struct login_data
 {

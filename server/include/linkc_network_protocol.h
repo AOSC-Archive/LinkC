@@ -139,6 +139,8 @@ int16_t std_m_message_send      (void *Message,int sockfd,uint16_t Length);
 int16_t non_std_m_message_send  (void *Message,int sockfd,uint16_t Memb,uint16_t Each_Length,uint16_t Header,int Flag);
 int16_t non_std_m_message_recv  (int Sockfd,int Echo_Size,void *Out);
 int16_t get_message_header      (void *Message);
+int16_t TCP_Send(int sockfd, void *buf, int buf_size, int flag);
+int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag);
 
 
 #endif

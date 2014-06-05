@@ -2,10 +2,11 @@
 #define _GNU_SOURCE
 #endif
 #include "LinkC_NetWorkProtocol.h"
-#include "../Package/PackageList/PackageList.h"
-#include "../Package/Package.h"
-#include "../Package/PackageCtl.h"
-#include "../Def/LinkC_Error.h"
+#include "Package/PackageList/PackageList.h"
+#include "Package/Package.h"
+#include "Package/PackageCtl.h"
+#include "Def/LinkC_Error.h"
+#include "Def/LinkC_Def.h"
 #include <stdlib.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -251,7 +252,7 @@ int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
     }
     PackageListNode *Node = Socket->RecvList->StartNode;
     while(Node->Next)   Node = Node->Next;                          //  跳转到最后一个Node
-    if((Node->MessageLength)+8 > size){
+    if((Node->MessageLength)+(uint32_t)8 > size){
         LinkC_Debug("_LinkC_Recv:传入缓冲区过小!",LINKC_FAILURE);
         sem_post(Socket->RecvList->Semaphore);
         pthread_mutex_unlock(Socket->RecvList->MutexLock);

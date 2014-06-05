@@ -3,8 +3,8 @@
  * Last-Change        ： March 15, 2014
  */
 
-#include "linkc_network_protocol.h"
-#include "linkc_network.h"
+#include "../../../include/linkc_network_protocol.h"
+#include "../../../include/linkc_network.h"
 #include <stdlib.h>
 #include <memory.h>
 #include <stdio.h>
@@ -56,7 +56,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
                 tmp = recv(sockfd,recv_buffer+Length,STD_PACKAGE_SIZE,flag);
                 if(tmp <= 0)
                 {
-                    fprintf(stderr,"Recv Error!\n",Length);
+                    fprintf(stderr,"Recv Error!\n");
                     return LINKC_FAILURE;
                 }
                 Length += tmp;
@@ -108,7 +108,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
             tmp = recv(sockfd,recv_buffer+Length,STD_PACKAGE_SIZE,flag);
             if(tmp <= 0)
             {
-                fprintf(stderr,"Recv Error!\n",Length);
+                fprintf(stderr,"Recv Error!\n");
                 return LINKC_FAILURE;
             }
             Length += tmp;

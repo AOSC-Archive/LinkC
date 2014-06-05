@@ -1,5 +1,5 @@
-#ifndef LINKC_NETWORK_PROTOCOL_H
-#define LINKC_NETWORK_PROTOCOL_H
+#ifndef LINKC_NETWORK_UDP_PROTOCOL_H
+#define LINKC_NETWORK_UDP_PROTOCOL_H
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -11,29 +11,7 @@
 #include <openssl/pem.h>
 #include <openssl/err.h>
 #include "../Package/PackageList/PackageList.h"
-
-/* 系统 */
-#define MAX_MESSAGE_POOL_SIZE   15      //  最大缓冲区保存数据报的数量
-#define LINKC_MESSAGE_VERSION   2       //  协议版本
-#define ERROR_OUTPUT_TYPE       1       //  表示直接输出[2]为输出到指定文件
-#define NORMAL_PACKAGE          "NP"    //  表示正常的数据报
-#define RESEND_PACKAGE          "RP"    //  表示重发的数据报
-#define RE_VISIT_TIME           1       // 片轮查询List的时间间隔[单位为秒]
-#define MAX_TIME_TO_LIVE        2       // 一个Node[包]在TIME_TO_LIVE次访问后还没有被消除
-                                        //      --> 这里是两秒后如果没有收到确认消息
-                                        //      --> 则被认定为发送失败，重发数据
-#define MAX_RESEND_TIME         3       //  最大重发次数
-                                        //      --> 这里是指如果重发三次还是没有收到信息
-                                        //      --> 则认定断开链接
-#define STD_BUFFER_SIZE         2048    //  标准缓冲区大小
-
-/* Error_Code */
-#define DIFF_VERSION            1       // 协议版本不一致
-#define EXCEED_THE_LIMIT        2       // 大小超出限制
-#define NOT_MESSAGE             3       // 非消息
-#define MESSAGE_INCOMPLETE      4       // 数据不完整
-#define OVER_RECV               5       // 收到的数据大于一个包，并且前面的是一个完整的包
-
+#include "Def/LinkC_Def.h"
 
 /* 数据类型定义 */
 #ifndef LINKC_SOCKET_TYPES
@@ -160,14 +138,14 @@ int     DeleteSocket(int Socket);
 #ifndef LINKC_NETWORK_IO
 #define LINKC_NETWORK_IO
 /*  High level functions    */
-int     Connect         (int Sockfd, struct sockaddr_in Dest);                              //  基准连接函数
-int     Accept          (int Sockfd, struct sockaddr_in Dest);                              //  基准接受函数
+int     Connect         (int Sockfd, struct sockaddr_in Dest);                          //  基准连接函数
+int     Accept          (int Sockfd, struct sockaddr_in Dest);                          //  基准接受函数
 int     P2PConnect      (int Sockfd, struct sockaddr_in Dest);
 int     P2PAccept       (int Sockfd, struct sockaddr_in Dest, void(*Function) (void*), void* Arg);
 int     SecurityConnect (int Sockfd, struct sockaddr_in Dest, char* PublicKey, char* MyKey);//  安全连接函数
 int     SecurityAccept  (int Sockfd, struct sockaddr_in Dest, char* PublicKey, char* MyKey);
-int     SendMessage     (int Sockfd, void *Message, size_t Length, int Flag);               //  标准数据发送
-int     RecvMessage     (int Sockfd, void *Buffers, size_t MaxBuf, int Flag);               //  标准数据接收
+int     SendMessage     (int Sockfd, void *Message, size_t Length, int Flag);           //  标准数据发送
+int     RecvMessage     (int Sockfd, void *Buffers, size_t MaxBuf, int Flag);           //  标准数据接收
 /*  High level functions    */
 
 /*  Basic functions         */

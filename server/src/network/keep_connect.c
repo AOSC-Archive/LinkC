@@ -3,11 +3,11 @@
  * Last-Change        ： Aprli 5, 2014
  */
 
-#include "linkc_types.h"
-#include "linkc_db.h"
-#include "linkc_user.h"
-#include "linkc_network.h"
-#include "linkc_network_protocol.h"
+#include "../../include/linkc_types.h"
+#include "../../include/linkc_db.h"
+#include "../../include/linkc_user.h"
+#include "../../include/linkc_network.h"
+#include "../../include/linkc_network_protocol.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -26,8 +26,7 @@
 #define LOGINCOUNT          2       //  最大登录尝试次数
 int keep_connect (struct user_data* _user)
 {
-    printf("Size = %d\n",sizeof(struct user_info));
-    int result,tmp,error_count,count,friend_count;
+    int result,tmp,error_count;
     struct user_data user;          //  用户基本数据
     int failure_count = 0;          //  登录已经失败次数
     int byte;                       //  接受的数据。
@@ -35,7 +34,6 @@ int keep_connect (struct user_data* _user)
     struct user_info *info;         //  保存用户信息[诸如用户名，IP等]
     user.sockfd = _user -> sockfd;  //  保存网络句柄
     user.addr = _user -> addr;      //  保存addr
-    struct friend_data* My_friend = NULL;   //  用于获取好友信息用[用完请及时释放该指针并挂空]
 
     char  buffer[STD_BUFFER_SIZE];  //  缓存
     void *data = malloc(MAXBUF);    //  同缓存
