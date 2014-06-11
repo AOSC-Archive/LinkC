@@ -16,7 +16,7 @@
 #include "Protocol/LinkC_NetWorkProtocol.h"
 
 
-char buffer[MAXBUF];
+char buffer[STD_PACKAGE_SIZE];
 int length;
 int flag;
 LoginWindow *s;
@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
     User_Info       = new LinkC_User_Info;
     area            = new FriendArea;       //
     tab             = new QTabWidget;       //
-    package         = new char[MAXBUF];     //
+    package         = new char[STD_PACKAGE_SIZE];     //
     setWindowTitle("Main_Window");      // 标题
     Connection_state = NetworkInit();   // 初始化网络
     if(Connection_state == -1){
@@ -153,8 +153,6 @@ int MainWindow::NetworkInit(void){
             LinkC_Debug("Connect",((LSS*)package)->Status);
             if(((LSS *)package)->Status == LINKC_SUCCESS)
                 return 0;
-            else if(((LSS *)package)->Status == LINKC_FAILURE)
-                return -1;
         }
     }
     LinkC_Debug("NetWork Init",LINKC_FAILURE);

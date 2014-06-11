@@ -66,7 +66,7 @@ protected:
     int flag;
     ip_t DestIP;
     int ip_size;
-    char buffer[MAXBUF];
+    char buffer[STD_PACKAGE_SIZE];
     struct p2pinfo P2PInfo;
     void *package;
     bool isPeerConnected;

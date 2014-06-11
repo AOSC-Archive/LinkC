@@ -18,7 +18,6 @@ int main(int argc, char *argv[])
 #else
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF8"));
 #endif
-    InitLCUDPEnvironment();
     QApplication a(argc, argv);
     MainWindow w;
     return a.exec();
