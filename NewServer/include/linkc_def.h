@@ -1,4 +1,4 @@
-#if     LINKC_DEF_H < 2
+﻿#if     LINKC_DEF_H < 2
 #define LINKC_DEF_H 2
 
 #include <stdint.h>
@@ -62,7 +62,7 @@ struct MessageHeader_t{             //  消息头
     uint16_t    UnuserdArg;         //  未使用的参数
 };
 
-struct login_data{                  //  登陆数据
+struct LoginData_t{                 //  登陆数据
         char user_name[12];
         char pass_word[20];
 };
