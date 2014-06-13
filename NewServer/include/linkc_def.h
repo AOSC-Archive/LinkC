@@ -1,8 +1,8 @@
 ﻿#if     LINKC_DEF_H < 2
 #define LINKC_DEF_H 2
 
-#include <stdint.h>
-
+#include <stdio.h>
+#include <arpa/inet.h>
 
 /*  ============ 系统 ============  */
 /*  定义LinkC协议的版本号           */
@@ -69,20 +69,35 @@ struct LoginData_t{                 //  登陆数据
 
 struct UserData_t{                  //  用户数据
     uint32_t    UID;
-    uint8_t     status;             // 现在状态
+    uint8_t     Status;             // 现在状态
     char        NickName[21];       // 昵称
     char        UserName[21];       // [登陆]用户名
 
     uint8_t     IsFriend;           //  是否为好友
     uint16_t    GroupNumber;        //  属于哪一组的
-    char        PrivateNickname[21];//  你给对方取的昵称
+    char        PrivateNickName[21];//  你给对方取的昵称
 
     char        Telephone[21];      // 电话
     char        Company[21];        // 公司
     char        Address[80];        // 地址
     char        JoinTime[25];       // 创建时间
-    uint32_t    ip;                 // 现在IP地址
+    uint32_t    IP;                 // 现在IP地址
 };
+
+struct FriendData_t{
+    char        NickName[21];
+    struct UserData_t Info;
+};
+
+struct PthreadData_t{
+    struct sockaddr_in  Addr;
+    int                 Sockfd;
+};
+
+typedef struct MessageHeader_t MessageHeader;
+typedef struct LoginData_t     LoginData;
+typedef struct UserData_t      UserData;
+typedef struct PthreadData_t   PthreadData;
 
 /*  ========= 数据类型 ===========  */
 

@@ -36,7 +36,7 @@ int	LCUDP_UnPackage(void* Message, LinkC_Socket* Socket, void* Output);
  *	[SUCCESS]	0
  *	[FAILURE]	1
  */
-int	_UnPackage(void* Message, void* Output);
+int	_UnPackage(void* Message, int BufSize, void* Output);
 
 int	EncryptPackage(void* Message, int Length, void* Output, RSA* PublicKey);
 /*

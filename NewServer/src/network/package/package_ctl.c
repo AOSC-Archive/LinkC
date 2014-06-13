@@ -99,7 +99,7 @@ int _LCUDP_Package(void* Message, size_t Length, LinkC_Socket *Socket, int Type,
 
 
 int _UnPackage(void *Message, int BufSize ,void *Output){
-    uint16_t Length = ntohs(((PackageHeader*)Message)->MessageLength);                  //  保存长度
+    uint16_t Length = ((PackageHeader*)Message)->MessageLength;                  //  保存长度
     if(BufSize < Length){
         LinkC_Debug("解包缓冲区不足",LINKC_FAILURE);
         return -1;
