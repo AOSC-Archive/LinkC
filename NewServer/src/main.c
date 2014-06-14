@@ -1,5 +1,6 @@
 #include "../include/linkc_basic_network.h"
 #include "../include/linkc_error.h"
+#include "../include/linkc_db.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -17,6 +18,7 @@ int main()
             LinkC_Debug("Init Network",LINKC_FAILURE);
             return -1;
         }
+        WaitForConnect();
     }
     return 0;                       //  返回
 }

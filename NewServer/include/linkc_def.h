@@ -63,8 +63,8 @@ struct MessageHeader_t{             //  消息头
 };
 
 struct LoginData_t{                 //  登陆数据
-        char user_name[12];
-        char pass_word[20];
+        char UserName[15];
+        char PassWord[17];
 };
 
 struct UserData_t{                  //  用户数据

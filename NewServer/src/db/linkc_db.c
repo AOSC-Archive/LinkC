@@ -8,21 +8,19 @@
 #include <malloc.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 
-#define db_column        2
-#define user_c            12
-
-#define DEBUG            1
-
+#define db_column           2
+#define user_c              12
 
 sqlite3* user_db =   NULL;
 sqlite3* friend_db = NULL;
 
-int init_sqlite3_db (void){
+int InitSqliteDb (void){
     extern sqlite3* user_db;
     extern sqlite3* friend_db;
     int result;
-    result = sqlite3_open (USER_DB_PATH,&user_db);  //打开数据库
+    result = sqlite3_open (USER_DB_PATH,&user_db);      //打开数据库
     if (result != SQLITE_OK)
             return LINKC_FAILURE;
     result = sqlite3_open (FRIEND_DB_PATH,&friend_db);  //打开数据库
@@ -32,23 +30,20 @@ int init_sqlite3_db (void){
 
 }
 
-int check_pass(LoginData user){
+int CheckPassword(LoginData user){
     char exec[STD_BUFFER_SIZE];
     char * errmsg = NULL;
     char **dbResult;
     int nRow, nColumn;
     int result;
 
-    sprintf (exec,"SELECT password FROM user WHERE username='%s'",user.user_name);
-#if DEBUG
-printf ("The password check\t= %s\n",exec);
-#endif
+    sprintf (exec,"SELECT password FROM user WHERE username='%s'",user.UserName);
     result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
     if( result == SQLITE_OK ){
         if (nRow == 1){
-            if ((strncmp (user.pass_word,dbResult[1],20)) == 0){
+            if ((strncmp (user.PassWord,dbResult[1],17)) == 0){
                 sqlite3_free_table (dbResult);
-                sprintf (exec,"SELECT * FROM user WHERE username='%s'",user.user_name);
+                sprintf (exec,"SELECT * FROM user WHERE username='%s'",user.UserName);
                 result = sqlite3_get_table (user_db,exec,&dbResult,&nRow,&nColumn,&errmsg);
                 if (result == SQLITE_OK){
                     sscanf (dbResult[user_c +1 - 1],"%d",&result);
@@ -68,7 +63,7 @@ printf ("The password check\t= %s\n",exec);
     }
 }
 
-int get_user_data (int UID, int DestUID ,UserData **_ffb){
+int GetUserData (int UID, int DestUID ,UserData **_ffb){
     char exec[STD_BUFFER_SIZE];
     char * errmsg = NULL;
     char **dbResult;
@@ -109,8 +104,8 @@ int get_user_data (int UID, int DestUID ,UserData **_ffb){
     }
     return LINKC_FAILURE;        // 返回错误
 }
-int get_friends_data (int UID, UserData ** ffb)
-{
+
+int GetFriendsData (int UID, UserData ** ffb){
     char exec[STD_BUFFER_SIZE];
     char * errmsg = NULL;
     char **dbResult;
@@ -135,10 +130,10 @@ int get_friends_data (int UID, UserData ** ffb)
             _friend[i].UID = htonl(_friend[i].UID);                                             //  转化为网络字节序
             printf ("exec = %s\n",exec);
             result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
-            strcpy (_friend[i].UserName,dbResult[user_c +    USER_USERNAME]);
-            strcpy (_friend[i].Telephone,dbResult[user_c+    USER_TEL]);
-            strcpy (_friend[i].Company,dbResult[user_c  +    USER_COMPANY]);
-            strcpy (_friend[i].Address,dbResult[user_c  +    USER_ADDRESS]);
+            strcpy (_friend[i].UserName,dbResult[user_c +   USER_USERNAME]);
+            strcpy (_friend[i].Telephone,dbResult[user_c+   USER_TEL]);
+            strcpy (_friend[i].Company,dbResult[user_c  +   USER_COMPANY]);
+            strcpy (_friend[i].Address,dbResult[user_c  +   USER_ADDRESS]);
             _friend[i].IP   = inet_addr(dbResult[user_c +   USER_LAST_IP]);     // 获得IP地址
         }
         sqlite3_free_table (dbResult);
@@ -151,12 +146,34 @@ int get_friends_data (int UID, UserData ** ffb)
     return LINKC_FAILURE;
 }
 
-void linkc_free_data (struct friend_data ** ffb){
-    free (*ffb);
+int SetStatus (UserData *user,struct sockaddr_in Addr,int _Flag){
+    char exec[STD_BUFFER_SIZE];
+    char * errmsg = NULL;
+    int result;
+
+    if (_Flag > 0){
+        sprintf (exec,"UPDATE user SET state='%d' where id='%d'",_Flag,user->UID);
+        result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );        // 更新状态
+/*        sprintf (exec,"UPDATE user SET sockfd='%d' where id='%d'",SOCKFD,user->UID);
+        result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );        // 更新Sockfd*/
+        sprintf (exec,"UPDATE user SET last_ip='%s' where id='%d'",inet_ntoa(Addr.sin_addr),user->UID);
+        result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );        // 更新last ip
+        if( result == SQLITE_OK )    return LINKC_SUCCESS;
+        printf ("Exec Error\t[%s]\n",errmsg);
+        return LINKC_FAILURE;
+    }else if (_Flag == 0){
+        sprintf (exec,"UPDATE user SET state='0' where id='%d'",user->UID);
+        result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );        // 更新状态为[离线]
+/*        sprintf (exec,"UPDATE user SET sockfd='0' where id='%d'",user->UID);
+        result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );        // 更新sockfd为[0]*/
+        if( result == SQLITE_OK )    return LINKC_SUCCESS;
+        printf ("Exec Error\t[%s]\n",errmsg);
+        return LINKC_FAILURE;
+    }
+    return LINKC_SUCCESS;
 }
 
-int get_info(int UID,int _Flag)
-{
+/*int get_info(int UID,int _Flag){
     char exec[STD_BUFFER_SIZE];
     char * errmsg = NULL;
     char **dbResult;
@@ -174,60 +191,24 @@ int get_info(int UID,int _Flag)
         return result;
     }
     sqlite3_free_table (dbResult);
-#if DEBUG
     printf ("Error Message is [%s]\n",errmsg);
-#endif
     errmsg = NULL;
     return LINKC_FAILURE;
-}
+}*/
 
-int status_set (UserData *user,int _Flag){
-    char exec[STD_BUFFER_SIZE];
-    char * errmsg = NULL;
-    int result;
-
-    if (_Flag > 0)    // 分别为上线，隐身
-    {
-        sprintf (exec,"UPDATE user SET state='%d' where id='%d'",_Flag,user->UID);
-        result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );        // 更新状态
-/*        sprintf (exec,"UPDATE user SET sockfd='%d' where id='%d'",SOCKFD,user->UID);
-        result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );        // 更新Sockfd*/
-/*        sprintf (exec,"UPDATE user SET last_ip='%s' where id='%d'",inet_ntoa(user->Address.sin_addr),user->UID);
-        result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );        // 更新last ip*/
-        if( result == SQLITE_OK )    return LINKC_SUCCESS;
-        printf ("Exec Error\t[%s]\n",errmsg);
-        return LINKC_FAILURE;
-    }
-    if (_Flag == 0)    // 设置成下线
-    {
-        sprintf (exec,"UPDATE user SET state='0' where id='%d'",user->UID);
-        result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );        // 更新状态为[离线]
-        sprintf (exec,"UPDATE user SET sockfd='0' where id='%d'",user->UID);
-        result = sqlite3_exec( user_db, exec, NULL, NULL,  &errmsg );        // 更新sockfd为[0]
-        if( result == SQLITE_OK )    return LINKC_SUCCESS;
-        printf ("Exec Error\t[%s]\n",errmsg);
-        return LINKC_FAILURE;
-    }
-    return LINKC_SUCCESS;
-}
-
-int friend_ctl(int local_UID,int target_ID,int _Flag)
+/*int friend_ctl(int local_UID,int target_ID,int _Flag)
 {
     char exec[STD_BUFFER_SIZE];
     char * errmsg = NULL;
     int result;
-    switch(_Flag)
-    {
-        case LINKC_FRIEND_ADD:
-        {
+    switch(_Flag){
+        case LINKC_FRIEND_ADD:{
             sprintf (exec,"INSERT INTO id%d (id) VALUES ('%d')",local_UID,target_ID);
             result = sqlite3_exec( friend_db, exec, NULL, NULL,  &errmsg );
             if (result ==  SQLITE_OK)    return LINKC_SUCCESS;
             printf ("Error!\t[%s]\n",errmsg);
             return LINKC_FAILURE;
-        }
-        case LINKC_FRIEND_DELETE:
-        {
+        }case LINKC_FRIEND_DELETE:{
             sprintf (exec,"DELETE FROM id%d WHERE id='%d'",local_UID,target_ID);
             result = sqlite3_exec( friend_db, exec, NULL, NULL,  &errmsg );
             if (result ==  SQLITE_OK)    return LINKC_SUCCESS;
@@ -266,4 +247,4 @@ int get_user_info(int UID, UserData **info){
     printf("Error!\n");
     sqlite3_free_table (dbResult);
     return LINKC_FAILURE;
-}
+}*/

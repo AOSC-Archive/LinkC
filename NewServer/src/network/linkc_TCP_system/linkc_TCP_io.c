@@ -12,6 +12,7 @@
 #include <memory.h>
 #include <sys/socket.h>
 #include <stdio.h>
+#include <stdint.h>
 
 char    recv_buffer[MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1];    // 接收缓冲区
 char    Tmp[MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1];        // 临时缓冲区

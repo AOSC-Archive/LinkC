@@ -29,17 +29,17 @@ int InitNetwork(int port){
     bind (sockfd, (struct sockaddr *)&local_addr, len); // 绑定地址
     listen (sockfd,5);                          // 设置最大等待链接数
     return sockfd;
-    return 0;
 }
 
 
 int WaitForConnect(){
+    int Sockfd = InitNetwork(2341);
     PthreadData Client;
     socklen_t len = sizeof (Client.Addr);
     pthread_t pid;
     while (1){
-        Client.Sockfd = accept (Client.Sockfd,(struct sockaddr *)&Client.Addr,(socklen_t *)&len);  //  接受链接请求
-        MainConnect(&Client);
+        Client.Sockfd = accept (Sockfd,(struct sockaddr *)&Client.Addr,(socklen_t *)&len);  //  接受链接请求
+        //MainConnect(&Client);
         pthread_create (&pid,NULL,MainConnect,&Client);                          //  创建子进程，执行MainConnect函数
     }
     return -1;
@@ -47,7 +47,7 @@ int WaitForConnect(){
 
 
 void* MainConnect(void *Arg){
-    sockaddr_in DestAddr    = ((PthreadData*)Arg)->Addr;
+    struct sockaddr_in DestAddr    = ((PthreadData*)Arg)->Addr;
     int         Sockfd      = ((PthreadData*)Arg)->Sockfd;
     void*       Buffer      = malloc(STD_BUFFER_SIZE);
     void*       Package     = malloc(STD_BUFFER_SIZE);
