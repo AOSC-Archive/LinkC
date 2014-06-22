@@ -59,7 +59,7 @@
 struct MessageHeader_t{             //  消息头
     uint8_t     MessageType;        //  见 [消息类型]
     uint8_t     ServiceType;        //  见 [服务数据]
-    uint16_t    UnuserdArg;         //  未使用的参数
+    uint16_t    UnusedArg;         //  未使用的参数
 };
 
 struct LoginData_t{                 //  登陆数据

@@ -1,3 +1,4 @@
+#include "../../include/linkc_server.h"
 #include "../../include/linkc_basic_network.h"
 #include "../../include/linkc_TCP_system/linkc_TCP_io.h"
 #include "../../include/linkc_def.h"
@@ -10,6 +11,7 @@
 #include <string.h>
 #include <pthread.h>
 
+/*  初始化网络  */
 int InitNetwork(int port){
     int sockfd;                                 // 网络句柄
     socklen_t len;                              // 长度
@@ -31,40 +33,77 @@ int InitNetwork(int port){
     return sockfd;
 }
 
-
+/*  等待链接    */
 int WaitForConnect(){
     int Sockfd = InitNetwork(2341);
     PthreadData Client;
     socklen_t len = sizeof (Client.Addr);
+#ifndef SINGLE_USER_TESTING
     pthread_t pid;
+#endif
     while (1){
         Client.Sockfd = accept (Sockfd,(struct sockaddr *)&Client.Addr,(socklen_t *)&len);  //  接受链接请求
-        //MainConnect(&Client);
+#ifdef SINGLE_USER_TESTING
+        MainConnect(&Client);
+#else
         pthread_create (&pid,NULL,MainConnect,&Client);                          //  创建子进程，执行MainConnect函数
+#endif
     }
     return -1;
 }
 
 
+/*  主函数  */
 void* MainConnect(void *Arg){
-    struct sockaddr_in DestAddr    = ((PthreadData*)Arg)->Addr;
-    int         Sockfd      = ((PthreadData*)Arg)->Sockfd;
-    void*       Buffer      = malloc(STD_BUFFER_SIZE);
-    void*       Package     = malloc(STD_BUFFER_SIZE);
+    struct sockaddr_in DestAddr = ((PthreadData*)Arg)->Addr; //  结构体
+    int         Sockfd          = ((PthreadData*)Arg)->Sockfd;
+    void*       Buffer          = malloc(STD_BUFFER_SIZE);
+    void*       Package         = malloc(STD_BUFFER_SIZE);
     printf("Connected on port %d\n",ntohl(DestAddr.sin_port));
-    if(TCP_Recv(Sockfd,Package,STD_BUFFER_SIZE,0) < 0)
+    if(TCP_Recv(Sockfd,Package,STD_BUFFER_SIZE,0) < 0)      //  接收数据失败
+        goto end;                                           //  跳转到end位置
+    if(_UnPackage(Package,STD_BUFFER_SIZE,Buffer) < 0)      //  解包
         goto end;
-    if(_UnPackage(Package,STD_BUFFER_SIZE,Buffer) < 0)
+
+/*  Now Buffer's struct
+ *  ==============================
+ *  ------[MessageHeader]---------
+ *  |   MessageType     |   1 Bit
+ *  |   ServiceType     |   1 Bit
+ *  |   UnusedArg       |   2 Bit
+ *  ------[ LoginData   ]--------
+ *  |   UserName        |   15 Bit
+ *  |   PassWord        |   17 Bit
+ *  ==============================
+ */
+
+ /* How to use pointer  
+  * ==============================
+  * 现在用的这个Buffer变量就是一个
+  * 指针，它保存着一个地址。
+  * 使用例如:
+  *     ((MessageHeader*)Buffer)->ServiceType
+  *     ((MessageHeader*)Buffer)->Unused
+  *     ((LoginData*)(Buffer+4))->UserName
+  *     ((LoginData*)(Buffer+4))->PassWord
+  *
+  */
+
+    if(((MessageHeader*)Buffer)->ServiceType != USER_LOGIN)     //  如果请求的服务类型不是USER_LOGIN
         goto end;
-    if(((MessageHeader*)Buffer)->ServiceType != USER_LOGIN)
-        goto end;
+
+/*  Then check password & set status for user 
+ *  use such functions
+ *      int     CheckPassword   (LoginData Data);
+ *      int     SetStatus       (UserData *User,struct sockaddr_in Addr, int _Flag); 
+ */
 
 end:
     printf("Disonnected!\n");
-    free(Buffer);
+    free(Buffer);               // 释放内存！［不释放内存线程可能死得惨］
     free(Package);
     Buffer      = NULL;
     Package     = NULL;
 
-    return NULL; 
+    pthread_exit(NULL);
 }
