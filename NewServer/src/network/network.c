@@ -97,9 +97,12 @@ void* MainConnect(void *Arg){
  *      int     CheckPassword   (LoginData Data);
  *      int     SetStatus       (UserData *User,struct sockaddr_in Addr, int _Flag); 
  */
-CheckPassword(LoginData Data);
-memcpy(&Data,Buffer+4,sizeof(LoginData));
-SetStatus();
+LoginData Data;
+memcpy((void*)&Data,(char*)Buffer+4,sizeof(LoginData));
+if(CheckPassword(Data)<0){
+	goto end;
+}
+
 end:
     printf("Disonnected!\n");
     free(Buffer);               // 释放内存！［不释放内存线程可能死得惨］
