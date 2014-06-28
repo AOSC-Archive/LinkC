@@ -30,25 +30,25 @@ int InitSqliteDb (void){
 
 }
 
-int CheckPassword(LoginData user){
+int CheckPassword(LoginData *Data){
     char exec[STD_BUFFER_SIZE];
     char * errmsg = NULL;
     char **dbResult;
     int nRow, nColumn;
     int result;
 
-    sprintf (exec,"SELECT password FROM user WHERE username='%s'",user.UserName);
+    sprintf (exec,"SELECT password FROM user WHERE username='%s'",Data->UserName);
     result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
     if( result == SQLITE_OK ){
         if (nRow == 1){
-            if ((strncmp (user.PassWord,dbResult[1],17)) == 0){
+            if ((strncmp (Data->PassWord,dbResult[1],17)) == 0){
                 sqlite3_free_table (dbResult);
-                sprintf (exec,"SELECT * FROM user WHERE username='%s'",user.UserName);
-                result = sqlite3_get_table (user_db,exec,&dbResult,&nRow,&nColumn,&errmsg);
+                sprintf (exec,"SELECT * FROM user WHERE username='%s'",Data->UserName);
+                result = sqlite3_get_table (user_db,exec,&dbResult,&nRow,&nColumn,&errmsg); //  获取用户资料
                 if (result == SQLITE_OK){
-                    sscanf (dbResult[user_c +1 - 1],"%d",&result);
+                    sscanf (dbResult[user_c +1 - 1],"%d",&result);  //  录入UID
                     sqlite3_free_table (dbResult);
-                    return result;
+                    return result;              //  返回UID
                 }
             }
         }

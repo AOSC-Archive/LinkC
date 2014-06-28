@@ -1,4 +1,6 @@
 #include "../../include/linkc_server.h"
+#include "../../include/linkc_error.h"
+#include "../../include/linkc_db.h"
 #include "../../include/linkc_basic_network.h"
 #include "../../include/linkc_TCP_system/linkc_TCP_io.h"
 #include "../../include/linkc_def.h"
@@ -55,11 +57,12 @@ int WaitForConnect(){
 
 /*  主函数  */
 void* MainConnect(void *Arg){
-    struct sockaddr_in DestAddr = ((PthreadData*)Arg)->Addr; //  结构体
+    struct sockaddr_in NetAddr  = ((PthreadData*)Arg)->Addr; //  结构体
     int         Sockfd          = ((PthreadData*)Arg)->Sockfd;
     void*       Buffer          = malloc(STD_BUFFER_SIZE);
     void*       Package         = malloc(STD_BUFFER_SIZE);
-    printf("Connected on port %d\n",ntohl(DestAddr.sin_port));
+    UserData    User;
+    printf("Connected on port %d\n",ntohl(NetAddr.sin_port));
     if(TCP_Recv(Sockfd,Package,STD_BUFFER_SIZE,0) < 0)      //  接收数据失败
         goto end;                                           //  跳转到end位置
     if(_UnPackage(Package,STD_BUFFER_SIZE,Buffer) < 0)      //  解包
@@ -91,17 +94,11 @@ void* MainConnect(void *Arg){
 
     if(((MessageHeader*)Buffer)->ServiceType != USER_LOGIN)     //  如果请求的服务类型不是USER_LOGIN
         goto end;
-
-/*  Then check password & set status for user 
- *  use such functions
- *      int     CheckPassword   (LoginData Data);
- *      int     SetStatus       (UserData *User,struct sockaddr_in Addr, int _Flag); 
- */
-LoginData Data;
-memcpy((void*)&Data,(char*)Buffer+4,sizeof(LoginData));
-if(CheckPassword(Data)<0){
-	goto end;
-}
+    User.UID=CheckPassword((LoginData*)((char*)Buffer+4));
+    if(User.UID == (uint32_t)LINKC_FAILURE)                     //  强制转换一下防止出错
+        goto end;
+    if(SetStatus(&User,NetAddr,STATUS_ONLINE) == LINKC_FAILURE)
+        goto end;
 
 end:
     printf("Disonnected!\n");

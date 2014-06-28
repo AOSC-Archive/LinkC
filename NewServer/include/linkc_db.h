@@ -27,10 +27,13 @@
 int     InitSqliteDb    (void);
 /* 打开数据库，并且设置全局变量 */
 
-int     CheckPassword   (LoginData user);
+int     CheckPassword   (LoginData *Data);
 /*
- * 检验用户密码是否正确，并且返回 struct login_data 中的 UID 键值
- * 参数：1    Login_data 结构类型
+ *  TODO:检验用户密码是否正确，并且返回 UserData 中的 UID 键值
+ *  ARGS:   [LoginData*]            LoginData 结构类型指针
+ *  RETN:   [成功]                  用户的UID                   [恒大于0]
+ *          [失败]                  LINKC_FAILURE
+ *  
  */
 
 int     GetFriendsData  (int UID,UserData ** ffb);
@@ -50,10 +53,16 @@ int     GetUserData     (int UID, int DestUID,UserData **_friend);
 int     SetStatus       (UserData *User,struct sockaddr_in Addr, int _Flag);
 /*
  * 设置用户的状态
- * 参数：1      int UID         用户的UID
+ * 参数：1      UserData*       UserData指针
  * 参数：2      sockaddr_in     用户现在的网络地址
  * 参数：3      int _Flag       操作参数
  */
+#ifndef LINKC_USER_STATUS
+#define LINKC_USER_STATUS
+#define STATUS_ONLINE       0x01
+#define STATUS_OFFLINE      0x02
+#define STATUS_HIDDEN       0x03
+#endif
 
 /*舍弃*/
 //extern int get_info (int UID,int _Flag);
