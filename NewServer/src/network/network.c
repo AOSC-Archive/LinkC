@@ -5,6 +5,7 @@
 #include "../../include/linkc_TCP_system/linkc_TCP_io.h"
 #include "../../include/linkc_def.h"
 #include "../../include/linkc_package_ctl.h"
+#include "../../include/linkc_package.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -59,14 +60,15 @@ int WaitForConnect(){
 void* MainConnect(void *Arg){
     struct sockaddr_in NetAddr  = ((PthreadData*)Arg)->Addr; //  结构体
     int         Sockfd          = ((PthreadData*)Arg)->Sockfd;
+    int         Length          = 0;
     void*       Buffer          = malloc(STD_BUFFER_SIZE);
     void*       Package         = malloc(STD_BUFFER_SIZE);
     UserData    User;
     printf("Connected on port %d\n",ntohl(NetAddr.sin_port));
     if(TCP_Recv(Sockfd,Package,STD_BUFFER_SIZE,0) < 0)      //  接收数据失败
-        goto end;                                           //  跳转到end位置
+        goto END;                                           //  跳转到end位置
     if(_UnPackage(Package,STD_BUFFER_SIZE,Buffer) < 0)      //  解包
-        goto end;
+        goto END;
 
 /*  Now Buffer's struct
  *  ==============================
@@ -91,16 +93,22 @@ void* MainConnect(void *Arg){
   *     ((LoginData*)(Buffer+4))->PassWord
   *
   */
+START:
 
     if(((MessageHeader*)Buffer)->ServiceType != USER_LOGIN)     //  如果请求的服务类型不是USER_LOGIN
-        goto end;
+        goto END;
     User.UID=CheckPassword((LoginData*)((char*)Buffer+4));
-    if(User.UID == (uint32_t)LINKC_FAILURE)                     //  强制转换一下防止出错
-        goto end;
+    if(User.UID == (uint32_t)LINKC_FAILURE){                    //  强制转换一下防止出错
+        ((MessageHeader*)Buffer)->MessageType = USER_LOGIN;             //  Set MessageType
+        ((MessageHeader*)Buffer)->StatusCode  = htons(LOGIN_FAILURE);   //  Set StatusCode
+        Length = _Package(Buffer,sizeof(MessageHeader),NORMAL_MESSAGE,Package);  //  Package
+        send(Sockfd,Buffer,Length,0);
+        goto START;
+    }
     if(SetStatus(&User,NetAddr,STATUS_ONLINE) == LINKC_FAILURE)
-        goto end;
+        goto END;
 
-end:
+END:
     printf("Disonnected!\n");
     free(Buffer);               // 释放内存！［不释放内存线程可能死得惨］
     free(Package);
