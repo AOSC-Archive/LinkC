@@ -40,9 +40,10 @@
 
 
 /*  ========= 指示代码 ===========  */
-#define LOGIN_FAILURE           0x1001
-#define LOGIN_SUCCESS           0x0001
-
+#define      LOGIN_FAILURE          0x1001
+#define      LOGIN_SUCCESS          0x0001
+#define SET_STATUS_FAILURE          0x1002
+#define SET_STATUS_SUCCESS          0x0002
 /*  ========= 指示代码 ===========  */
 
 /*  ========= 消息类型 ===========  */

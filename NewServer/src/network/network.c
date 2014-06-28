@@ -55,12 +55,21 @@ int WaitForConnect(){
     return -1;
 }
 
+int SendActionStatus(int Sockfd, uint16_t StatusCode){
+    char Package[sizeof(PackageHeader)+sizeof(MessageHeader)];
+    MessageHeader Header;
+    int Length = 0;
+    Header.MessageType = ACTION_STATUS;          //  Set MessageType
+    Header.StatusCode  = htons(StatusCode);   //  Set StatusCode
+    Length = _Package((void*)&Header,sizeof(MessageHeader),NORMAL_MESSAGE,Package);  //  Package
+    return send(Sockfd,Package,Length,0);
+}
+
 
 /*  主函数  */
 void* MainConnect(void *Arg){
     struct sockaddr_in NetAddr  = ((PthreadData*)Arg)->Addr; //  结构体
     int         Sockfd          = ((PthreadData*)Arg)->Sockfd;
-    int         Length          = 0;
     void*       Buffer          = malloc(STD_BUFFER_SIZE);
     void*       Package         = malloc(STD_BUFFER_SIZE);
     UserData    User;
@@ -99,14 +108,16 @@ START:
         goto END;
     User.UID=CheckPassword((LoginData*)((char*)Buffer+4));
     if(User.UID == (uint32_t)LINKC_FAILURE){                    //  强制转换一下防止出错
-        ((MessageHeader*)Buffer)->MessageType = USER_LOGIN;             //  Set MessageType
-        ((MessageHeader*)Buffer)->StatusCode  = htons(LOGIN_FAILURE);   //  Set StatusCode
-        Length = _Package(Buffer,sizeof(MessageHeader),NORMAL_MESSAGE,Package);  //  Package
-        send(Sockfd,Buffer,Length,0);
+        SendActionStatus(Sockfd,LOGIN_FAILURE);
         goto START;
     }
-    if(SetStatus(&User,NetAddr,STATUS_ONLINE) == LINKC_FAILURE)
-        goto END;
+    SendActionStatus(Sockfd,LOGIN_SUCCESS);
+    if(SetStatus(&User,NetAddr,STATUS_ONLINE) == LINKC_FAILURE){
+        SendActionStatus(Sockfd,SET_STATUS_FAILURE);
+        goto START;
+    }
+    SendActionStatus(Sockfd,SET_STATUS_SUCCESS);
+    sleep(100);
 
 END:
     printf("Disonnected!\n");
