@@ -3,7 +3,7 @@ Build:
     $ cd Build
     $ cmake ../
     $ make
-    $(Run Server)
+    $(Run) Server
 
 Clean:
     $ rm -rf Build

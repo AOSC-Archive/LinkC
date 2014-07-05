@@ -39,6 +39,12 @@
 /*  ========= 错误代码 ===========  */
 
 
+/*  ========= 指示代码 ===========  */
+#define      LOGIN_FAILURE          0x1001
+#define      LOGIN_SUCCESS          0x0001
+#define SET_STATUS_FAILURE          0x1002
+#define SET_STATUS_SUCCESS          0x0002
+/*  ========= 指示代码 ===========  */
 
 /*  ========= 消息类型 ===========  */
 #define USER_LOGIN              0   //  登陆请求
@@ -59,8 +65,9 @@
 struct MessageHeader_t{             //  消息头
     uint8_t     MessageType;        //  见 [消息类型]
     uint8_t     ServiceType;        //  见 [服务数据]
-    uint16_t    UnusedArg;         //  未使用的参数
+    uint16_t    StatusCode;         //  状态码
 };
+
 
 struct LoginData_t{                 //  登陆数据
         char UserName[15];
