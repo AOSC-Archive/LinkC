@@ -14,11 +14,8 @@ int main()
         exit (EXIT_FAILURE);        //      退出
     }
     else if (LCServer == 0){        //  如果是子进程[即LinkC Server 主进程]
-        if(InitNetwork(2341) < 0){
-            LinkC_Debug("Init Network",LINKC_FAILURE);
-            return -1;
-        }
         WaitForConnect();
     }
+    getchar();
     return 0;                       //  返回
 }

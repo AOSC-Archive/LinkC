@@ -42,6 +42,7 @@ int CheckPassword(LoginData *Data){
     if( result == SQLITE_OK ){
         if (nRow == 1){
             if ((strncmp (Data->PassWord,dbResult[1],17)) == 0){
+                printf("OK\n");
                 sqlite3_free_table (dbResult);
                 sprintf (exec,"SELECT * FROM user WHERE username='%s'",Data->UserName);
                 result = sqlite3_get_table (user_db,exec,&dbResult,&nRow,&nColumn,&errmsg); //  获取用户资料

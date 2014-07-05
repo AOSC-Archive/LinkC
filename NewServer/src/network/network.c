@@ -44,10 +44,11 @@ int WaitForConnect(){
 #ifndef SINGLE_USER_TESTING
     pthread_t pid;
 #endif
+    LinkC_Debug("Waiting",LINKC_DEBUG);
     while (1){
         Client.Sockfd = accept (Sockfd,(struct sockaddr *)&Client.Addr,(socklen_t *)&len);  //  接受链接请求
 #ifdef SINGLE_USER_TESTING
-        MainConnect(&Client);
+        MainConnect((void*)&Client);
 #else
         pthread_create (&pid,NULL,MainConnect,&Client);                          //  创建子进程，执行MainConnect函数
 #endif
@@ -59,8 +60,8 @@ int SendActionStatus(int Sockfd, uint16_t StatusCode){
     char Package[sizeof(PackageHeader)+sizeof(MessageHeader)];
     MessageHeader Header;
     int Length = 0;
-    Header.MessageType = ACTION_STATUS;          //  Set MessageType
-    Header.StatusCode  = htons(StatusCode);   //  Set StatusCode
+    Header.ActionType = ACTION_STATUS;          //  Set MessageType
+    Header.StatusCode  = htons(StatusCode);     //  Set StatusCode
     Length = _Package((void*)&Header,sizeof(MessageHeader),NORMAL_MESSAGE,Package);  //  Package
     return send(Sockfd,Package,Length,0);
 }
@@ -73,41 +74,26 @@ void* MainConnect(void *Arg){
     void*       Buffer          = malloc(STD_BUFFER_SIZE);
     void*       Package         = malloc(STD_BUFFER_SIZE);
     UserData    User;
-    printf("Connected on port %d\n",ntohl(NetAddr.sin_port));
-    if(TCP_Recv(Sockfd,Package,STD_BUFFER_SIZE,0) < 0)      //  接收数据失败
-        goto END;                                           //  跳转到end位置
-    if(_UnPackage(Package,STD_BUFFER_SIZE,Buffer) < 0)      //  解包
-        goto END;
-
-/*  Now Buffer's struct
- *  ==============================
- *  ------[MessageHeader]---------
- *  |   MessageType     |   1 Bit
- *  |   ServiceType     |   1 Bit
- *  |   UnusedArg       |   2 Bit
- *  ------[ LoginData   ]--------
- *  |   UserName        |   15 Bit
- *  |   PassWord        |   17 Bit
- *  ==============================
- */
-
- /* How to use pointer  
-  * ==============================
-  * 现在用的这个Buffer变量就是一个
-  * 指针，它保存着一个地址。
-  * 使用例如:
-  *     ((MessageHeader*)Buffer)->ServiceType
-  *     ((MessageHeader*)Buffer)->Unused
-  *     ((LoginData*)(Buffer+4))->UserName
-  *     ((LoginData*)(Buffer+4))->PassWord
-  *
-  */
+    if(InitSqliteDb()==LINKC_FAILURE){
+        LinkC_Debug(" ",LINKC_FAILURE);
+        return NULL;
+    }
+    printf("Connected on port %d\n",ntohs(NetAddr.sin_port));
 START:
-
-    if(((MessageHeader*)Buffer)->ServiceType != USER_LOGIN)     //  如果请求的服务类型不是USER_LOGIN
+    if(TCP_recv(Sockfd,Package,STD_BUFFER_SIZE,0) < 0){     //  接收数据失败
+        LinkC_Debug("接收",LINKC_FAILURE);
+        goto END;                                           //  跳转到end位置
+    }
+    if(_UnPackage(Package,STD_BUFFER_SIZE,Buffer) < 0){     //  解包
+        LinkC_Debug("解包",LINKC_FAILURE);
         goto END;
-    User.UID=CheckPassword((LoginData*)((char*)Buffer+4));
-    if(User.UID == (uint32_t)LINKC_FAILURE){                    //  强制转换一下防止出错
+    }
+    if(((MessageHeader*)Buffer)->ActionType != USER_LOGIN){    //  如果请求的服务类型不是USER_LOGIN
+        LinkC_Debug("请求类型错误",LINKC_WARNING);
+        goto END;
+    }
+    if(CheckPassword((LoginData*)((char*)Buffer+sizeof(MessageHeader)))== LINKC_FAILURE){
+        printf("LoginFailure\n");
         SendActionStatus(Sockfd,LOGIN_FAILURE);
         goto START;
     }

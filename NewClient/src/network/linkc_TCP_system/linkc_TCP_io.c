@@ -38,10 +38,6 @@ int16_t TCP_recv(int Sockfd, void *Out, int Out_size, int flag){
         NowRecv += TmpSize;
         if(NowRecv == PackageLength)
             break;
-        if(NowRecv > PackageLength){
-            printf("不行\n");
-            sleep(10);
-        }
     }
     return LINKC_SUCCESS;
 }
