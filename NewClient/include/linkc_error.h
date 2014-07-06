@@ -1,7 +1,9 @@
 #ifndef LINKC_ERROR_H
 #define LINKC_ERROR_H
 
-void LinkC_Debug(const char *Target,int Status);
+#include <curses.h>
+
+void LinkC_Debug(WINDOW* Console,const char *Target,int Status);
 
 #define _DEBUG_MOD_     1
 

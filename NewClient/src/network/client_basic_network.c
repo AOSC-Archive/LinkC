@@ -15,7 +15,6 @@ int InitNetwork(){
         perror ("Socket");                      // 打印出错信息
         exit (EXIT_FAILURE);                    // 退出
     }
-    LinkC_Debug("Init Socket",LINKC_SUCCESS);
     return sockfd;
 }
 
@@ -27,9 +26,7 @@ int ConnectToServer(int Sockfd){
     inet_aton("127.0.0.1",(struct in_addr*)&NetAddr.sin_addr.s_addr);
 
     if(connect(Sockfd,(struct sockaddr *)&NetAddr, sizeof(struct sockaddr_in)) < 0){
-        LinkC_Debug("Connect",LINKC_FAILURE);
         return LINKC_FAILURE;
     }
-    LinkC_Debug("Connect",LINKC_SUCCESS);
     return 0;
 }

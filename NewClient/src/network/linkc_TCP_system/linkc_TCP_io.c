@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <curses.h>
 
 char    recv_buffer[MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1];    // 接收缓冲区
 char    Tmp[MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1];        // 临时缓冲区
@@ -18,13 +19,13 @@ int    tmp;
 uint16_t    TmpLength;
 
 
-int16_t TCP_recv(int Sockfd, void *Out, int Out_size, int flag){
+int16_t TCP_recv(int Sockfd, void *Out, int Out_size, int flag,WINDOW* Console){
     PackageHeader Header;
     if(recv(Sockfd,(void*)&Header,sizeof(PackageHeader),MSG_PEEK) == LINKC_FAILURE)
         return LINKC_FAILURE;
     int PackageLength = ntohs(Header.MessageLength)+sizeof(PackageHeader);
     if(PackageLength > Out_size){
-        LinkC_Debug("传出缓冲区过小",LINKC_FAILURE);
+        LinkC_Debug(Console,"传出缓冲区过小",LINKC_FAILURE);
         return LINKC_FAILURE;
     }
     int NowRecv = 0;
@@ -32,7 +33,7 @@ int16_t TCP_recv(int Sockfd, void *Out, int Out_size, int flag){
     while(1){
         TmpSize = recv(Sockfd,(char*)Out+NowRecv,PackageLength - NowRecv,flag);
         if(TmpSize <= 0){
-            LinkC_Debug("接收数据",LINKC_FAILURE);
+            LinkC_Debug(Console,"接收数据",LINKC_FAILURE);
             return LINKC_FAILURE;
         }
         NowRecv += TmpSize;

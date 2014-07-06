@@ -13,4 +13,7 @@ void LinkC_Debug(const char *Target,int Status);
 #define LINKC_SUCCESS   0
 #define LINKC_FAILURE   -1
 
+
+#define LINKC_NO_DATA   -12
+
 #endif

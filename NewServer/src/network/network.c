@@ -74,6 +74,7 @@ void* MainConnect(void *Arg){
     void*       Buffer          = malloc(STD_BUFFER_SIZE);
     void*       Package         = malloc(STD_BUFFER_SIZE);
     UserData    User;
+    int         Status          = 0;
     if(InitSqliteDb()==LINKC_FAILURE){
         LinkC_Debug(" ",LINKC_FAILURE);
         return NULL;
@@ -92,18 +93,31 @@ START:
         LinkC_Debug("请求类型错误",LINKC_WARNING);
         goto END;
     }
-    if(CheckPassword((LoginData*)((char*)Buffer+sizeof(MessageHeader)))== LINKC_FAILURE){
+    if(CheckPassword((LoginData*)((char*)Buffer+sizeof(MessageHeader)))== LINKC_FAILURE){   //  检查密码
         printf("LoginFailure\n");
         SendActionStatus(Sockfd,LOGIN_FAILURE);
         goto START;
     }
-    SendActionStatus(Sockfd,LOGIN_SUCCESS);
+    SendActionStatus(Sockfd,LOGIN_SUCCESS);                     //  设置状态
     if(SetStatus(&User,NetAddr,STATUS_ONLINE) == LINKC_FAILURE){
         SendActionStatus(Sockfd,SET_STATUS_FAILURE);
         goto START;
     }
     SendActionStatus(Sockfd,SET_STATUS_SUCCESS);
-    sleep(100);
+    LinkC_Debug("登录",LINKC_DONE);
+    while(1){
+        Status = TCP_recv(Sockfd,Package,STD_BUFFER_SIZE,0);
+        if(Status == LINKC_NO_DATA)                             //  没有数据就视作对方关闭了链接
+            goto END;
+        if(Status < 0){
+            LinkC_Debug("接收",LINKC_FAILURE);
+            goto END;                                           //  跳转到end位置
+        }
+        if(_UnPackage(Package,STD_BUFFER_SIZE,Buffer) < 0){     //  解包
+            LinkC_Debug("解包",LINKC_FAILURE);
+            goto END;
+        }
+    }
 
 END:
     printf("Disonnected!\n");

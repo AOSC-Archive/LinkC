@@ -2,6 +2,7 @@
 #define LINKC_CILENT_H
 
 #include "linkc_def.h"
+#include <curses.h>
 
 int NonUiMode();
 /*  进入NonUi模式   */
@@ -12,7 +13,7 @@ int InitNetwork();
 int ConnectToServer(int Sockfd);
 /*  连接到服务器    */
 
-int Login(int Sockfd,LoginData Data);
+int Login(int Sockfd,LoginData Data,WINDOW* Console);
 /*  登录            */
 
 #endif

@@ -53,7 +53,7 @@ int	LCUDP_Package(void* Message, size_t Length, LinkC_Socket *Socket, void* Outp
         int len = 0;
         len = EncryptPackage(Message,Length,(void *)(((char *)Output)+8),Socket->PublicKey);
         if(len < 0){
-            LinkC_Debug("EncryptPackage",LINKC_FAILURE);
+            LinkC_Debug(NULL,"EncryptPackage",LINKC_FAILURE);
             return -1;
         }
         ((PackageHeader*)Output)->MessageLength = htons(len);
@@ -86,7 +86,7 @@ int _LCUDP_Package(void* Message, size_t Length, LinkC_Socket *Socket, int Type,
         int len = 0;
         len = EncryptPackage(Message,Length,(void *)(((char *)Output)+8),Socket->PublicKey);
         if(len < 0){ 
-            LinkC_Debug("EncryptPackage",LINKC_FAILURE);
+            LinkC_Debug(NULL,"EncryptPackage",LINKC_FAILURE);
             return -1; 
         }   
         ((PackageHeader*)Output)->MessageLength = htons(len);
@@ -101,7 +101,7 @@ int _LCUDP_Package(void* Message, size_t Length, LinkC_Socket *Socket, int Type,
 int _UnPackage(void *Message, int BufSize ,void *Output){
     uint16_t Length = ntohs(((PackageHeader*)Message)->MessageLength);                  //  保存长度
     if(BufSize < Length){
-        LinkC_Debug("解包缓冲区不足",LINKC_FAILURE);
+        LinkC_Debug(NULL,"解包缓冲区不足",LINKC_FAILURE);
         return -1;
     }
     memcpy(Output,(char*)Message+sizeof(PackageHeader),Length);
@@ -115,7 +115,7 @@ int	LCUDP_UnPackMessage(void* Message, LinkC_Socket *Socket, void* Output){
         int len = 0;                                                        //  临时长度
         len = DecryptPackage((char *)Message+8,Length,Output,Socket->PrivateKey);   //  解密
         if(len < 0){                                                        //  如果失败
-            LinkC_Debug("DecryptPackage",LINKC_FAILURE);
+            LinkC_Debug(NULL,"DecryptPackage",LINKC_FAILURE);
             return -1;
         }
         return len;                                                         //  返回长度

@@ -20,9 +20,16 @@ uint16_t    TmpLength;
 
 int16_t TCP_recv(int Sockfd, void *Out, int Out_size, int flag){
     PackageHeader Header;
-    if(recv(Sockfd,(void*)&Header,sizeof(PackageHeader),MSG_PEEK) == LINKC_FAILURE)
-        return LINKC_FAILURE;
+    int Status = 0;
+    Status = recv(Sockfd,(void*)&Header,sizeof(PackageHeader),MSG_PEEK);
+    if(Status <= 0){
+        if(Status == 0)
+            return LINKC_NO_DATA;
+        else    
+            return LINKC_FAILURE;
+    }
     int PackageLength = ntohs(Header.MessageLength)+sizeof(PackageHeader);
+    printf("Length = %d\n",PackageLength);
     if(PackageLength > Out_size){
         LinkC_Debug("传出缓冲区过小",LINKC_FAILURE);
         return LINKC_FAILURE;
@@ -31,6 +38,7 @@ int16_t TCP_recv(int Sockfd, void *Out, int Out_size, int flag){
     int TmpSize = 0;
     while(1){
         TmpSize = recv(Sockfd,(char*)Out+NowRecv,PackageLength - NowRecv,flag);
+        printf("这次我接受到了%d\n我应该接受%d\n",TmpSize,PackageLength);
         if(TmpSize <= 0){
             LinkC_Debug("接收数据",LINKC_FAILURE);
             return LINKC_FAILURE;
@@ -38,10 +46,6 @@ int16_t TCP_recv(int Sockfd, void *Out, int Out_size, int flag){
         NowRecv += TmpSize;
         if(NowRecv == PackageLength)
             break;
-        if(NowRecv > PackageLength){
-            printf("不行\n");
-            sleep(10);
-        }
     }
     return LINKC_SUCCESS;
 }
@@ -95,7 +99,6 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
                     return LINKC_FAILURE;
                 }
                 memcpy(out,recv_buffer,Length);                    // 复制数据
-                ((PackageHeader*)out)->MessageLength = TmpLength;
                 Length        = 0;                        // 重设长度
                 is_remain    = 0;                        // 设置为没有数据剩余
                 return LINKC_SUCCESS;                        // 返回成功
@@ -106,7 +109,6 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
                     return LINKC_FAILURE;
                 }
                 memcpy(out,recv_buffer,TmpLength);        // 复制数据
-                ((PackageHeader*)out)->MessageLength = TmpLength;
                 bzero(Tmp,MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1);
                 memcpy(Tmp,(char *)recv_buffer+TmpLength,Length-TmpLength);
                 memcpy(recv_buffer,Tmp,Length-TmpLength);
@@ -121,7 +123,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
         bzero(recv_buffer,MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1);
         while(1){            // 直到接收数据大于等于数据包长度
             tmp = recv(sockfd,recv_buffer+Length,STD_PACKAGE_SIZE,flag);
-            if(tmp < 0){
+            if(tmp <= 0){
                 fprintf(stderr,"Recv Error[2]!\n");
                 return LINKC_FAILURE;
             }
@@ -145,7 +147,6 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
                 return LINKC_FAILURE;
             }
             memcpy(out,recv_buffer,Length);                    // 复制数据
-            ((PackageHeader*)out)->MessageLength = TmpLength;
             Length        = 0;                        // 重设长度
             is_remain    = 0;                        // 设置为没有数据剩余
             return LINKC_SUCCESS;                        // 返回成功
@@ -156,7 +157,6 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
                 return LINKC_FAILURE;
             }
             memcpy(out,recv_buffer,TmpLength);        // 复制数据
-            ((PackageHeader*)out)->MessageLength = TmpLength;
             bzero(Tmp,MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1);
             memcpy(Tmp,(char *)recv_buffer+TmpLength,Length-TmpLength);
             memcpy(recv_buffer,Tmp,Length-TmpLength);

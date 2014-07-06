@@ -1,3 +1,4 @@
+/*
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -14,9 +15,9 @@
 #include <signal.h>                 //  For 信号控制
 #include <unistd.h>                 //  For 时钟信号
 #include <pthread.h>
-#include <fcntl.h>           /* For O_* constants */
-#include <sys/stat.h>        /* For mode constants */
-#include <sys/types.h>
+#include <fcntl.h>          *//* For O_* constants */
+//#include <sys/stat.h>        /* For mode constants */
+/*#include <sys/types.h>
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
 #include <openssl/err.h>
@@ -502,7 +503,7 @@ int CreateSocket(const struct sockaddr *MyAddr){
         free(Socket);                                                           //  释放内存
         return 1;                                                               //  返回错误
     }
-    /*  我也不知道这段是什么意思，不过大概就是说设置成在收到数据的时候发送一个信息这么回事    */
+    *//*  我也不知道这段是什么意思，不过大概就是说设置成在收到数据的时候发送一个信息这么回事    *//*
     if(fcntl(Socket->Sockfd,F_SETOWN,getpid()) == -1){
         perror("Set Own");
         close(Socket->Sockfd);                                                  //  关闭套接字
@@ -685,4 +686,4 @@ int ResendMessage(LinkC_Socket *Socket, void *Message, int Flag){
         return -1;
     }
     return Byte;
-}
+}*/
