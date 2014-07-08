@@ -60,7 +60,6 @@ int SendActionStatus(int Sockfd, uint16_t StatusCode){
     char Package[sizeof(PackageHeader)+sizeof(MessageHeader)];
     MessageHeader Header;
     int Length = 0;
-    Header.ActionType = ACTION_STATUS;          //  Set MessageType
     Header.StatusCode  = htons(StatusCode);     //  Set StatusCode
     Length = _Package((void*)&Header,sizeof(MessageHeader),NORMAL_MESSAGE,Package);  //  Package
     return send(Sockfd,Package,Length,0);
@@ -81,7 +80,7 @@ void* MainConnect(void *Arg){
     }
     printf("Connected on port %d\n",ntohs(NetAddr.sin_port));
 START:
-    if(TCP_recv(Sockfd,Package,STD_BUFFER_SIZE,0) < 0){     //  接收数据失败
+    if(TCP_Recv(Sockfd,Package,STD_BUFFER_SIZE,0) < 0){     //  接收数据失败
         LinkC_Debug("接收",LINKC_FAILURE);
         goto END;                                           //  跳转到end位置
     }
@@ -107,8 +106,10 @@ START:
     LinkC_Debug("登录",LINKC_DONE);
     while(1){
         Status = TCP_recv(Sockfd,Package,STD_BUFFER_SIZE,0);
-        if(Status == LINKC_NO_DATA)                             //  没有数据就视作对方关闭了链接
+        if(Status == LINKC_NO_DATA){                            //  没有数据就视作对方关闭了链接
+            LinkC_Debug("链接中断",LINKC_WARNING);
             goto END;
+        }
         if(Status < 0){
             LinkC_Debug("接收",LINKC_FAILURE);
             goto END;                                           //  跳转到end位置
@@ -117,6 +118,17 @@ START:
             LinkC_Debug("解包",LINKC_FAILURE);
             goto END;
         }
+        if(((MessageHeader*)Buffer)->ActionType == USER_LOGOUT){
+            if(SetStatus(&User,NetAddr,STATUS_OFFLINE) == LINKC_FAILURE){
+                SendActionStatus(Sockfd,LOGOUT_FAILURE);
+                LinkC_Debug("用户登出",LINKC_FAILURE);
+                continue;
+            }
+            SendActionStatus(Sockfd,LOGOUT_SUCCESS);
+            LinkC_Debug("用户登出",LINKC_SUCCESS);
+            goto END;
+        }
+        LinkC_Debug("没有与此相对应的操作",LINKC_WARNING);
     }
 
 END:

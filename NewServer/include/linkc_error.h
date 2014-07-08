@@ -1,7 +1,10 @@
 #ifndef LINKC_ERROR_H
 #define LINKC_ERROR_H
 
+#include <stdio.h>
+
 void LinkC_Debug(const char *Target,int Status);
+void MemoryPrint(void *Memory,size_t size);
 
 #define _DEBUG_MOD_     1
 

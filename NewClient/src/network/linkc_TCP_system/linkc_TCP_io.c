@@ -2,6 +2,7 @@
 #include "../../../include/linkc_def.h"
 #include "../../../include/linkc_error.h"
 #include "../../../include/linkc_package.h"
+#include "../../../include/linkc_client_nonui.h"
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <memory.h>
@@ -19,13 +20,13 @@ int    tmp;
 uint16_t    TmpLength;
 
 
-int16_t TCP_recv(int Sockfd, void *Out, int Out_size, int flag,WINDOW* Console){
+int16_t wTCP_Recv(int Sockfd, void *Out, int Out_size, int flag){
     PackageHeader Header;
     if(recv(Sockfd,(void*)&Header,sizeof(PackageHeader),MSG_PEEK) == LINKC_FAILURE)
         return LINKC_FAILURE;
     int PackageLength = ntohs(Header.MessageLength)+sizeof(PackageHeader);
     if(PackageLength > Out_size){
-        LinkC_Debug(Console,"传出缓冲区过小",LINKC_FAILURE);
+        wLinkC_Debug("传出缓冲区过小",LINKC_FAILURE);
         return LINKC_FAILURE;
     }
     int NowRecv = 0;
@@ -33,7 +34,7 @@ int16_t TCP_recv(int Sockfd, void *Out, int Out_size, int flag,WINDOW* Console){
     while(1){
         TmpSize = recv(Sockfd,(char*)Out+NowRecv,PackageLength - NowRecv,flag);
         if(TmpSize <= 0){
-            LinkC_Debug(Console,"接收数据",LINKC_FAILURE);
+            wLinkC_Debug("接收数据",LINKC_FAILURE);
             return LINKC_FAILURE;
         }
         NowRecv += TmpSize;

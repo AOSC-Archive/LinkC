@@ -1,6 +1,10 @@
 #include "../../include/linkc_client.h"
 #include "../../include/linkc_error.h"
 #include "../../include/linkc_client_nonui.h"
+#include "../../include/linkc_package.h"
+#include "../../include/linkc_package_ctl.h"
+#include "../../include/linkc_basic_network.h"
+#include "../../include/linkc_TCP_system/linkc_TCP_io.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -44,37 +48,70 @@ int GetPassword(char* passwd, int size)
 int NonUiMode(){
     InitCurses();                                               //  初始化文本环境
     char Input;
-    WINDOW *Console = newwin(10,60,LINES-11,3);                    //  新建窗口
+    Console = newwin(10,63,LINES-13,3);                    //  新建窗口
+    CommandLine = newwin(2,63,LINES-3,3);
     scrollok(Console,TRUE);                                        //  设置成滚动窗口
+    scrollok(CommandLine,TRUE);                                        //  设置成滚动窗口
     wrefresh(Console);                                             //  刷新窗口
-    LinkC_Debug(Console,"初始化LinkC文本界面客户端",LINKC_STARTED);
-    sleep(1);                                                   //  暂停1秒
+    wrefresh(CommandLine);
+    wLinkC_Debug("初始化LinkC文本界面客户端",LINKC_STARTED);
+    char Command[STD_PACKAGE_SIZE];
+    void *Package = malloc(STD_PACKAGE_SIZE);
+    void *Buffer  = malloc(STD_PACKAGE_SIZE);
+    int   Length  = 0;
+    bzero(Package,STD_PACKAGE_SIZE);
+    bzero(Buffer, STD_PACKAGE_SIZE);
+    bzero(Command,STD_PACKAGE_SIZE);
 
-    LinkC_Debug(Console,"初始化LinkC文本界面客户端",LINKC_DONE);
+    wLinkC_Debug("初始化LinkC文本界面客户端",LINKC_DONE);
     int Sockfd = InitNetwork();
 TRY:
-    LinkC_Debug(Console,"连接到服务器",LINKC_STARTED);
+    wLinkC_Debug("连接到服务器",LINKC_STARTED);
     if(ConnectToServer(Sockfd) == LINKC_FAILURE){
         wattron(Console,RED_ON_BLACK);
-        wprintw(Console,"连接到服务器失败\n输入R重连，其余键退出\n>>");
+        wprintw(Console,"连接到服务器失败\n输入R重连，其余键退出\n");
         wrefresh(Console);
-        Input = getchar();
+        touchwin(CommandLine);
+        Input = getch();
         if(Input == 'R')    goto TRY;
         return LINKC_FAILURE;
     }
-    LinkC_Debug(Console,"连接到服务器",LINKC_SUCCESS);
-    LinkC_Debug(Console,"登录",LINKC_STARTED);
-    if(NonUiLogin(Sockfd,Console) == LINKC_FAILURE){
+    wLinkC_Debug("连接到服务器",LINKC_SUCCESS);
+    wLinkC_Debug("登录",LINKC_STARTED);
+    if(NonUiLogin(Sockfd) == LINKC_FAILURE){
         attron(COLOR_PAIR(RED_ON_BLACK));
-        LinkC_Debug(Console,"登录",LINKC_FAILURE);
+        wLinkC_Debug("登录",LINKC_FAILURE);
         return LINKC_FAILURE;
     }
-    LinkC_Debug(Console,"登录",LINKC_SUCCESS);
-    getchar();
+    wLinkC_Debug("登录",LINKC_SUCCESS);
+    while(1){
+        GetCommandLine(Command);
+        if(strcmp(Command,"Logout")==0){
+            ((MessageHeader*)Buffer)->ActionType    = USER_LOGOUT;
+            Length = _Package(Buffer,sizeof(MessageHeader),NORMAL_MESSAGE,Package);
+            TCP_Send(Sockfd,Package,Length,0);
+            wLinkC_Debug("等待服务端的回应......",LINKC_DEBUG);
+            wTCP_Recv(Sockfd,Buffer,STD_PACKAGE_SIZE,0);
+            _UnPackage(Buffer,STD_PACKAGE_SIZE,Package);
+            if(ntohs(((MessageHeader*)Package)->StatusCode) == LOGOUT_SUCCESS){
+                wLinkC_Debug("登出",LINKC_SUCCESS);
+                wLinkC_Debug("按任意键退出......",LINKC_DEBUG);
+                wrefresh(Console);
+                getchar();
+                break;
+            }else{
+                wMemoryPrint(Console,Package,sizeof(MessageHeader));
+                wprintw(Console,"退出失败\n");
+                wrefresh(Console);
+            }
+        }
+    }
+    free(Package);
+    free(Buffer);
     return 0;
 }
 
-int NonUiLogin(int Sockfd,WINDOW* Console){
+int NonUiLogin(int Sockfd){
     LoginData Data;
     bzero((void*)&Data,sizeof(LoginData));
     WINDOW *LoginWindow=newwin(10,30,LINES/2-5,COLS/2-15);
@@ -91,5 +128,14 @@ int NonUiLogin(int Sockfd,WINDOW* Console){
     wmove(LoginWindow,4,12);
     wrefresh(LoginWindow);
     wgetstr(LoginWindow,Data.PassWord);
-    return Login(Sockfd,Data, Console);
+    echo();
+    return Login(Sockfd,Data);
+}
+
+void GetCommandLine(char*Buffer){
+    echo();
+    wprintw(CommandLine,">>");
+    wrefresh(CommandLine);
+    wgetstr(CommandLine,Buffer);
+    return;
 }

@@ -57,12 +57,6 @@ int     SetStatus       (UserData *User,struct sockaddr_in Addr, int _Flag);
  * 参数：2      sockaddr_in     用户现在的网络地址
  * 参数：3      int _Flag       操作参数
  */
-#ifndef LINKC_USER_STATUS
-#define LINKC_USER_STATUS
-#define STATUS_ONLINE       0x01
-#define STATUS_OFFLINE      0x02
-#define STATUS_HIDDEN       0x03
-#endif
 
 /*舍弃*/
 //extern int get_info (int UID,int _Flag);

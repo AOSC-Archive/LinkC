@@ -13,7 +13,7 @@ int InitNetwork();
 int ConnectToServer(int Sockfd);
 /*  连接到服务器    */
 
-int Login(int Sockfd,LoginData Data,WINDOW* Console);
+int Login(int Sockfd,LoginData Data);
 /*  登录            */
 
 #endif

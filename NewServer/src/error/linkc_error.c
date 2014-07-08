@@ -1,5 +1,6 @@
 #include "../../include/linkc_error.h"
 #include <stdio.h>
+#include <stdint.h>
 
 void LinkC_Debug(const char *Target,int Status){
 #if _DEBUG_MOD_
@@ -47,4 +48,17 @@ void LinkC_Debug(const char *Target,int Status){
 #else
             printf("[FAILURE]\t%s\n",Target);
 #endif
+}
+
+
+void MemoryPrint(void *Memory,size_t size){
+    uint8_t *p = (uint8_t*)Memory;
+    size_t i;
+    printf("---------Memory Print---------\n");
+    for(i=0;i<size;i++){
+        printf("Addr = [0x%X]\t\t[0x%X]\n",p,*p);
+        p++;
+    }
+    printf("--------------End-------------\n");
+    return;
 }

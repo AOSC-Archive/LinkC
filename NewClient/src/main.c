@@ -16,6 +16,7 @@ int main(int argc,char **argv){
             exit(0);
         }
     }else{
+        printf("Logout = %d\n",USER_LOGOUT);
         //  start ui version
     }
     return 0;

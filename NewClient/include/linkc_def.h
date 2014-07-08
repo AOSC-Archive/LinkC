@@ -42,28 +42,42 @@
 /*  ========= 指示代码 ===========  */
 #define      LOGIN_FAILURE          0x1001
 #define      LOGIN_SUCCESS          0x0001
-#define SET_STATUS_FAILURE          0x1002
-#define SET_STATUS_SUCCESS          0x0002
+#define     LOGOUT_FAILURE          0x1002
+#define     LOGOUT_SUCCESS          0x0002
+#define SET_STATUS_FAILURE          0x1003
+#define SET_STATUS_SUCCESS          0x0003
+#define   GET_DATA_FAILURE          0x1004
+#define   GET_DATA_SUCCESS          0x0004
 /*  ========= 指示代码 ===========  */
 
 /*  ========= 操作类型 ===========  */
-#define USER_LOGIN              0   //  登陆请求
-#define RQUSET_DATA             1	//  请求数据
-#define UPLOAD_DATA             2   //  上传数据
-#define RETURN_DATA             3   //  返回的数据
-#define ACTION_STATUS           4   //  操作状态
+#define USER_LOGIN                  0x01    //  登陆请求
+#define USER_LOGOUT                 0x02    //  登出请求
+#define RQUSET_DATA                 0x10	//  请求数据
+#define UPLOAD_DATA                 0x20    //  上传数据
+#define RETURN_DATA                 0x30    //  返回的数据
+#define STATUS_ACTION               0x40    //  状态操作
 /*  ========= 消息类型 ===========  */
 
 
+/*  ========= 服务数据 ===========  */
+#define SELF_DATA                   0x00    //  自身数据
+#define USER_DATA                   0x01    //  用户数据
+#define FRIENDS_DATA                0x02    //  全部好友数据
+/*  ========= 服务数据 ===========  */
 
-/*  ========= 服务数据 ===========  */
-#define USER_DATA               1   //  用户数据
-/*  ========= 服务数据 ===========  */
+
+
+/*  ========= 用户状态 ===========  */
+#define STATUS_ONLINE               0x01    //  在线
+#define STATUS_OFFLINE              0x02    //  离线
+#define STATUS_HIDDEN               0x03    //  隐身
+/*  ========= 用户状态 ===========  */
 
 
 /*  ========= 数据类型 ===========  */
 struct MessageHeader_t{             //  消息头
-    uint8_t     ActionType;         //  见 [消息类型]
+    uint8_t     ActionType;         //  见 [操作类型]
     uint8_t     ServiceType;        //  见 [服务数据]
     uint16_t    StatusCode;         //  状态码
 };

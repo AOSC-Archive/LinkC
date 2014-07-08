@@ -3,7 +3,7 @@
 
 #include "linkc_def.h"
 
-int     InitNetwork(int port);
+int     InitNetwork(void);
 
 int     WaitForConnect(void);
 
