@@ -50,10 +50,10 @@
 #define   GET_DATA_SUCCESS          0x0004
 /*  ========= 指示代码 ===========  */
 
-/*  ========= 操作类型 ===========  */
 #define USER_LOGIN                  0x01    //  登陆请求
 #define USER_LOGOUT                 0x02    //  登出请求
-#define RQUSET_DATA                 0x10	//  请求数据
+/*  ========= 操作类型 ===========  */
+#define RQUEST_DATA                 0x10	//  请求数据
 #define UPLOAD_DATA                 0x20    //  上传数据
 #define RETURN_DATA                 0x30    //  返回的数据
 #define STATUS_ACTION               0x40    //  状态操作
@@ -82,6 +82,10 @@ struct MessageHeader_t{             //  消息头
     uint16_t    StatusCode;         //  状态码
 };
 
+struct UserRequest_t{
+    uint32_t    UID;
+    uint32_t    Flag;
+};
 
 struct LoginData_t{                 //  登陆数据
         char UserName[15];
@@ -115,10 +119,11 @@ struct PthreadData_t{
     int                 Sockfd;
 };
 
-typedef struct MessageHeader_t MessageHeader;
-typedef struct LoginData_t     LoginData;
-typedef struct UserData_t      UserData;
-typedef struct PthreadData_t   PthreadData;
+typedef struct MessageHeader_t  MessageHeader;
+typedef struct UserRequest_t    UserRequest;
+typedef struct LoginData_t      LoginData;
+typedef struct UserData_t       UserData;
+typedef struct PthreadData_t    PthreadData;
 
 /*  ========= 数据类型 ===========  */
 
