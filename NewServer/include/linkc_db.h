@@ -27,10 +27,11 @@
 int     InitSqliteDb    (void);
 /* 打开数据库，并且设置全局变量 */
 
-int     CheckPassword   (LoginData *Data);
+int     CheckPassword   (LoginData *Data,uint32_t *UID);
 /*
  *  TODO:检验用户密码是否正确，并且返回 UserData 中的 UID 键值
  *  ARGS:   [LoginData*]            LoginData 结构类型指针
+            [uint32_t* ]            uint32_t 指针，用于返回UID
  *  RETN:   [成功]                  用户的UID                   [恒大于0]
  *          [失败]                  LINKC_FAILURE
  *  

@@ -75,7 +75,7 @@ void* MainConnect(void *Arg){
     UserData    User;
     int         Status          = 0;
     if(InitSqliteDb()==LINKC_FAILURE){
-        LinkC_Debug(" ",LINKC_FAILURE);
+        LinkC_Debug("初始化数据库",LINKC_FAILURE);
         return NULL;
     }
     printf("Connected on port %d\n",ntohs(NetAddr.sin_port));
@@ -92,7 +92,7 @@ START:
         LinkC_Debug("请求类型错误",LINKC_WARNING);
         goto END;
     }
-    if(CheckPassword((LoginData*)((char*)Buffer+sizeof(MessageHeader)))== LINKC_FAILURE){   //  检查密码
+    if(CheckPassword((LoginData*)((char*)Buffer+sizeof(MessageHeader)),&(User.UID))== LINKC_FAILURE){   //  检查密码
         printf("LoginFailure\n");
         SendActionStatus(Sockfd,LOGIN_FAILURE);
         goto START;
@@ -107,7 +107,7 @@ START:
     while(1){
         Status = TCP_recv(Sockfd,Package,STD_BUFFER_SIZE,0);
         if(Status == LINKC_NO_DATA){                            //  没有数据就视作对方关闭了链接
-            LinkC_Debug("链接中断",LINKC_WARNING);
+            LinkC_Debug("链接断开",LINKC_WARNING);
             goto END;
         }
         if(Status < 0){
@@ -127,6 +127,8 @@ START:
             SendActionStatus(Sockfd,LOGOUT_SUCCESS);
             LinkC_Debug("用户登出",LINKC_SUCCESS);
             goto END;
+        }else if(GetActionType(((MessageHeader*)Buffer)->ActionType) == RQUEST_DATA){
+            
         }
         LinkC_Debug("没有与此相对应的操作",LINKC_WARNING);
     }

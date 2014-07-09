@@ -30,7 +30,7 @@ int InitSqliteDb (void){
 
 }
 
-int CheckPassword(LoginData *Data){
+int CheckPassword(LoginData *Data,uint32_t  *UID){
     char exec[STD_BUFFER_SIZE];
     char * errmsg = NULL;
     char **dbResult;
@@ -49,6 +49,7 @@ int CheckPassword(LoginData *Data){
                 if (result == SQLITE_OK){
                     sscanf (dbResult[user_c +1 - 1],"%d",&result);  //  录入UID
                     sqlite3_free_table (dbResult);
+                    *UID    = result;
                     return result;              //  返回UID
                 }
             }
