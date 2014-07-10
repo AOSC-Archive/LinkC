@@ -77,7 +77,6 @@ int GetUserData (int UID, int DestUID ,UserData **_ffb){
     printf("Friend Data Get %s\n",exec);
     result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
     if( result == SQLITE_OK ){
-        printf("OK\n");
         if (nRow == 0){
             sqlite3_free_table (dbResult);
             errmsg = NULL;

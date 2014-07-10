@@ -10,6 +10,6 @@ int     SendActionStatus    (int Sockfd, uint16_t StatusCode);
 uint8_t GetActionType       (uint8_t Type);
 uint8_t GetDataType         (uint8_t Type);
 
-int     ReplyData           (UserData* User,int Sockfd,uint8_t Request,uint16_t );
+int     ReplyData           (UserData* User,int Sockfd,uint8_t Request);
 
 #endif
