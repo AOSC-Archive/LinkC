@@ -74,10 +74,10 @@ int GetUserData (int UID, int DestUID ,UserData **_ffb){
     UserData* _friend;
     _friend = (UserData *) malloc (sizeof (UserData));
     sprintf (exec,"SELECT * FROM user WHERE id='%d'",DestUID);
-    printf("Friend Data Get %s\n",exec);
     result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
     if( result == SQLITE_OK ){
         if (nRow == 0){
+            LinkC_Debug("没有检索到",LINKC_WARNING);
             sqlite3_free_table (dbResult);
             errmsg = NULL;
             return LINKC_FAILURE;
@@ -95,7 +95,7 @@ int GetUserData (int UID, int DestUID ,UserData **_ffb){
         if (nRow == 0){                        // 如果不是好友
             sqlite3_free_table (dbResult);
             errmsg = NULL;
-            return LINKC_FAILURE;
+            return LINKC_SUCCESS;
         }
         strcpy (_friend[0].PrivateNickName,dbResult[db_column + FRIEND_NICKNAME]);// 如果是好友，得到nickname
         sqlite3_free_table (dbResult);
@@ -103,6 +103,7 @@ int GetUserData (int UID, int DestUID ,UserData **_ffb){
         errmsg = NULL;
         return LINKC_SUCCESS;
     }
+    LinkC_Debug("数据库操作错误",LINKC_WARNING);
     return LINKC_FAILURE;        // 返回错误
 }
 

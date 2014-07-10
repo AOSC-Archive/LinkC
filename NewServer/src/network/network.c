@@ -128,7 +128,8 @@ START:
             LinkC_Debug("用户登出",LINKC_SUCCESS);
             goto END;
         }else if(GetActionType(((MessageHeader*)Buffer)->ActionType) == RQUEST_DATA){
-            
+            ReplyData(&User,Sockfd,GetDataType(((MessageHeader*)Buffer)->ActionType));
+            continue;
         }
         LinkC_Debug("没有与此相对应的操作",LINKC_WARNING);
     }

@@ -44,7 +44,7 @@ int     GetFriendsData  (int UID,UserData ** ffb);
  * 参数：2    struct friend_data * 的地址    运行完成后构建一个指针数组
  */
 
-int     GetUserData     (int UID, int DestUID,UserData *Data);
+int     GetUserData     (int UID, int DestUID,UserData **Data);
 /*
  * 获得单个好友的资料，返回值为得到的资料
  * 参数：1    int UID        UID为用户唯一标识

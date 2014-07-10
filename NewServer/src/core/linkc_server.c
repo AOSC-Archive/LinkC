@@ -18,10 +18,9 @@ uint8_t GetDataType(uint8_t Type){
     return Type&0x0F;
 }
 int ReplyData (UserData* User,int Sockfd,uint8_t Request){
-    uint8_t DataType = GetDataType(Request);
-    if(DataType == SELF_DATA){
-        if(GetUserData(User->UID,User->UID,User) == LINKC_FAILURE){
-            LinkC_Debug("GetUserData",LINKC_FAILURE);
+    if(Request == SELF_DATA){
+        if(GetUserData(User->UID,User->UID,&User) == LINKC_FAILURE){
+            LinkC_Debug("数据库访问",LINKC_FAILURE);
             SendActionStatus(Sockfd,GET_DATA_FAILURE);
             return LINKC_FAILURE;
         }
@@ -29,7 +28,7 @@ int ReplyData (UserData* User,int Sockfd,uint8_t Request){
         void *Package =malloc(STD_PACKAGE_SIZE);
         bzero(Buffer,sizeof(MessageHeader)+sizeof(UserData));
         bzero(Package,STD_PACKAGE_SIZE);
-        ((MessageHeader*)Buffer)->ActionType = RETURN_DATA|USER_DATA;
+        ((MessageHeader*)Buffer)->ActionType = RETURN_DATA|SELF_DATA;
         ((MessageHeader*)Buffer)->StatusCode = htons(GET_DATA_SUCCESS);
         int Length = _Package(Buffer,sizeof(MessageHeader)+sizeof(UserData),NORMAL_MESSAGE,Package);
         send(Sockfd,Package,Length,0);

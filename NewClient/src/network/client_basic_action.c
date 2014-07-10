@@ -13,7 +13,7 @@
 #include <string.h>
 #include <curses.h>
 
-int Login(int Sockfd,LoginData Data){
+int wLogin(int Sockfd,LoginData Data){
     void *Buffer    = malloc(STD_PACKAGE_SIZE);
     void *Package   = malloc(STD_PACKAGE_SIZE);
     ((MessageHeader*)Buffer)->ActionType = USER_LOGIN;
@@ -36,5 +36,51 @@ int Login(int Sockfd,LoginData Data){
 
     free(Buffer);
     free(Package);
+    Buffer = NULL;
+    Package= NULL;
+    return LINKC_SUCCESS;
+}
+
+int wGetSelfData(int Sockfd,UserData* Data){
+    void *Buffer = malloc(STD_PACKAGE_SIZE);
+    void *Package= malloc(STD_PACKAGE_SIZE);
+    bzero(Buffer, STD_PACKAGE_SIZE);
+    bzero(Package,STD_PACKAGE_SIZE);
+    ((MessageHeader*)Buffer)->ActionType = (RQUEST_DATA|SELF_DATA);
+    int Length = _Package(Buffer,sizeof(MessageHeader),NORMAL_MESSAGE,Package);
+    send(Sockfd,Package,Length,0);
+    wLinkC_Debug("个人数据申请要求发送",LINKC_DONE);
+    wLinkC_Debug("等待服务器回应",LINKC_STARTED);
+    if(wTCP_Recv(Sockfd,Buffer,STD_PACKAGE_SIZE,0) == LINKC_FAILURE){
+        wLinkC_Debug("接受数据",LINKC_FAILURE);
+        free(Buffer);
+        free(Package);
+        Buffer = NULL;
+        Package= NULL;
+        return LINKC_FAILURE;
+    }
+    _UnPackage(Buffer,STD_PACKAGE_SIZE,Package);
+    if(((MessageHeader*)Package)->ActionType != (RETURN_DATA|SELF_DATA)){
+        wLinkC_Debug("服务端返回数据错误",LINKC_WARNING);
+        free(Buffer);
+        free(Package);
+        Buffer = NULL;
+        Package= NULL;
+        return LINKC_FAILURE;
+    }
+    if(((MessageHeader*)Package)->StatusCode == htons(GET_DATA_FAILURE)){
+        wLinkC_Debug("服务端获取数据",LINKC_FAILURE);
+        free(Buffer);
+        free(Package);
+        Buffer = NULL;
+        Package= NULL;
+        return LINKC_FAILURE;
+    }
+    wLinkC_Debug("接收个人数据",LINKC_DONE);
+    memcpy(Data,((char*)Package)+sizeof(MessageHeader),sizeof(UserData));
+    free(Buffer);
+    free(Package);
+    Buffer = NULL;
+    Package= NULL;
     return LINKC_SUCCESS;
 }

@@ -63,6 +63,8 @@ int NonUiMode(){
     bzero(Buffer, STD_PACKAGE_SIZE);
     bzero(Command,STD_PACKAGE_SIZE);
 
+    UserData MySelf;
+
     wLinkC_Debug("初始化LinkC文本界面客户端",LINKC_DONE);
     int Sockfd = InitNetwork();
 TRY:
@@ -104,6 +106,16 @@ TRY:
                 wprintw(Console,"退出失败\n");
                 wrefresh(Console);
             }
+        }else if(strcmp(Command,"GetSelfData")==0){
+            wLinkC_Debug("获取自身资料",LINKC_STARTED);
+            if(wGetSelfData(Sockfd,&MySelf) == LINKC_FAILURE){
+                wLinkC_Debug("获取自身资料",LINKC_FAILURE);
+                continue;
+            }
+            wLinkC_Debug("获取自身资料",LINKC_DONE);
+        }else{
+            wLinkC_Debug("没有对应操作",LINKC_WARNING);
+            continue;
         }
     }
     free(Package);
@@ -129,7 +141,7 @@ int NonUiLogin(int Sockfd){
     wrefresh(LoginWindow);
     wgetstr(LoginWindow,Data.PassWord);
     echo();
-    return Login(Sockfd,Data);
+    return wLogin(Sockfd,Data);
 }
 
 void GetCommandLine(char*Buffer){
