@@ -141,6 +141,11 @@ int NonUiLogin(int Sockfd){
     wrefresh(LoginWindow);
     wgetstr(LoginWindow,Data.PassWord);
     echo();
+    wclear(LoginWindow);
+    delwin(LoginWindow);
+    wclear(stdscr);
+    refresh();
+    wrefresh(Console);
     return wLogin(Sockfd,Data);
 }
 

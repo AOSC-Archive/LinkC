@@ -41,10 +41,14 @@ int WaitForConnect(){
     int Sockfd = InitNetwork(2341);
     PthreadData Client;
     socklen_t len = sizeof (Client.Addr);
+    if(InitSqliteDb()==LINKC_FAILURE){
+        LinkC_Debug("初始化数据库",LINKC_FAILURE);
+        return LINKC_FAILURE;
+    }
 #ifndef SINGLE_USER_TESTING
     pthread_t pid;
 #endif
-    LinkC_Debug("Waiting",LINKC_DEBUG);
+    LinkC_Debug("等待连接",LINKC_DEBUG);
     while (1){
         Client.Sockfd = accept (Sockfd,(struct sockaddr *)&Client.Addr,(socklen_t *)&len);  //  接受链接请求
 #ifdef SINGLE_USER_TESTING
@@ -74,13 +78,8 @@ void* MainConnect(void *Arg){
     void*       Package         = malloc(STD_BUFFER_SIZE);
     UserData    User;
     int         Status          = 0;
-    if(InitSqliteDb()==LINKC_FAILURE){
-        LinkC_Debug("初始化数据库",LINKC_FAILURE);
-        return NULL;
-    }
-    printf("Connected on port %d\n",ntohs(NetAddr.sin_port));
 START:
-    if(TCP_Recv(Sockfd,Package,STD_BUFFER_SIZE,0) < 0){     //  接收数据失败
+    if(TCP_recv(Sockfd,Package,STD_BUFFER_SIZE,0) < 0){     //  接收数据失败
         LinkC_Debug("接收",LINKC_FAILURE);
         goto END;                                           //  跳转到end位置
     }
@@ -93,7 +92,7 @@ START:
         goto END;
     }
     if(CheckPassword((LoginData*)((char*)Buffer+sizeof(MessageHeader)),&(User.UID))== LINKC_FAILURE){   //  检查密码
-        printf("LoginFailure\n");
+        LinkC_Debug("登录",LINKC_FAILURE);
         SendActionStatus(Sockfd,LOGIN_FAILURE);
         goto START;
     }
@@ -128,14 +127,14 @@ START:
             LinkC_Debug("用户登出",LINKC_SUCCESS);
             goto END;
         }else if(GetActionType(((MessageHeader*)Buffer)->ActionType) == RQUEST_DATA){
-            ReplyData(&User,Sockfd,GetDataType(((MessageHeader*)Buffer)->ActionType));
+            ReplyData(&User,Sockfd,GetDataType(((MessageHeader*)Buffer)->ActionType),(RequestUser*)(char*)Buffer+sizeof(MessageHeader));
             continue;
         }
         LinkC_Debug("没有与此相对应的操作",LINKC_WARNING);
     }
 
 END:
-    printf("Disonnected!\n");
+    LinkC_Debug("断开链接",LINKC_DEBUG);
     free(Buffer);               // 释放内存！［不释放内存线程可能死得惨］
     free(Package);
     Buffer      = NULL;

@@ -42,7 +42,6 @@ int CheckPassword(LoginData *Data,uint32_t  *UID){
     if( result == SQLITE_OK ){
         if (nRow == 1){
             if ((strncmp (Data->PassWord,dbResult[1],17)) == 0){
-                printf("OK\n");
                 sqlite3_free_table (dbResult);
                 sprintf (exec,"SELECT * FROM user WHERE username='%s'",Data->UserName);
                 result = sqlite3_get_table (user_db,exec,&dbResult,&nRow,&nColumn,&errmsg); //  获取用户资料
@@ -65,14 +64,12 @@ int CheckPassword(LoginData *Data,uint32_t  *UID){
     }
 }
 
-int GetUserData (int UID, int DestUID ,UserData **_ffb){
+int GetUserData (int UID, int DestUID ,UserData *User){
     char exec[STD_BUFFER_SIZE];
     char * errmsg = NULL;
     char **dbResult;
     int nRow, nColumn;
     int result;
-    UserData* _friend;
-    _friend = (UserData *) malloc (sizeof (UserData));
     sprintf (exec,"SELECT * FROM user WHERE id='%d'",DestUID);
     result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
     if( result == SQLITE_OK ){
@@ -82,14 +79,14 @@ int GetUserData (int UID, int DestUID ,UserData **_ffb){
             errmsg = NULL;
             return LINKC_FAILURE;
         }
-        _friend[0].UID = htonl(DestUID);
-        strcpy (_friend[0].UserName,dbResult[user_c     +   USER_USERNAME]);    // 获取用户名
-        strcpy (_friend[0].Telephone,dbResult[user_c    +   USER_TEL])    ;     // 获得电话
-        strcpy (_friend[0].Company,dbResult[user_c      +   USER_COMPANY]);     // 获得公司
-        strcpy (_friend[0].Address,dbResult[user_c      +   USER_ADDRESS]);     // 获得地址
-        _friend[0].Status   = atoi(dbResult[user_c      +   USER_STATUS]) ;     // 获得状态
-        _friend[0].IP       = inet_addr(dbResult[user_c +   USER_LAST_IP]);     // 获得IP地址
-        strcpy (_friend[0].NickName,dbResult[user_c     +   USER_NAME])   ;     // 获得昵称
+        User->UID = htonl(DestUID);
+        strcpy (User->UserName,dbResult[user_c     +   USER_USERNAME]);    // 获取用户名
+        strcpy (User->Telephone,dbResult[user_c    +   USER_TEL])    ;     // 获得电话
+        strcpy (User->Company,dbResult[user_c      +   USER_COMPANY]);     // 获得公司
+        strcpy (User->Address,dbResult[user_c      +   USER_ADDRESS]);     // 获得地址
+        User->Status   = atoi(dbResult[user_c      +   USER_STATUS]) ;     // 获得状态
+        User->IP       = inet_addr(dbResult[user_c +   USER_LAST_IP]);     // 获得IP地址
+        strcpy (User->NickName,dbResult[user_c     +   USER_NAME])   ;     // 获得昵称
         sprintf (exec,"SELECT * FROM id%d WHERE id='%d'",UID,DestUID);              // 检索好友数据库
         result = sqlite3_get_table( friend_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
         if (nRow == 0){                        // 如果不是好友
@@ -97,9 +94,8 @@ int GetUserData (int UID, int DestUID ,UserData **_ffb){
             errmsg = NULL;
             return LINKC_SUCCESS;
         }
-        strcpy (_friend[0].PrivateNickName,dbResult[db_column + FRIEND_NICKNAME]);// 如果是好友，得到nickname
+        strcpy (User->PrivateNickName,dbResult[db_column + FRIEND_NICKNAME]);// 如果是好友，得到nickname
         sqlite3_free_table (dbResult);
-        *_ffb = _friend;
         errmsg = NULL;
         return LINKC_SUCCESS;
     }
@@ -125,7 +121,6 @@ int GetFriendsData (int UID, UserData ** ffb){
             sscanf (dbResult[db_column * i + db_column + FRIEND_UID],"%d",&_friend[i].UID);     // 获得好友UID
             strcpy (_friend[i].PrivateNickName,dbResult[db_column * (i+1) + FRIEND_NICKNAME]);  // 获得好友自定义昵称
         }
-        printf ("nRow = %d\n",nRow);
         row = nRow;
         for (i=0;i<row;i++){
             sprintf (exec,"SELECT * FROM user WHERE id='%d'",_friend[i].UID);
