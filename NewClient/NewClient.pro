@@ -4,7 +4,9 @@
 
 TEMPLATE = app
 TARGET = NewClient
-INCLUDEPATH += . include include/linkc_TCP_system include/linkc_UDP_system
+QT += widgets core gui
+DEPENDPATH += . Gui include Window
+INCLUDEPATH += . include include/linkc_TCP_system include/linkc_UDP_system include/qtui
 
 # Input
 HEADERS += include/linkc_basic_network.h \
@@ -18,18 +20,25 @@ HEADERS += include/linkc_basic_network.h \
            include/linkc_server.h \
            include/linkc_TCP_system/linkc_TCP_io.h \
            include/linkc_UDP_system/linkc_netowrk_UDP_system.h \
-           include/linkc_UDP_system/linkc_package_list.h
-SOURCES += src/main.c \
-           src/error/linkc_error.c \
-           src/network/client_basic_action.c \
-           src/network/client_basic_network.c \
-           src/non-ui/non-ui-main.c \
-           src/network/linkc_TCP_system/linkc_TCP_io.c \
-           src/network/linkc_UDP_system/linkc_network_UDP_system.c \
-           src/network/package/package_ctl.c \
-           src/network/package/package_list/package_list.c
+           include/linkc_UDP_system/linkc_package_list.h \ 
+           include/qtui/mainwindow.h
+
+SOURCES += \
+           src/main.cpp \
+           src/error/linkc_error.cpp \
+           src/non-ui/non-ui.cpp\
+           src/network/client_basic_action.cpp \
+           src/network/client_basic_network.cpp \
+           src/network/linkc_TCP_system/linkc_TCP_io.cpp \
+           src/network/linkc_UDP_system/linkc_network_UDP_system.cpp \
+           src/network/package/package_ctl.cpp \
+           src/network/package/package_list/package_list.cpp \
+           src/qtui/ui-sources/mainwindow.cpp
 
 LIBS    += -lsqlite3 \
            -lssl \
            -lcrypto \
            -lcurses
+
+FORMS += \
+           src/qtui/ui-files/mainwindow.ui

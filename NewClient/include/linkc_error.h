@@ -4,7 +4,7 @@
 #include <curses.h>
 
 void wMemoryPrint(WINDOW* Console,void *Memory,size_t size);
-void wLinkC_Debug(const char *Target,int Status);
+void wLinkC_Debug(WINDOW* Console,const char *Target,int Status);
 void LinkC_Debug(const char *Target,int Status);
 
 #define _DEBUG_MOD_     1

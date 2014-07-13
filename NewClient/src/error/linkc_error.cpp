@@ -52,8 +52,7 @@ void LinkC_Debug(const char *Target,int Status){
 #endif
 }
 
-void wLinkC_Debug(const char *Target,int Status){
-    if(Console != NULL) wrefresh(Console);
+void wLinkC_Debug(WINDOW* Console,const char *Target,int Status){
 #if _DEBUG_MOD_
     if(Status == LINKC_SUCCESS)
 #ifdef linux

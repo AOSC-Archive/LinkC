@@ -14,9 +14,9 @@ int ConnectToServer(int Sockfd);
 /*  连接到服务器    */
 
 int Login(int Sockfd,LoginData Data);
-int wLogin(int Sockfd,LoginData Data);
+int wLogin(WINDOW* Console,int Sockfd,LoginData Data);
 /*  登录            */
 
-int wGetSelfData(int Sockfd,UserData *Data);
+int wGetSelfData(WINDOW* Console, int Sockfd,UserData *Data);
 
 #endif

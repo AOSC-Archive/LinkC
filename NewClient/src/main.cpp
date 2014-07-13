@@ -1,6 +1,7 @@
 #include "../include/linkc_def.h"
 #include "../include/linkc_error.h"
 #include "../include/linkc_client.h"
+#include "../include/linkc_client_nonui.h"
 #include <stdio.h>
 #include <curses.h>
 #include <string.h>
@@ -16,8 +17,6 @@ int main(int argc,char **argv){
             exit(0);
         }
     }else{
-        printf("Logout = %d\n",USER_LOGOUT);
-        //  start ui version
     }
     return 0;
 }
