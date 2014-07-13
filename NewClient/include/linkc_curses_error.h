@@ -1,11 +1,15 @@
 #ifndef LINKC_ERROR_H
 #define LINKC_ERROR_H
 
+#include <curses.h>
 
-void LinkC_Debug(const char *Target,int Status);
+void wMemoryPrint(WINDOW* Console,void *Memory,size_t size);
+void wLinkC_Debug(WINDOW* Console,const char *Target,int Status);
+
 
 #ifndef LINKC_ERROR
 #define LINKC_ERROR
+
 #define LINKC_DEBUG_MOD_     1
 
 #define LINKC_DEBUG     5
@@ -18,6 +22,7 @@ void LinkC_Debug(const char *Target,int Status);
 
 
 #define LINKC_NO_DATA   -12
+
 #endif
 
 #endif

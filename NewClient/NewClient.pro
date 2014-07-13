@@ -15,25 +15,31 @@ HEADERS += include/linkc_basic_network.h \
            include/linkc_db.h \
            include/linkc_def.h \
            include/linkc_error.h \
+           include/linkc_curses_error.h \
            include/linkc_package.h \
            include/linkc_package_ctl.h \
            include/linkc_server.h \
            include/linkc_TCP_system/linkc_TCP_io.h \
+           include/linkc_TCP_system/linkc_curses_TCP_io.h \
            include/linkc_UDP_system/linkc_netowrk_UDP_system.h \
            include/linkc_UDP_system/linkc_package_list.h \ 
-           include/qtui/mainwindow.h
+           include/qtui/mainwindow.h \
+           include/qtui/loginwindow.h
 
 SOURCES += \
            src/main.cpp \
            src/error/linkc_error.cpp \
+           src/error/linkc_curses_error.cpp\
            src/non-ui/non-ui.cpp\
-           src/network/client_basic_action.cpp \
+           src/network/non_ui_basic_action.cpp \
            src/network/client_basic_network.cpp \
            src/network/linkc_TCP_system/linkc_TCP_io.cpp \
+           src/network/linkc_TCP_system/linkc_curses_TCP_io.cpp \
            src/network/linkc_UDP_system/linkc_network_UDP_system.cpp \
            src/network/package/package_ctl.cpp \
            src/network/package/package_list/package_list.cpp \
-           src/qtui/ui-sources/mainwindow.cpp
+           src/qtui/ui-sources/mainwindow.cpp \
+           src/qtui/ui-sources/loginwindow.cpp
 
 LIBS    += -lsqlite3 \
            -lssl \
@@ -41,4 +47,5 @@ LIBS    += -lsqlite3 \
            -lcurses
 
 FORMS += \
-           src/qtui/ui-files/mainwindow.ui
+           src/qtui/ui-files/mainwindow.ui \
+           src/qtui/ui-files/loginwindow.ui

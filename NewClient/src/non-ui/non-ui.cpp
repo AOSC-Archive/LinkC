@@ -1,5 +1,6 @@
+#include "../../include/linkc_def.h"
 #include "../../include/linkc_client.h"
-#include "../../include/linkc_error.h"
+#include "../../include/linkc_curses_error.h"
 #include "../../include/linkc_client_nonui.h"
 #include "../../include/linkc_package.h"
 #include "../../include/linkc_package_ctl.h"
