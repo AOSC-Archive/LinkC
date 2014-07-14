@@ -1,9 +1,9 @@
-### Build:
+## Build:
     $ mkdir Build
     $ cd Build
     $ cmake ../
     $ make
     $(Run) Server
 
-### Clean:
+## Clean:
     $ rm -rf Build
