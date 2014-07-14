@@ -66,6 +66,7 @@
 #define SELF_DATA                   0x00    //  自身数据
 #define USER_DATA                   0x01    //  用户数据
 #define FRIENDS_DATA                0x02    //  全部好友数据
+#define SELF_STATUS                 0x03    //  自身状态
 /*  ========= 服务数据 ===========  */
 
 
@@ -90,8 +91,8 @@ struct RequestUser_t{
 };
 
 struct LoginData_t{                 //  登陆数据
-        char UserName[15];
-        char PassWord[17];
+        char UserName[16];
+        char PassWord[16];
 };
 
 struct UserData_t{                  //  用户数据

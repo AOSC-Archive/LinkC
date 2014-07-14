@@ -1,31 +1,10 @@
-/*#include "../include/linkc_def.h"
-#include "../include/linkc_error.h"
-#include "../include/linkc_client.h"
-#include "../include/linkc_client_nonui.h"
-#include <stdio.h>
-#include <curses.h>
-#include <string.h>
-#include <stdlib.h>
-#include <locale.h>
-#include <QTextCodec>
-#include <QApplication>
-#include "mainwindow.h"
-
-int main(int argc,char **argv){
-    if(argc == 2){
-        setlocale(LC_ALL,"");
-        if((strcmp(argv[1],"-NonUi")) == 0){
-            NonUiMode();
-            endwin();
-            exit(0);
-        }
-    }else{
-
-*/
 #include <QApplication>
 #include <QTextCodec>
+#include <QVariant>
 #include "linkc_def.h"
+#include "linkc_client.h"
 #include "mainwindow.h"
+#include "loginwindow.h"
 
 int main(int argc,char **argv){
 #if QT_VERSION < 0x050000
@@ -36,8 +15,13 @@ int main(int argc,char **argv){
 #else
         QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF8"));
 #endif
+//注册数据类型
+        QVariant DataVar;
+        LoginData D1;
+        DataVar.setValue(D1);
+        qRegisterMetaType<LoginData>("LoginData");
+//注册完毕
         QApplication a(argc, argv);
         MainWindow w;
-        w.show();
         return a.exec();
 }

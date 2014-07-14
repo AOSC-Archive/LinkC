@@ -30,3 +30,10 @@ int ConnectToServer(int Sockfd){
     }
     return 0;
 }
+
+int ConnectToServerWithAddr(int Sockfd,struct sockaddr_in Addr){
+    if(connect(Sockfd,(struct sockaddr *)&Addr, sizeof(struct sockaddr_in)) < 0){
+        return LINKC_FAILURE;
+    }
+    return LINKC_SUCCESS;
+}
