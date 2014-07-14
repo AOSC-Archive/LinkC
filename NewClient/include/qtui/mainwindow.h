@@ -26,10 +26,12 @@ signals:
 public slots:
     void        ExitProgram(void);
     void        DoLogin(LoginData);
+    int         DoGetSelfData(void);
 
 private:
     Ui::MainWindow *ui;
     LoginWindow *LoginW;
+    UserData    *User;
     TCP_Socket  *Socket;
     void        *Buffer;
     void        *Package;

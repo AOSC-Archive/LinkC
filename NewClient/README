@@ -1,0 +1,8 @@
+### LinkC 的新客户端
+
+DEPEND:
+        qt4或者qt5的开发库
+        curses开发库
+
+BUILD:
+        qmake && make

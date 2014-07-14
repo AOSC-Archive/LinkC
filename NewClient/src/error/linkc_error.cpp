@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 void LinkC_Debug(const char *Target,int Status){
-#if _DEBUG_MOD_
+#if LINKC_DEBUG_MOD_
     if(Status == LINKC_SUCCESS)
 #ifdef linux
         printf("[\033[32mSUCCESS\033[0m]\t%s\n",Target);

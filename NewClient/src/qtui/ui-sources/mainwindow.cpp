@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
     Buffer = new char[STD_PACKAGE_SIZE];
     Package= new char[STD_PACKAGE_SIZE];
     LoginW = new LoginWindow;
+    User   = new UserData;
     LoginW->show();
 
     /*初始化套接字*/
@@ -75,7 +76,37 @@ void MainWindow::DoLogin(LoginData Data){
     LinkC_Debug("状态设置",LINKC_SUCCESS);
 
     emit LoginStatus(true);
+    DoGetSelfData();
     return;
+}
+
+int MainWindow::DoGetSelfData(){
+    LinkC_Debug("获取自身数据",LINKC_STARTED);
+    bzero(Buffer, STD_PACKAGE_SIZE);
+    bzero(Package,STD_PACKAGE_SIZE);
+    ((MessageHeader*)Buffer)->ActionType = (RQUEST_DATA|SELF_DATA);
+    int Length = _Package(Buffer,sizeof(MessageHeader),NORMAL_MESSAGE,Package);
+    Socket->Send(Package,Length,0);
+    LinkC_Debug("个人数据申请要求发送",LINKC_DONE);
+    LinkC_Debug("等待服务器回应",LINKC_STARTED);
+    if(Socket->Recv(Buffer,STD_PACKAGE_SIZE,0) == LINKC_FAILURE){
+        LinkC_Debug("接收数据",LINKC_FAILURE);
+        return LINKC_FAILURE;
+    }
+    _UnPackage(Buffer,STD_PACKAGE_SIZE,Package);
+    if(((MessageHeader*)Package)->ActionType != (RETURN_DATA|SELF_DATA)){
+        LinkC_Debug("服务端返回数据错误",LINKC_WARNING);
+        return LINKC_FAILURE;
+    }
+    if(((MessageHeader*)Package)->StatusCode == htons(GET_DATA_FAILURE)){
+        LinkC_Debug("服务端获取数据",LINKC_FAILURE);
+        return LINKC_FAILURE;
+    }
+    LinkC_Debug("接收个人数据",LINKC_DONE);
+    memcpy((void*)User,((char*)Package)+sizeof(MessageHeader),sizeof(UserData));
+    LinkC_Debug("获取自身数据",LINKC_SUCCESS);
+    ui->label->setText(tr(User->NickName));
+    return LINKC_SUCCESS;
 }
 
 void MainWindow::ExitProgram(){
