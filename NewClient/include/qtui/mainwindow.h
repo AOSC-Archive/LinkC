@@ -6,6 +6,7 @@
 #include "linkc_client.h"
 #include "linkc_socket.h"
 #include "linkc_def.h"
+#include "friendslist.h"
 
 namespace Ui {
 class MainWindow;
@@ -27,9 +28,11 @@ public slots:
     void        ExitProgram(void);
     void        DoLogin(LoginData);
     int         DoGetSelfData(void);
+    int         DoGetFriendsData(void);
 
 private:
     Ui::MainWindow *ui;
+    FriendsList *FList;
     LoginWindow *LoginW;
     UserData    *User;
     TCP_Socket  *Socket;

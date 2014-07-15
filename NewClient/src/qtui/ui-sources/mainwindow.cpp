@@ -5,6 +5,8 @@
 #include "linkc_error.h"
 #include "linkc_package.h"
 #include "linkc_package_ctl.h"
+#include "friendslist.h"
+#include "linkc_package.h"
 #include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -16,6 +18,8 @@ MainWindow::MainWindow(QWidget *parent) :
     Package= new char[STD_PACKAGE_SIZE];
     LoginW = new LoginWindow;
     User   = new UserData;
+    FList  = new FriendsList(this);
+    FList->setGeometry(10,50,100,200);
     LoginW->show();
 
     /*初始化套接字*/
@@ -77,6 +81,7 @@ void MainWindow::DoLogin(LoginData Data){
 
     emit LoginStatus(true);
     DoGetSelfData();
+    DoGetFriendsData();
     return;
 }
 
@@ -106,6 +111,42 @@ int MainWindow::DoGetSelfData(){
     memcpy((void*)User,((char*)Package)+sizeof(MessageHeader),sizeof(UserData));
     LinkC_Debug("获取自身数据",LINKC_SUCCESS);
     ui->label->setText(tr(User->NickName));
+    return LINKC_SUCCESS;
+}
+
+int MainWindow::DoGetFriendsData(){
+    bzero(Buffer,STD_PACKAGE_SIZE);
+    bzero(Package,STD_PACKAGE_SIZE);
+    LinkC_Debug("刷新好友列表",LINKC_STARTED);
+    ((MessageHeader*)Buffer)->ActionType = (RQUEST_DATA|USER_DATA);
+    ((RequestUser*)(char*)Buffer+sizeof(MessageHeader))->UID = htonl(0);
+    int Length = _Package(Buffer,sizeof(MessageHeader)+sizeof(RequestUser),NORMAL_MESSAGE,Package);
+    Socket->Send(Package,Length,0);
+    LinkC_Debug("发送请求",LINKC_DEBUG);
+    bzero(Buffer,STD_PACKAGE_SIZE);
+    bzero(Package,STD_PACKAGE_SIZE);
+    Socket->Recv(Package,STD_PACKAGE_SIZE,0);
+    Length = ntohs(((PackageHeader*)Package)->MessageLength)-sizeof(MessageHeader);
+    _UnPackage(Package,STD_PACKAGE_SIZE,Buffer);
+    if(((MessageHeader*)Buffer)->ActionType != (RETURN_DATA|FRIENDS_DATA)){
+        LinkC_Debug("服务端返回数据错误",LINKC_DEBUG);
+        LinkC_Debug("获取全部好友资料",LINKC_FAILURE);
+        return LINKC_FAILURE;
+    }else if(((MessageHeader*)Buffer)->StatusCode != htons(GET_DATA_SUCCESS)){
+        LinkC_Debug("服务端获取数据失败",LINKC_DEBUG);
+        LinkC_Debug("获取全部好友资料",LINKC_FAILURE);
+        return LINKC_FAILURE;
+    }else if(((MessageHeader*)Buffer)->StatusCode == htons(NO_DATA)){
+        LinkC_Debug("你没有任何好友",LINKC_DEBUG);
+        LinkC_Debug("获取全部好友资料",LINKC_SUCCESS);
+        return LINKC_SUCCESS;
+    }
+    int Count = Length / sizeof(UserData);
+    FList->SetFriendCount(Count);
+    int i;
+    for(i=0;i<Count;i++){
+        FList->AddFriendToList(((UserData*)((char*)Buffer+sizeof(MessageHeader)+i*sizeof(UserData))));
+    }
     return LINKC_SUCCESS;
 }
 

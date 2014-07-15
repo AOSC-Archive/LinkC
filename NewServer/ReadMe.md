@@ -1,3 +1,5 @@
+# LinkC 服务端
+
 ## Build:
     $ mkdir Build
     $ cd Build
@@ -7,3 +9,6 @@
 
 ## Clean:
     $ rm -rf Build
+
+## TODO:
+    作为服务端提供服务

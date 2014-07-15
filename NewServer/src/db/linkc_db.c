@@ -125,7 +125,6 @@ int GetFriendsData (int UID, UserData ** ffb){
         for (i=0;i<row;i++){
             sprintf (exec,"SELECT * FROM user WHERE id='%d'",_friend[i].UID);
             _friend[i].UID = htonl(_friend[i].UID);                                             //  转化为网络字节序
-            printf ("exec = %s\n",exec);
             result = sqlite3_get_table( user_db, exec, &dbResult, &nRow, &nColumn, &errmsg );
             strcpy (_friend[i].UserName,dbResult[user_c +   USER_USERNAME]);
             strcpy (_friend[i].Telephone,dbResult[user_c+   USER_TEL]);

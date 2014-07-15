@@ -25,7 +25,7 @@ int ReplyData (UserData* User,int Sockfd,uint8_t Request, RequestUser* Dest){
     bzero(Package,STD_PACKAGE_SIZE);
     if(Request == SELF_DATA){
         if(GetUserData(User->UID,User->UID,User) == LINKC_FAILURE){
-            LinkC_Debug("数据库访问",LINKC_FAILURE);
+            LinkC_Debug("数据库访问[1]",LINKC_FAILURE);
             SendActionStatus(Sockfd,GET_DATA_FAILURE);
             goto RETURN_FAILURE;
         }
@@ -37,7 +37,7 @@ int ReplyData (UserData* User,int Sockfd,uint8_t Request, RequestUser* Dest){
         User->UID = (ntohl(User->UID));
         goto RETURN_SUCCESS;
     }else if(Request == USER_DATA){
-        if(User->UID == 0){
+        if(Dest->UID == 0){             //  获得全部好友数据
             UserData* Friends = NULL;
             int Count = GetFriendsData(User->UID,&Friends);
             if(Count == LINKC_FAILURE){
@@ -54,13 +54,13 @@ int ReplyData (UserData* User,int Sockfd,uint8_t Request, RequestUser* Dest){
             Package = malloc(sizeof(PackageHeader)+sizeof(MessageHeader)+Count*sizeof(UserData));
             ((MessageHeader*)Buffer)->ActionType = RETURN_DATA|FRIENDS_DATA;
             ((MessageHeader*)Buffer)->StatusCode = htons(GET_DATA_SUCCESS);
-            memcpy(Buffer,Friends,Count*sizeof(UserData));
+            memcpy((char*)(Buffer+sizeof(MessageHeader)),Friends,Count*sizeof(UserData));
             Length = _Package(Buffer,sizeof(MessageHeader)+Count*sizeof(UserData),NORMAL_MESSAGE,Package);
             send(Sockfd,Package,Length,0);
             goto RETURN_SUCCESS;
         }else{
             if(GetUserData(User->UID,ntohl(Dest->UID),(UserData*)(char*)Buffer+sizeof(MessageHeader)) == LINKC_FAILURE){
-                LinkC_Debug("数据库访问",LINKC_FAILURE);
+                LinkC_Debug("数据库访问[2]",LINKC_FAILURE);
                 SendActionStatus(Sockfd,GET_DATA_FAILURE);
                 goto RETURN_FAILURE;
             }

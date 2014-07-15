@@ -48,6 +48,8 @@
 #define SET_STATUS_SUCCESS          0x0003
 #define   GET_DATA_FAILURE          0x1004
 #define   GET_DATA_SUCCESS          0x0004
+
+#define     NO_DATA                 0x2000
 /*  ========= 指示代码 ===========  */
 
 #define USER_LOGIN                  0x01    //  登陆请求
@@ -83,7 +85,7 @@ struct MessageHeader_t{             //  消息头
     uint16_t    StatusCode;         //  状态码
 };
 
-struct UserRequest_t{
+struct RequestUser_t{
     uint32_t    UID;
     uint32_t    Flag;
 };
@@ -121,7 +123,7 @@ struct PthreadData_t{
 };
 
 typedef struct MessageHeader_t  MessageHeader;
-typedef struct UserRequest_t    UserRequest;
+typedef struct RequestUser_t    RequestUser;
 typedef struct LoginData_t      LoginData;
 typedef struct UserData_t       UserData;
 typedef struct PthreadData_t    PthreadData;
