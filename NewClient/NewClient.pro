@@ -26,7 +26,8 @@ HEADERS += include/linkc_basic_network.h \
            include/qtui/mainwindow.h \
            include/qtui/loginwindow.h \
            include/linkc_socket.h \
-    include/qtui/friendslist.h
+    include/qtui/friendslist.h \
+    include/qtui/chatdialog.h
 
 SOURCES += \
            src/main.cpp \
@@ -43,7 +44,8 @@ SOURCES += \
            src/network/package/package_list/package_list.cpp \
            src/qtui/ui-sources/mainwindow.cpp \
            src/qtui/ui-sources/loginwindow.cpp \  
-    src/qtui/ui-sources/friendslist.cpp
+    src/qtui/ui-sources/friendslist.cpp \
+    src/qtui/ui-sources/chatdialog.cpp
 
 LIBS    += -lsqlite3 \
            -lssl \

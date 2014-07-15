@@ -27,8 +27,7 @@ UserData FriendItem::GetFriend(){
 void FriendItem::mousePressEvent(QMouseEvent *event){
     if (event->button() == Qt::LeftButton){
         emit clicked(Friend);
-    }
-    else
+    }else
         QFrame::mousePressEvent(event);
 }
 

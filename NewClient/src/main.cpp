@@ -17,9 +17,12 @@ int main(int argc,char **argv){
 #endif
 //注册数据类型
         QVariant DataVar;
-        LoginData D1;
+        LoginData   D1;
+        UserData    D2;
         DataVar.setValue(D1);
         qRegisterMetaType<LoginData>("LoginData");
+        DataVar.setValue(D2);
+        qRegisterMetaType<UserData>("UserData");
 //注册完毕
         QApplication a(argc, argv);
         MainWindow w;

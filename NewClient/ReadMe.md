@@ -1,8 +1,8 @@
-## LinkC 的新客户端
+## LinkC New Client
 
 ### DEPENDS:
-        qt4或者qt5的开发库
-        curses开发库
+        qt4 or qt5
+        curses
 
 ### BUILD:
         $ qmake && make

@@ -2,11 +2,14 @@
 #define MAINWINDOW_H
 
 #include <QWidget>
+#include <QMap>
+#include <stdint.h>
 #include "loginwindow.h"
 #include "linkc_client.h"
 #include "linkc_socket.h"
 #include "linkc_def.h"
 #include "friendslist.h"
+#include "chatdialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -27,6 +30,7 @@ signals:
 public slots:
     void        ExitProgram(void);
     void        DoLogin(LoginData);
+    void        OpenChatDialog(UserData);
     int         DoGetSelfData(void);
     int         DoGetFriendsData(void);
 
@@ -36,6 +40,9 @@ private:
     LoginWindow *LoginW;
     UserData    *User;
     TCP_Socket  *Socket;
+    typedef QMap<u_int32_t,ChatDialog *>  ChatDialogMap_M;
+    ChatDialogMap_M                 ChatDialogMap;
+    ChatDialogMap_M::iterator       ChatDialogiterator;
     void        *Buffer;
     void        *Package;
 };

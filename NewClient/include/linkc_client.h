@@ -18,5 +18,6 @@ int ConnectToServerWithAddr(int Sockfd,struct sockaddr_in Addr);
 int Login(int Sockfd,LoginData Data);
 
 Q_DECLARE_METATYPE(LoginData)
+Q_DECLARE_METATYPE(UserData)
 
 #endif

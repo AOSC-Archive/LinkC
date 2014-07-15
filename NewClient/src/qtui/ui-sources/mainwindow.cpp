@@ -7,6 +7,7 @@
 #include "linkc_package_ctl.h"
 #include "friendslist.h"
 #include "linkc_package.h"
+#include "chatdialog.h"
 #include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -35,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(LoginW,SIGNAL(SIGN_QuitButtonClicked()),this,SLOT(ExitProgram()));
     connect(this,SIGNAL(LoginStatus(bool)),this,SLOT(setVisible(bool)));
     connect(this,SIGNAL(LoginStatus(bool)),LoginW,SLOT(setHidden(bool)));
+    connect(FList,SIGNAL(ChatTo(UserData)),this,SLOT(OpenChatDialog(UserData)));
 }
 
 MainWindow::~MainWindow(){
@@ -148,6 +150,21 @@ int MainWindow::DoGetFriendsData(){
         FList->AddFriendToList(((UserData*)((char*)Buffer+sizeof(MessageHeader)+i*sizeof(UserData))));
     }
     return LINKC_SUCCESS;
+}
+
+
+void MainWindow::OpenChatDialog(UserData Data){
+    ChatDialog *log;
+
+    if(!ChatDialogMap.contains(Data.UID)){
+        log = new ChatDialog(Data);
+        log->show();
+        ChatDialogMap.insert(Data.UID, log);
+    }else{
+        ChatDialogiterator = ChatDialogMap.find(Data.UID);
+        log = ChatDialogiterator.value();
+        log->show();
+    }
 }
 
 void MainWindow::ExitProgram(){

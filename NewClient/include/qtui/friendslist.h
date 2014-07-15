@@ -15,7 +15,6 @@
 #include <QMenu>
 
 #define _FRIEND_LABEL_HEIGTH    30
-#define _MESSAGE_HISTORY_HEIGTH 40
 
 class FriendItem : public QLabel{
     Q_OBJECT
