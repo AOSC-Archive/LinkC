@@ -31,7 +31,10 @@ int InitNetwork(int port){
     local_addr.sin_addr.s_addr = htonl(INADDR_ANY);     // 任意IP可链接
     len = sizeof(local_addr);
 
-    bind (sockfd, (struct sockaddr *)&local_addr, len); // 绑定地址
+    if(bind (sockfd, (struct sockaddr *)&local_addr, len) < 0){ // 绑定地址失败
+        perror("bind");
+        exit(LINKC_FAILURE);
+    }
     listen (sockfd,5);                          // 设置最大等待链接数
     return sockfd;
 }
