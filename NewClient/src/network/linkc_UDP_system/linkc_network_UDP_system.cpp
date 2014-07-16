@@ -1,4 +1,3 @@
-/*
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -15,9 +14,9 @@
 #include <signal.h>                 //  For 信号控制
 #include <unistd.h>                 //  For 时钟信号
 #include <pthread.h>
-#include <fcntl.h>          *//* For O_* constants */
-//#include <sys/stat.h>        /* For mode constants */
-/*#include <sys/types.h>
+#include <fcntl.h>          /* For O_* constants */
+#include <sys/stat.h>        /* For mode constants */
+#include <sys/types.h>
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
 #include <openssl/err.h>
@@ -491,7 +490,7 @@ int IsSocketInList(int Sockfd, LinkC_Socket** Socket){
     Socket = NULL;
     return 0;                                       //  返回未找到
 }
-int CreateSocket(const struct sockaddr *MyAddr){
+int CreateSocket(void){
     if(List != NULL){                                               //  如果链表为空
         LinkC_Debug("CreateSocket:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
@@ -503,7 +502,7 @@ int CreateSocket(const struct sockaddr *MyAddr){
         free(Socket);                                                           //  释放内存
         return 1;                                                               //  返回错误
     }
-    *//*  我也不知道这段是什么意思，不过大概就是说设置成在收到数据的时候发送一个信息这么回事    *//*
+    /*  我也不知道这段是什么意思，不过大概就是说设置成在收到数据的时候发送一个信息这么回事    */
     if(fcntl(Socket->Sockfd,F_SETOWN,getpid()) == -1){
         perror("Set Own");
         close(Socket->Sockfd);                                                  //  关闭套接字
@@ -526,12 +525,12 @@ int CreateSocket(const struct sockaddr *MyAddr){
     if (fcntl(Socket->Sockfd,F_SETSIG,SIGIO) == -1){
         perror("fault");
     }
-    if(bind(Socket->Sockfd,MyAddr,sizeof(struct sockaddr_in)) < 0){             //  绑定地址
+    /*if(bind(Socket->Sockfd,MyAddr,sizeof(struct sockaddr_in)) < 0){             //  绑定地址
         perror("Bind LCUDP");                                                   //  输出错误信息
         close(Socket->Sockfd);                                                  //  关闭套接字
         free(Socket);                                                           //  释放内存
         return 1;
-    }
+    }*/
 
 
     Socket->Available       =   0;                                              //  将可用包数设置为0
@@ -686,4 +685,4 @@ int ResendMessage(LinkC_Socket *Socket, void *Message, int Flag){
         return -1;
     }
     return Byte;
-}*/
+}

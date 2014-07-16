@@ -5,6 +5,7 @@
 #include "linkc_client.h"
 #include "mainwindow.h"
 #include "loginwindow.h"
+#include "linkc_netowrk_UDP_system.h"
 
 int main(int argc,char **argv){
 #if QT_VERSION < 0x050000
@@ -24,7 +25,9 @@ int main(int argc,char **argv){
         DataVar.setValue(D2);
         qRegisterMetaType<UserData>("UserData");
 //注册完毕
+        InitLCUDPEnvironment();
         QApplication a(argc, argv);
         MainWindow w;
+        w.hide();
         return a.exec();
 }
