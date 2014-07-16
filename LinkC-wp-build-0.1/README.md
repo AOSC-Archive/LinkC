@@ -1,2 +1,0 @@
-LinkC-WindowsPhone-Client
-=========================
