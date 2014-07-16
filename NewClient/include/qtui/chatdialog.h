@@ -40,6 +40,10 @@ public:
     ~ChatDialog();
     void resizeEvent(QResizeEvent *);
     int UID;
+
+private slots:
+    void    Send(void);
+    void    InputEditChanged();
 protected:
     QPushButton *SendButton;
     QPushButton *QuitButton;

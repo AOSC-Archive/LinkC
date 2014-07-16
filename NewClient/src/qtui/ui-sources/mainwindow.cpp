@@ -52,6 +52,7 @@ void MainWindow::DoLogin(LoginData Data){
         QMessageBox::warning(this,tr("失败"),tr("链接到服务器失败"),QMessageBox::Yes);
         LinkC_Debug("连接到服务器",LINKC_FAILURE);
         emit LoginStatus(false);
+        exit(0);
     }
     LinkC_Debug("连接到服务器",LINKC_DONE);
     ((MessageHeader*)Buffer)->ActionType = USER_LOGIN;

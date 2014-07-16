@@ -1,4 +1,6 @@
 #include "chatdialog.h"
+#include <QTextEdit>
+#include <QMessageBox>
 
 
 ChatDialog::ChatDialog(UserData _MyFriend, QWidget *parent)
@@ -20,6 +22,7 @@ ChatDialog::ChatDialog(UserData _MyFriend, QWidget *parent)
     SendButton->setEnabled(false);
     QuitButton->hide();
     this->connect(SendButton,SIGNAL(clicked()),this,SLOT(Send()));
+    this->connect(Input,SIGNAL(textChanged()),this,SLOT(InputEditChanged()));
 
     setWindowTitle(Title);
 
@@ -33,6 +36,15 @@ ChatDialog::ChatDialog(UserData _MyFriend, QWidget *parent)
 
 void ChatDialog::resizeEvent(QResizeEvent *){
     SendButton->setGeometry(this->width()-80,this->height()-30,70,25);
+}
+
+void ChatDialog::Send(){
+
+}
+
+void ChatDialog::InputEditChanged(){
+    if(Input->toPlainText() == "")  SendButton->setDisabled(true);
+    else                            SendButton->setDisabled(false);
 }
 
 ChatDialog::~ChatDialog(){
