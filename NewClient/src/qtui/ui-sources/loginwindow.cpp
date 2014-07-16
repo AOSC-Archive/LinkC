@@ -16,11 +16,11 @@ LoginWindow::~LoginWindow(){
 
 void LoginWindow::SLOT_LoginButtonClicked(){
     if(ui->UsernameEditor->text().toUtf8() == ""){
-        QMessageBox::warning(this,tr("警告"),tr("请输入用户名"),QMessageBox::Yes);
+        QMessageBox::warning(this,tr("Warning"),tr("Please type in your username."),QMessageBox::Yes);
         return;
     }
     if(ui->PasswordEditor->text().toUtf8() == ""){
-        QMessageBox::warning(this,tr("警告"),tr("请输入用户名"),QMessageBox::Yes);
+        QMessageBox::warning(this,tr("Warning"),tr("Please type in correct password."),QMessageBox::Yes); // Did I get something wrong here?
         return;
     }
     bzero((void*)&Data,sizeof(LoginData));

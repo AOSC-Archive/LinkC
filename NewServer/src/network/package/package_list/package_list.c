@@ -153,7 +153,7 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
     }
     int i = 0;
     if(Avliable >= 255){
-        LinkC_Debug("缓冲区溢出(雾)，剩下的包将无法读取",LINKC_WARNING);
+        LinkC_Debug("Buffer Overflow (JK), Remaining Packages Will Not Be Read",LINKC_WARNING); // Just Kidding ;-)
         return -1;
     }
     for(i=0;i<(Avliable-NowAvliable);i++){

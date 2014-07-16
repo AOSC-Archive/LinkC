@@ -25,7 +25,7 @@ int ReplyData (UserData* User,int Sockfd,uint8_t Request, RequestUser* Dest){
     bzero(Package,STD_PACKAGE_SIZE);
     if(Request == SELF_DATA){
         if(GetUserData(User->UID,User->UID,User) == LINKC_FAILURE){
-            LinkC_Debug("数据库访问[1]",LINKC_FAILURE);
+            LinkC_Debug("Accessing Databse [1]",LINKC_FAILURE);
             SendActionStatus(Sockfd,GET_DATA_FAILURE);
             goto RETURN_FAILURE;
         }
@@ -41,10 +41,10 @@ int ReplyData (UserData* User,int Sockfd,uint8_t Request, RequestUser* Dest){
             UserData* Friends = NULL;
             int Count = GetFriendsData(User->UID,&Friends);
             if(Count == LINKC_FAILURE){
-                LinkC_Debug("获取好友资料",LINKC_FAILURE);
+                LinkC_Debug("Fetching Friend Data",LINKC_FAILURE);
                 goto RETURN_FAILURE;
             }else if(Count == 0){
-                LinkC_Debug("没有好友数据",LINKC_DEBUG);
+                LinkC_Debug("No Friend Data Available",LINKC_DEBUG);
                 SendActionStatus(Sockfd,NO_DATA);
                 goto RETURN_SUCCESS;
             }
@@ -60,7 +60,7 @@ int ReplyData (UserData* User,int Sockfd,uint8_t Request, RequestUser* Dest){
             goto RETURN_SUCCESS;
         }else{
             if(GetUserData(User->UID,ntohl(Dest->UID),(UserData*)(char*)Buffer+sizeof(MessageHeader)) == LINKC_FAILURE){
-                LinkC_Debug("数据库访问[2]",LINKC_FAILURE);
+                LinkC_Debug("Accessing Database [2]",LINKC_FAILURE);
                 SendActionStatus(Sockfd,GET_DATA_FAILURE);
                 goto RETURN_FAILURE;
             }
@@ -72,7 +72,7 @@ int ReplyData (UserData* User,int Sockfd,uint8_t Request, RequestUser* Dest){
         }
         goto RETURN_FAILURE;
     }else{
-        LinkC_Debug("返回数据：操作不被支持",LINKC_WARNING);
+        LinkC_Debug("Data Returns: Operation Not Supported",LINKC_WARNING);
         goto RETURN_FAILURE;
     }
 RETURN_SUCCESS:

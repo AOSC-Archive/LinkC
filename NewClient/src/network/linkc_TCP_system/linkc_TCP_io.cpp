@@ -18,7 +18,7 @@ int16_t TCP_Recv(int Sockfd, void *Out, int Out_size, int flag){
         return LINKC_FAILURE;
     int PackageLength = ntohs(Header.MessageLength)+sizeof(PackageHeader);
     if(PackageLength > Out_size){
-        LinkC_Debug("传出缓冲区过小",LINKC_FAILURE);
+        LinkC_Debug("Send-Out Buffer Too Small",LINKC_FAILURE);
         return LINKC_FAILURE;
     }
     int NowRecv = 0;
@@ -26,7 +26,7 @@ int16_t TCP_Recv(int Sockfd, void *Out, int Out_size, int flag){
     while(1){
         TmpSize = recv(Sockfd,(char*)Out+NowRecv,PackageLength - NowRecv,flag);
         if(TmpSize <= 0){
-            LinkC_Debug("接收数据",LINKC_FAILURE);
+            LinkC_Debug("Accepted Data",LINKC_FAILURE);
             return LINKC_FAILURE;
         }
         NowRecv += TmpSize;
