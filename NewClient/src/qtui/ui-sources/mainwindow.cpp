@@ -47,14 +47,14 @@ MainWindow::~MainWindow(){
 }
 
 void MainWindow::DoLogin(LoginData Data){
-    LinkC_Debug("连接到服务器",LINKC_STARTED);
+    LinkC_Debug(tr("连接到服务器").toUtf8().data(),LINKC_STARTED);
     if(Socket->Connect()==LINKC_FAILURE){
         QMessageBox::warning(this,tr("失败"),tr("链接到服务器失败"),QMessageBox::Yes);
-        LinkC_Debug("连接到服务器",LINKC_FAILURE);
+        LinkC_Debug(tr("连接到服务器").toUtf8().data(),LINKC_FAILURE);
         emit LoginStatus(false);
         exit(0);
     }
-    LinkC_Debug("连接到服务器",LINKC_DONE);
+    LinkC_Debug(tr("连接到服务器").toUtf8().data(),LINKC_DONE);
     ((MessageHeader*)Buffer)->ActionType = USER_LOGIN;
     memcpy((void*)((char*)Buffer+4),(void*)&Data,sizeof(LoginData));
     int Length = _Package(Buffer,sizeof(MessageHeader)+sizeof(LoginData),NORMAL_MESSAGE,Package);
@@ -69,7 +69,7 @@ void MainWindow::DoLogin(LoginData Data){
         emit LoginStatus(false);
         return;
     }
-    LinkC_Debug("用户密码检验",LINKC_SUCCESS);
+    LinkC_Debug(tr("用户密码检验").toUtf8().data(),LINKC_SUCCESS);
 
     Socket->Recv(Buffer,STD_PACKAGE_SIZE,0);
     if(_UnPackage(Buffer,STD_PACKAGE_SIZE,Package) == LINKC_FAILURE){
@@ -80,7 +80,7 @@ void MainWindow::DoLogin(LoginData Data){
         emit LoginStatus(false);
         return;
     }
-    LinkC_Debug("状态设置",LINKC_SUCCESS);
+    LinkC_Debug(tr("状态设置").toUtf8().data(),LINKC_SUCCESS);
 
     emit LoginStatus(true);
     DoGetSelfData();
@@ -89,30 +89,30 @@ void MainWindow::DoLogin(LoginData Data){
 }
 
 int MainWindow::DoGetSelfData(){
-    LinkC_Debug("获取自身数据",LINKC_STARTED);
+    LinkC_Debug(tr("获取自身数据").toUtf8().data(),LINKC_STARTED);
     bzero(Buffer, STD_PACKAGE_SIZE);
     bzero(Package,STD_PACKAGE_SIZE);
     ((MessageHeader*)Buffer)->ActionType = (RQUEST_DATA|SELF_DATA);
     int Length = _Package(Buffer,sizeof(MessageHeader),NORMAL_MESSAGE,Package);
     Socket->Send(Package,Length,0);
-    LinkC_Debug("个人数据申请要求发送",LINKC_DONE);
-    LinkC_Debug("等待服务器回应",LINKC_STARTED);
+    LinkC_Debug(tr("个人数据申请要求发送").toUtf8().data(),LINKC_DONE);
+    LinkC_Debug(tr("等待服务器回应").toUtf8().data(),LINKC_STARTED);
     if(Socket->Recv(Buffer,STD_PACKAGE_SIZE,0) == LINKC_FAILURE){
-        LinkC_Debug("接收数据",LINKC_FAILURE);
+        LinkC_Debug(tr("接收数据").toUtf8().data(),LINKC_FAILURE);
         return LINKC_FAILURE;
     }
     _UnPackage(Buffer,STD_PACKAGE_SIZE,Package);
     if(((MessageHeader*)Package)->ActionType != (RETURN_DATA|SELF_DATA)){
-        LinkC_Debug("服务端返回数据错误",LINKC_WARNING);
+        LinkC_Debug(tr("服务端返回数据错误").toUtf8().data(),LINKC_WARNING);
         return LINKC_FAILURE;
     }
     if(((MessageHeader*)Package)->StatusCode == htons(GET_DATA_FAILURE)){
-        LinkC_Debug("服务端获取数据",LINKC_FAILURE);
+        LinkC_Debug(tr("服务端获取数据").toUtf8().data(),LINKC_FAILURE);
         return LINKC_FAILURE;
     }
-    LinkC_Debug("接收个人数据",LINKC_DONE);
+    LinkC_Debug(tr("接收个人数据").toUtf8().data(),LINKC_DONE);
     memcpy((void*)User,((char*)Package)+sizeof(MessageHeader),sizeof(UserData));
-    LinkC_Debug("获取自身数据",LINKC_SUCCESS);
+    LinkC_Debug(tr("获取自身数据").toUtf8().data(),LINKC_SUCCESS);
     ui->label->setText(tr(User->NickName));
     return LINKC_SUCCESS;
 }
@@ -120,28 +120,28 @@ int MainWindow::DoGetSelfData(){
 int MainWindow::DoGetFriendsData(){
     bzero(Buffer,STD_PACKAGE_SIZE);
     bzero(Package,STD_PACKAGE_SIZE);
-    LinkC_Debug("刷新好友列表",LINKC_STARTED);
+    LinkC_Debug(tr("刷新好友列表").toUtf8().data(),LINKC_STARTED);
     ((MessageHeader*)Buffer)->ActionType = (RQUEST_DATA|USER_DATA);
     ((RequestUser*)(char*)Buffer+sizeof(MessageHeader))->UID = htonl(0);
     int Length = _Package(Buffer,sizeof(MessageHeader)+sizeof(RequestUser),NORMAL_MESSAGE,Package);
     Socket->Send(Package,Length,0);
-    LinkC_Debug("发送请求",LINKC_DEBUG);
+    LinkC_Debug(tr("发送请求").toUtf8().data(),LINKC_DEBUG);
     bzero(Buffer,STD_PACKAGE_SIZE);
     bzero(Package,STD_PACKAGE_SIZE);
     Socket->Recv(Package,STD_PACKAGE_SIZE,0);
     Length = ntohs(((PackageHeader*)Package)->MessageLength)-sizeof(MessageHeader);
     _UnPackage(Package,STD_PACKAGE_SIZE,Buffer);
     if(((MessageHeader*)Buffer)->ActionType != (RETURN_DATA|FRIENDS_DATA)){
-        LinkC_Debug("服务端返回数据错误",LINKC_DEBUG);
-        LinkC_Debug("获取全部好友资料",LINKC_FAILURE);
+        LinkC_Debug(tr("服务端返回数据错误").toUtf8().data(),LINKC_DEBUG);
+        LinkC_Debug(tr("获取全部好友资料").toUtf8().data(),LINKC_FAILURE);
         return LINKC_FAILURE;
     }else if(((MessageHeader*)Buffer)->StatusCode != htons(GET_DATA_SUCCESS)){
-        LinkC_Debug("服务端获取数据失败",LINKC_DEBUG);
-        LinkC_Debug("获取全部好友资料",LINKC_FAILURE);
+        LinkC_Debug(tr("服务端获取数据失败").toUtf8().data(),LINKC_DEBUG);
+        LinkC_Debug(tr("获取全部好友资料").toUtf8().data(),LINKC_FAILURE);
         return LINKC_FAILURE;
     }else if(((MessageHeader*)Buffer)->StatusCode == htons(NO_DATA)){
-        LinkC_Debug("你没有任何好友",LINKC_DEBUG);
-        LinkC_Debug("获取全部好友资料",LINKC_SUCCESS);
+        LinkC_Debug(tr("你没有任何好友").toUtf8().data(),LINKC_DEBUG);
+        LinkC_Debug(tr("获取全部好友资料").toUtf8().data(),LINKC_SUCCESS);
         return LINKC_SUCCESS;
     }
     int Count = Length / sizeof(UserData);

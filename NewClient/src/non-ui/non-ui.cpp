@@ -18,8 +18,7 @@
 
 WINDOW* CommandLine;
 
-void InitCurses()
-{
+void InitCurses(){
     initscr();
     cbreak();
     nl();
@@ -31,8 +30,8 @@ void InitCurses()
     init_pair(RED_ON_BLACK,COLOR_RED,COLOR_BLACK);
     refresh();
 }
-int GetPassword(char* passwd, int size)
-{
+
+int GetPassword(char* passwd, int size){
    int c;
    int n = 0;
   
