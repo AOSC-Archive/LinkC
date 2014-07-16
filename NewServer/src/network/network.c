@@ -31,9 +31,9 @@ int InitNetwork(int port){
     local_addr.sin_addr.s_addr = htonl(INADDR_ANY);     // 任意IP可链接
     len = sizeof(local_addr);
 
-    if(bind (sockfd, (struct sockaddr *)&local_addr, len) < 0){ // 绑定地址失败
-        perror("bind");
-        exit(LINKC_FAILURE);
+    if(bind(sockfd,(struct sockaddr* )&local_addr, len) < 0){
+        perror("Bind");
+        exit(0);
     }
     listen (sockfd,5);                          // 设置最大等待链接数
     return sockfd;
@@ -73,11 +73,12 @@ int SendActionStatus(int Sockfd, uint16_t StatusCode){
 void* MainConnect(void *Arg){
     struct sockaddr_in NetAddr  = ((PthreadData*)Arg)->Addr; //  结构体
     int         Sockfd          = ((PthreadData*)Arg)->Sockfd;
-    void*       Buffer          = malloc(STD_BUFFER_SIZE);
-    void*       Package         = malloc(STD_BUFFER_SIZE);
+    void*       Buffer          = malloc(STD_PACKAGE_SIZE);
+    void*       Package         = malloc(STD_PACKAGE_SIZE);
     UserData    User;
     int         Status          = 0;
 START:
+    CHECK_FAILED(   TCP_recv(Sockfd,Package,STD_PACKAGE_SIZE,0),    "Receiving",    LINKC_FAILURE,  NULL);
     if(TCP_recv(Sockfd,Package,STD_BUFFER_SIZE,0) < 0){     //  接收数据失败
         LinkC_Debug("Receiving",LINKC_FAILURE);
         goto END;                                           //  跳转到end位置

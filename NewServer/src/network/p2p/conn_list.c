@@ -4,8 +4,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#define FAILED(x) ((x < LINKC_SUCCESS) ? 1 : 0)
-#define CHECK_FAILED(x,y) ({ if (FAILED(x)) return y; })
+#undef  CHECK_FAILED
+#define CHECK_FAILED(x,y) ( { if (FAILED(x)) return y; })
 #define CHECK_NOT_NULL(x,z) ({if (x==NULL) return z;})
 
 int conn_list_init(conn_list *list){

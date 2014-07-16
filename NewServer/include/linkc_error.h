@@ -19,4 +19,10 @@ void MemoryPrint(void *Memory,size_t size);
 
 #define LINKC_NO_DATA   -12
 
+
+// Test Only
+#define FAILED(x)           ((x != LINKC_SUCCESS) ? 1 : 0)
+#define CHECK_FAILED(Func,Message,Status,End)    ({if(FAILED(Func)) {LinkC_Debug(Message,Status);End;}})
+#define CHECO_ERROR (Func,Message,End)           ({if(FAILED(x)) {perror(y);End;}})
+
 #endif
