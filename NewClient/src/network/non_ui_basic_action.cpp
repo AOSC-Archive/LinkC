@@ -25,14 +25,14 @@ int wLogin(WINDOW* Console,int Sockfd,LoginData Data){
         return LINKC_FAILURE;
     if(ntohs(((MessageHeader*)Package)->StatusCode) == LOGIN_FAILURE)
         return LINKC_FAILURE;
-    wLinkC_Debug(Console,tr("Check User Password"),LINKC_SUCCESS);
+    wLinkC_Debug(Console,"Check User Password",LINKC_SUCCESS);
 
     wTCP_Recv(Console,Sockfd,Buffer,STD_PACKAGE_SIZE,0);
     if(_UnPackage(Buffer,STD_PACKAGE_SIZE,Package) == LINKC_FAILURE)
         return LINKC_FAILURE;
     if(ntohs(((MessageHeader*)Package)->StatusCode) == SET_STATUS_FAILURE)
         return LINKC_FAILURE;
-    wLinkC_Debug(Console,tr("Set Status"),LINKC_SUCCESS);
+    wLinkC_Debug(Console,"Set Status",LINKC_SUCCESS);
 
     free(Buffer);
     free(Package);
@@ -49,10 +49,10 @@ int wGetSelfData(WINDOW* Console,int Sockfd,UserData* Data){
     ((MessageHeader*)Buffer)->ActionType = (RQUEST_DATA|SELF_DATA);
     int Length = _Package(Buffer,sizeof(MessageHeader),NORMAL_MESSAGE,Package);
     send(Sockfd,Package,Length,0);
-    wLinkC_Debug(Console,tr("Request Sending Personal Data"),LINKC_DONE);
-    wLinkC_Debug(Console,tr("Waiting for Server Respond"),LINKC_STARTED);
+    wLinkC_Debug(Console,"Requesting to Send Personal Data",LINKC_DONE);
+    wLinkC_Debug(Console,"Waiting for Server Respond",LINKC_STARTED);
     if(wTCP_Recv(Console,Sockfd,Buffer,STD_PACKAGE_SIZE,0) == LINKC_FAILURE){
-        wLinkC_Debug(Console,tr("Accepted Data"),LINKC_FAILURE);
+        wLinkC_Debug(Console,"Accepted Data",LINKC_FAILURE);
         free(Buffer);
         free(Package);
         Buffer = NULL;
@@ -61,7 +61,7 @@ int wGetSelfData(WINDOW* Console,int Sockfd,UserData* Data){
     }
     _UnPackage(Buffer,STD_PACKAGE_SIZE,Package);
     if(((MessageHeader*)Package)->ActionType != (RETURN_DATA|SELF_DATA)){
-        wLinkC_Debug(Console,tr("Server Returned Data Exception"),LINKC_WARNING);
+        wLinkC_Debug(Console,"Server Returned Data Exception",LINKC_WARNING);
         free(Buffer);
         free(Package);
         Buffer = NULL;
@@ -69,14 +69,14 @@ int wGetSelfData(WINDOW* Console,int Sockfd,UserData* Data){
         return LINKC_FAILURE;
     }
     if(((MessageHeader*)Package)->StatusCode == htons(GET_DATA_FAILURE)){
-        wLinkC_Debug(Console,tr("Server Fetched Data"),LINKC_FAILURE);
+        wLinkC_Debug(Console,"Server Fetched Data",LINKC_FAILURE);
         free(Buffer);
         free(Package);
         Buffer = NULL;
         Package= NULL;
         return LINKC_FAILURE;
     }
-    wLinkC_Debug(Console,tr("Accepted Personal Data"),LINKC_DONE);
+    wLinkC_Debug(Console,"Accepted Personal Data",LINKC_DONE);
     memcpy(Data,((char*)Package)+sizeof(MessageHeader),sizeof(UserData));
     free(Buffer);
     free(Package);

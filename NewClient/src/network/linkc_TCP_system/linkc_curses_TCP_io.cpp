@@ -26,7 +26,7 @@ int16_t wTCP_Recv(WINDOW* Console,int Sockfd, void *Out, int Out_size, int flag)
         return LINKC_FAILURE;
     int PackageLength = ntohs(Header.MessageLength)+sizeof(PackageHeader);
     if(PackageLength > Out_size){
-        wLinkC_Debug(Console,tr("Send-Out Buffer Too Small"),LINKC_FAILURE);
+        wLinkC_Debug(Console,"Send-Out Buffer Too Small",LINKC_FAILURE);
         return LINKC_FAILURE;
     }
     int NowRecv = 0;
@@ -34,7 +34,7 @@ int16_t wTCP_Recv(WINDOW* Console,int Sockfd, void *Out, int Out_size, int flag)
     while(1){
         TmpSize = recv(Sockfd,(char*)Out+NowRecv,PackageLength - NowRecv,flag);
         if(TmpSize <= 0){
-            wLinkC_Debug(Console,tr("Accepted Data"),LINKC_FAILURE);
+            wLinkC_Debug(Console,"Accepted Data",LINKC_FAILURE);
             return LINKC_FAILURE;
         }
         NowRecv += TmpSize;
