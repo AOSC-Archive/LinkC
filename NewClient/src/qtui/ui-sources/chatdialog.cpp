@@ -17,7 +17,7 @@ ChatDialog::ChatDialog(UserData _MyFriend, QWidget *parent)
     sprintf(title_tmp,"[%s] OFFLINE",MyFriend.UserName);
     QString Title(title_tmp);
 
-    SendButton->setText(tr("发送"));
+    SendButton->setText(tr("Send"));
     SendButton->show();
     SendButton->setEnabled(false);
     QuitButton->hide();

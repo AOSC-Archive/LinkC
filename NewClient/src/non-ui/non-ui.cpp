@@ -56,7 +56,7 @@ int NonUiMode(){
     scrollok(CommandLine,TRUE);                                        //  设置成滚动窗口
     wrefresh(Console);                                             //  刷新窗口
     wrefresh(CommandLine);
-    wLinkC_Debug(Console,"初始化LinkC文本界面客户端",LINKC_STARTED);
+    wLinkC_Debug(Console,tr("Initializing LinkC CLI Client"),LINKC_STARTED);
     char Command[STD_PACKAGE_SIZE];
     void *Package = malloc(STD_PACKAGE_SIZE);
     void *Buffer  = malloc(STD_PACKAGE_SIZE);
@@ -67,56 +67,56 @@ int NonUiMode(){
 
     UserData MySelf;
 
-    wLinkC_Debug(Console, "初始化LinkC文本界面客户端",LINKC_DONE);
+    wLinkC_Debug(Console, tr("Initializing LinkC CLI Client"),LINKC_DONE);
     int Sockfd = InitNetwork();
 TRY:
-    wLinkC_Debug(Console, "连接到服务器",LINKC_STARTED);
+    wLinkC_Debug(Console, tr("Connected to Server"),LINKC_STARTED);
     if(ConnectToServer(Sockfd) == LINKC_FAILURE){
         wattron(Console,RED_ON_BLACK);
-        wprintw(Console,"连接到服务器失败\n输入R重连，其余键退出\n");
+        wprintw(Console,tr("Connection to server failed.\nPress R to reconnect, or other keys to abort.\n");
         wrefresh(Console);
         touchwin(CommandLine);
         Input = getch();
         if(Input == 'R')    goto TRY;
         return LINKC_FAILURE;
     }
-    wLinkC_Debug(Console,"连接到服务器",LINKC_SUCCESS);
-    wLinkC_Debug(Console,"登录",LINKC_STARTED);
+    wLinkC_Debug(Console,tr("Connected to Server"),LINKC_SUCCESS);
+    wLinkC_Debug(Console,tr("Login"),LINKC_STARTED);
     if(NonUiLogin(Console,Sockfd) == LINKC_FAILURE){
         attron(COLOR_PAIR(RED_ON_BLACK));
-        wLinkC_Debug(Console,"登录",LINKC_FAILURE);
+        wLinkC_Debug(Console,tr("Login"),LINKC_FAILURE);
         return LINKC_FAILURE;
     }
-    wLinkC_Debug(Console,"登录",LINKC_SUCCESS);
+    wLinkC_Debug(Console,tr("Login"),LINKC_SUCCESS);
     while(1){
         GetCommandLine(Command);
         if(strcmp(Command,"Logout")==0){
             ((MessageHeader*)Buffer)->ActionType    = USER_LOGOUT;
             Length = _Package(Buffer,sizeof(MessageHeader),NORMAL_MESSAGE,Package);
             TCP_Send(Sockfd,Package,Length,0);
-            wLinkC_Debug(Console,"等待服务端的回应......",LINKC_DEBUG);
+            wLinkC_Debug(Console,tr("Waiting for reply from server..."),LINKC_DEBUG);
             wTCP_Recv(Console,Sockfd,Buffer,STD_PACKAGE_SIZE,0);
             _UnPackage(Buffer,STD_PACKAGE_SIZE,Package);
             if(ntohs(((MessageHeader*)Package)->StatusCode) == LOGOUT_SUCCESS){
-                wLinkC_Debug(Console,"登出",LINKC_SUCCESS);
-                wLinkC_Debug(Console,"按任意键退出......",LINKC_DEBUG);
+                wLinkC_Debug(Console,tr("Log Off"),LINKC_SUCCESS);
+                wLinkC_Debug(Console,tr("Press any key to quit."),LINKC_DEBUG);
                 wrefresh(Console);
                 getchar();
                 break;
             }else{
                 wMemoryPrint(Console,Package,sizeof(MessageHeader));
-                wprintw(Console,"退出失败\n");
+                wprintw(Console,tr("Quit failure.\n"));
                 wrefresh(Console);
             }
         }else if(strcmp(Command,"GetSelfData")==0){
-            wLinkC_Debug(Console,"获取自身资料",LINKC_STARTED);
+            wLinkC_Debug(Console,tr("Fetching SelfData"),LINKC_STARTED);
             if(wGetSelfData(Console,Sockfd,&MySelf) == LINKC_FAILURE){
-                wLinkC_Debug(Console,"获取自身资料",LINKC_FAILURE);
+                wLinkC_Debug(Console,tr("Fetching SelfData"),LINKC_FAILURE);
                 continue;
             }
-            wLinkC_Debug(Console,"获取自身资料",LINKC_DONE);
+            wLinkC_Debug(Console,tr("Fetching SelfData"),LINKC_DONE);
         }else{
-            wLinkC_Debug(Console,"没有对应操作",LINKC_WARNING);
+            wLinkC_Debug(Console,tr("No Relevant Action"),LINKC_WARNING);
             continue;
         }
     }
@@ -131,14 +131,14 @@ int NonUiLogin(WINDOW* Console,int Sockfd){
     WINDOW *LoginWindow=newwin(10,30,LINES/2-5,COLS/2-15);
     box(LoginWindow,0,0);
     echo();
-    wprintw(LoginWindow,"登录");
+    wprintw(LoginWindow,tr("Login"));
     wrefresh(LoginWindow);
-    mvwaddstr(LoginWindow,3,6,"帐号:");
+    mvwaddstr(LoginWindow,3,6,tr("Account: ")); // Always leave a space after columns.
     wmove(LoginWindow,3,12);
     wrefresh(LoginWindow);
     wgetstr(LoginWindow,Data.UserName);
     noecho();
-    mvwaddstr(LoginWindow,4,6,"帐号:");
+    mvwaddstr(LoginWindow,4,6,"Account: "); // Same here.
     wmove(LoginWindow,4,12);
     wrefresh(LoginWindow);
     wgetstr(LoginWindow,Data.PassWord);
