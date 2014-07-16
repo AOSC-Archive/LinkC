@@ -44,10 +44,6 @@ int WaitForConnect(){
     int Sockfd = InitNetwork(2341);
     PthreadData Client;
     socklen_t len = sizeof (Client.Addr);
-    if(InitSqliteDb()==LINKC_FAILURE){
-        LinkC_Debug("初始化数据库",LINKC_FAILURE);
-        return LINKC_FAILURE;
-    }
 #ifndef SINGLE_USER_TESTING
     pthread_t pid;
 #endif

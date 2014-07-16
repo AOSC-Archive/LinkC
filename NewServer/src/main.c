@@ -83,6 +83,10 @@ static void daemonize(const char *name)
 	 * Change the current working directory to the root so
 	 * we won't prevent file systems from being umounted
 	 */
+    if(InitSqliteDb()==LINKC_FAILURE){
+        LinkC_Debug("初始化数据库",LINKC_FAILURE);
+        exit(1);
+    }
 	if(chdir("/")<0){
 		ERROR("Fail to change directory to /");
 	}

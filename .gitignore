@@ -1,3 +1,6 @@
 NewServer/build/
 build-LinkC_Client-Desktop-Debug/
 user/LinkC_Client.pro.user
+NewClient/NewClient.pro.user
+NewClient/NewClient
+NewClient/Makefile

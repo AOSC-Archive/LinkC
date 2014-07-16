@@ -112,11 +112,6 @@ struct UserData_t{                  //  用户数据
     uint32_t    IP;                 // 现在IP地址
 };
 
-struct FriendData_t{
-    char        NickName[21];
-    struct UserData_t Info;
-};
-
 struct PthreadData_t{
     struct sockaddr_in  Addr;
     int                 Sockfd;
