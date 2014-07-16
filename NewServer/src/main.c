@@ -108,7 +108,7 @@ static void daemonize(const char *name)
 		exit(-1);
 	}
     if(InitSqliteDb()==LINKC_FAILURE){
-        LinkC_Debug("初始化数据库",LINKC_FAILURE);
+        LinkC_Debug("Initializing Database",LINKC_FAILURE);
         ERROR("Init Sqlite Db");
         exit(1);
     }

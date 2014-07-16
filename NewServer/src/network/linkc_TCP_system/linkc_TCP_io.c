@@ -30,7 +30,8 @@ int16_t TCP_recv(int Sockfd, void *Out, int Out_size, int flag){
     }
     int PackageLength = ntohs(Header.MessageLength)+sizeof(PackageHeader);
     if(PackageLength > Out_size){
-        LinkC_Debug("传出缓冲区过小",LINKC_FAILURE);
+        LinkC_Debug("Send-Out Buffer Too Small",LINKC_FAILURE); // Well, after fixing those Chinese strings, someone should really merge the error 
+	                                                        // outputs into some sort of function. MERGE PLEASE...
         return LINKC_FAILURE;
     }
     int NowRecv = 0;
@@ -38,7 +39,7 @@ int16_t TCP_recv(int Sockfd, void *Out, int Out_size, int flag){
     while(1){
         TmpSize = recv(Sockfd,(char*)Out+NowRecv,PackageLength - NowRecv,flag);
         if(TmpSize <= 0){
-            LinkC_Debug("接收数据",LINKC_FAILURE);
+            LinkC_Debug("Fetched Data",LINKC_FAILURE);
             return LINKC_FAILURE;
         }
         NowRecv += TmpSize;
@@ -54,7 +55,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
         TmpLength = ntohs(((PackageHeader*)recv_buffer)->MessageLength)+8;
         if(TmpLength == Length){    // 若上次剩余的数据是一个完整的包
             if(out_size < Length){                        // 若输出缓冲小于现在的数据长度
-                fprintf(stderr,"Out Buffer is too small to copy data!\nBuffer Size = %d\tData Size = %d\n",out_size,Length);
+                fprintf(stderr,"Send-Out Buffer is too small to copy data!\nBuffer Size = %d\tData Size = %d\n",out_size,Length);
                 return LINKC_FAILURE;
             }
             memcpy(out,recv_buffer,Length);                // 复制数据
@@ -64,7 +65,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
         }
         else if(TmpLength < Length){    // 若上次剩余的数据大于一个完整包
             if(out_size < Length){                                   // 若输出缓冲小于现在的数据长度
-                fprintf(stderr,"Out Buffer is too small to copy data!\nBuffer Size = %d\tData Size = %d\n",out_size,TmpLength);
+                fprintf(stderr,"Send-Out Buffer is too small to copy data!\nBuffer Size = %d\tData Size = %d\n",out_size,TmpLength);
                 return LINKC_FAILURE;
             }
             memcpy(out,recv_buffer,TmpLength);        // 复制数据
@@ -93,7 +94,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
             }
             if(TmpLength == Length){        // 若本次接收的数据是一个完整的包
                 if(out_size < Length){                        // 若输出缓冲小于现在的数据长度
-                    fprintf(stderr,"Out Buffer is too small to copy data!\nBuffer Size = %d\tData Size = %d\n",out_size,Length);
+                    fprintf(stderr,"Send-Out Buffer is too small to copy data!\nBuffer Size = %d\tData Size = %d\n",out_size,Length);
                     return LINKC_FAILURE;
                 }
                 memcpy(out,recv_buffer,Length);                    // 复制数据
@@ -103,7 +104,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
             }
             else if(TmpLength < Length){        // 若本次接收的数据大于一个完整包
                 if(out_size < Length){                                   // 若输出缓冲小于现在的数据长度
-                    fprintf(stderr,"Out Buffer is too small to copy data!\nBuffer Size = %d\tData Size = %d\n",out_size,TmpLength);
+                    fprintf(stderr,"Send-Out Buffer is too small to copy data!\nBuffer Size = %d\tData Size = %d\n",out_size,TmpLength);
                     return LINKC_FAILURE;
                 }
                 memcpy(out,recv_buffer,TmpLength);        // 复制数据
@@ -141,7 +142,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
         printf("Length = %d\n",TmpLength);
         if(TmpLength == Length){        // 若本次接收的数据是一个完整的包
             if(out_size < Length){                        // 若输出缓冲小于现在的数据长度
-                fprintf(stderr,"Out Buffer is too small to copy data!\nBuffer Size = %d\tData Size = %d\n",out_size,Length);
+                fprintf(stderr,"Send-Out Buffer is too small to copy data!\nBuffer Size = %d\tData Size = %d\n",out_size,Length);
                 return LINKC_FAILURE;
             }
             memcpy(out,recv_buffer,Length);                    // 复制数据
@@ -151,7 +152,7 @@ int16_t TCP_Recv(int sockfd, void *out, int out_size, int flag)
         }
         else if(TmpLength > Length){        // 若本次接收的数据大于一个完整包
             if(out_size < Length){                                   // 若输出缓冲小于现在的数据长度
-                fprintf(stderr,"Out Buffer is too small to copy data!\nBuffer Size = %d\tData Size = %d\n",out_size,ntohs(((PackageHeader*)recv_buffer)->MessageLength)+8);
+                fprintf(stderr,"Send-Out Buffer is too small to copy data!\nBuffer Size = %d\tData Size = %d\n",out_size,ntohs(((PackageHeader*)recv_buffer)->MessageLength)+8);
                 return LINKC_FAILURE;
             }
             memcpy(out,recv_buffer,TmpLength);        // 复制数据
@@ -196,3 +197,4 @@ int16_t std_m_message_send(void *Message,int sockfd,uint16_t Length)
     return LINKC_SUCCESS;
 }
 
+// It's been so much time seeing Send-Out Buffer here... Sigh.
