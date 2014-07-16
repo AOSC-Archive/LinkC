@@ -37,3 +37,37 @@ int TCP_Socket::Recv(void *Message, size_t MaxBuf, int Flag){
     int Status = TCP_Recv(Sockfd,Message,MaxBuf,Flag);
     return Status;
 }
+
+
+UDP_Socket::UDP_Socket(QObject *parent) :
+    QObject(parent){
+    Package = new char[STD_PACKAGE_SIZE];
+    Buffer  = new char[STD_PACKAGE_SIZE];
+    Sockfd  = 0;
+    bzero((void*)&DestAddr,sizeof(struct sockaddr_in));
+    if ((Sockfd = CreateSocket()) < 0){         // 创建套接字[网络句柄]
+        perror ("CreateSocket[UDP]");           // 打印出错信息
+        return;
+    }
+}
+
+UDP_Socket::~UDP_Socket(){
+    delete  (char*)Package;
+    delete  (char*)Buffer;
+}
+
+void UDP_Socket::SetDestAddr(sockaddr_in Addr){
+    memcpy((void*)&DestAddr,(void*)&Addr,sizeof(struct sockaddr_in));
+}
+
+int UDP_Socket::Send(void *Message, size_t Length, int Flag){
+    return SendMessage(Sockfd,Message,Length,Flag);
+}
+
+int UDP_Socket::Recv(void *Buffer, size_t MaxBuf, int Flag){
+    return RecvMessage(Sockfd,Buffer,MaxBuf,Flag);
+}
+
+int UDP_Socket::GetSockfd(){
+    return Sockfd;
+}

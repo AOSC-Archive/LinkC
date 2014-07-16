@@ -102,7 +102,7 @@ int     InitLCUDPEnvironment(void);
  */
 
 
-int     CreateSocket(const struct sockaddr *MyAddr);
+int     CreateSocket(void);
 /* 
  * TODO:    创建一个LinkC_Socket套接字[IPV4 Only]，同时加入片轮链表
  *

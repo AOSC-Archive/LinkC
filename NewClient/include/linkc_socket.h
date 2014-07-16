@@ -9,13 +9,15 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <stdint.h>
+#include "linkc_netowrk_UDP_system.h"
 
 class TCP_Socket : public QObject{
     Q_OBJECT
 public:
     explicit    TCP_Socket(QObject *parent = 0);
     ~TCP_Socket();
-    void        SetDestAddr(sockaddr_in Addr);
+    void        SetDestAddr(struct sockaddr_in Addr);
     int         Connect(void);
     int         Send(void* Message,size_t Length,int Flag);
     int         Recv(void* Message,size_t MaxBuf,int Flag);
@@ -24,7 +26,32 @@ signals:
 public slots:
 
 private:
-    sockaddr_in DestAddr;
+    struct sockaddr_in DestAddr;
+    int         Sockfd;
+    void        *Buffer;
+    void        *Package;
+};
+
+
+class UDP_Socket : public QObject{
+    Q_OBJECT
+public:
+    explicit    UDP_Socket(QObject *parent = 0);
+    ~UDP_Socket();
+    void        SetDestAddr(struct sockaddr_in  Addr);
+    int         Connect(void);
+    int         Send(void* Message,size_t Length,int Flag);
+    int         Recv(void* Buffer ,size_t MaxBuf,int Flag);
+    int         GetSockfd(void);
+    int         DoP2PConnect(uint32_t IP32);
+signals:
+
+public slots:
+
+private slots:
+
+private:
+    struct sockaddr_in DestAddr;
     int         Sockfd;
     void        *Buffer;
     void        *Package;
