@@ -1,6 +1,5 @@
 
 ## LinkC
-=====
     An simple IM client based on Qt and use POSIX socket.
 
 ### Start Date:
@@ -14,9 +13,9 @@
 ### Runtime Dependencies:
     qt-4(or qt-5)
 
-### Directory:
-    * NewServer --> New server of LinkC *
-    * NewClient --> New client of LinkC *
-    * server    --> Old server of LinkC *
-    * user      --> Old client of LinkC *
-    * testing   --> Test only files     *
+### Directories
+    NewServer --> LinkC 的新服务端
+    NewClient --> LinkC 的新客户端
+    server    --> LinkC 的旧服务端[和旧客户端可以协作]
+    user      --> LinkC 的旧客户端[和旧服务端可以协作]
+    testing   --> 一些只在测试阶段的临时代码[可能有参考意义]
