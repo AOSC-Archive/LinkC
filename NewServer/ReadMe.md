@@ -9,3 +9,9 @@
 
 ## Clean:
     $ rm -rf Build
+
+## Directories:
+    * src       --> Sources of LinkC *
+    * include   --> Headers of LinkC *
+    * data      --> Database         *
+    * doc       --> Documents        *
