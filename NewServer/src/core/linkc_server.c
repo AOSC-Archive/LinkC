@@ -54,7 +54,7 @@ int ReplyData (UserData* User,int Sockfd,uint8_t Request, RequestUser* Dest){
             Package = malloc(sizeof(PackageHeader)+sizeof(MessageHeader)+Count*sizeof(UserData));
             ((MessageHeader*)Buffer)->ActionType = RETURN_DATA|FRIENDS_DATA;
             ((MessageHeader*)Buffer)->StatusCode = htons(GET_DATA_SUCCESS);
-            memcpy((char*)(Buffer+sizeof(MessageHeader)),Friends,Count*sizeof(UserData));
+            memcpy((char*)Buffer+sizeof(MessageHeader),Friends,Count*sizeof(UserData));
             Length = _Package(Buffer,sizeof(MessageHeader)+Count*sizeof(UserData),NORMAL_MESSAGE,Package);
             send(Sockfd,Package,Length,0);
             goto RETURN_SUCCESS;
