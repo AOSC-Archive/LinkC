@@ -1,5 +1,6 @@
 #include "../../../include/linkc_p2p_list.h"
 #include "../../../include/linkc_error.h"
+#include "../../../include/linkc_def.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
@@ -11,11 +12,7 @@ extern int init_network(int port);
 
 int Network_init(int port);
 
-struct p2pinfo{
-    struct sockaddr_in Dest;
-    int is_server;
-};
-int info_size    = sizeof(struct p2pinfo);
+int info_size    = sizeof(P2PInfo);
 socklen_t len  = sizeof(struct sockaddr_in);
 
 int p2p_helper(void){
@@ -23,19 +20,16 @@ int p2p_helper(void){
     conn_list list;             //  链表[用来存储等待配对的网络对象]
     conn_list_item item;        //  操作用的item
     struct sockaddr_in addr;    //  保存网络地址用
-    struct p2pinfo info;        //  发回数据用
+    P2PInfo info;        //  发回数据用
     if ((sockfd = Network_init(2342)) < 0)  //  如果初始化网络链接失败
         return LINKC_FAILURE;          //      返回错误
     if(conn_list_init(&(list)) < 0){
         return LINKC_FAILURE;
     }
-    while(1)                    //  无限循环
-    {
+    while(1){                   //  无限循环
         bzero((void *)&addr,sizeof(struct sockaddr_in));     //  清空addr[保存网络地址用]数据
-        recvfrom(sockfd,(void *)&(item.info.Dest.sin_addr.s_addr),4,0,(struct sockaddr *)&addr,&len); //  等待从网络任何地方发来的UDP数据包
+        recvfrom(sockfd,(void *)&(item.info.Dest.sin_addr.s_addr),4/*IPV4的IP地址*/,0,(struct sockaddr *)&addr,&len); //  等待从网络任何地方发来的UDP数据包
         item.info.Src=addr;                 //  保存发来数据包的来源地址
-//        printf("DestIP=%s\n",inet_ntoa(item.info.Dest.sin_addr));                // Debug
-//        printf("SrcIP\t=%s\nSrcPort\t=%d\n",inet_ntoa(item.info.Src.sin_addr),addr.sin_port);    // Debug
         if(conn_list_find(&list,item.info,&(item.info.Dest)) == -14)    //  在链表中搜寻是否有这个地址[作为以前某个地址请求的对象][如果没找到]
         {
             conn_list_add(&list,item);                                  //      将请求添加到链表中

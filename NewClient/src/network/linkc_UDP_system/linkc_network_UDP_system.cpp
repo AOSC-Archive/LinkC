@@ -194,6 +194,7 @@ int P2PAccept(int Sockfd, struct sockaddr_in Dest, void(*Function) (void*), void
     if(Function != NULL){                                   //  执行函数，这里是我发送了无用信息后向服务端确认
         Function(Arg);
     }
+    Accept(Sockfd,Dest);
     
     return 0;
 }
@@ -491,18 +492,27 @@ int IsSocketInList(int Sockfd, LinkC_Socket** Socket){
     return 0;                                       //  返回未找到
 }
 int CreateSocket(void){
-    if(List != NULL){                                               //  如果链表为空
-        LinkC_Debug("CreateSocket:LinkC Socket环境没有初始化",LINKC_FAILURE);
-        return LINKC_FAILURE;                                       //  返回错误
-    }
-    LinkC_Socket *Socket    =   (LinkC_Socket*)malloc(sizeof(LinkC_Socket));    //  为套接字结构体分配内存
-    Socket->Sockfd          =   socket(AF_INET,SOCK_DGRAM,0);         //  创建UDP套接字
-    if(Socket->Sockfd < 0){                                                     //  如果创建套接字失败
-        perror("Create LCUDP");                                                 //  打印错误信息
-        free(Socket);                                                           //  释放内存
+
+    int Sockfd          =   socket(AF_INET,SOCK_DGRAM,0);         //  创建UDP套接字
+    if(Sockfd < 0){                                                     //  如果创建套接字失败
+        perror("Create LCUDP");                                                 //  打印错误信息                                                          //  释放内存
         return 1;                                                               //  返回错误
     }
-    /*  我也不知道这段是什么意思，不过大概就是说设置成在收到数据的时候发送一个信息这么回事    */
+    return Sockfd;                                                      //  返回创建的套接子
+}
+
+int AddSocketToList(int Sockfd){
+    if(List != NULL){                                               //  如果链表为空
+        LinkC_Debug("AddSocketToList:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
+    if(IsSocketInList(Sockfd,NULL) == 1){   //  当前Socket是否已经存在于链表中，如果存在
+        LinkC_Debug("AddSocketToList:重复添加",LINKC_FAILURE);
+        return 1;
+    }
+
+    LinkC_Socket *Socket = (LinkC_Socket*)malloc(sizeof(LinkC_Socket));
+
     if(fcntl(Socket->Sockfd,F_SETOWN,getpid()) == -1){
         perror("Set Own");
         close(Socket->Sockfd);                                                  //  关闭套接字
@@ -539,23 +549,7 @@ int CreateSocket(void){
     Socket->RecvBuffer      =   malloc(STD_BUFFER_SIZE);                        //  建立接收缓冲区
     Socket->SendBuffer      =   malloc(STD_BUFFER_SIZE);                        //  建立发送缓冲区
 
-    AddSocketToList(Socket);                                                    //  将当前套接字加入到片轮列表
-    return Socket->Sockfd;                                                      //  返回创建的套接子
-}
 
-int AddSocketToList(LinkC_Socket *Socket){
-    if(List != NULL){                                               //  如果链表为空
-        LinkC_Debug("AddSocketToList:LinkC Socket环境没有初始化",LINKC_FAILURE);
-        return LINKC_FAILURE;                                       //  返回错误
-    }
-    if(Socket == NULL){                             //  如果参数为空指针
-        printf("The Argument is NULL\n");           //  打印错误信息
-        return 1;
-    }
-    if(IsSocketInList(Socket->Sockfd,NULL) == 1){   //  当前Socket是否已经存在于链表中，如果存在
-        LinkC_Debug("AddSocketToList:重复添加",LINKC_FAILURE);
-        return 1;
-    }
     SocketListNode* Node;
     Node            = (SocketListNode*)malloc(sizeof(SocketListNode));     //  分配内存
     Node->Mutex_Lock= (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));

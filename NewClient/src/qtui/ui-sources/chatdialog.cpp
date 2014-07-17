@@ -11,6 +11,7 @@ ChatDialog::ChatDialog(UserData _MyFriend, QWidget *parent)
     Layout      = new QVBoxLayout(this);
     History     = new ChatHistoryView(MyFriend.UserName);
     Input       = new QTextEdit;
+    Socket      = new UDP_Socket;
     this->resize(300,300);
 
     char title_tmp[20];
@@ -23,6 +24,7 @@ ChatDialog::ChatDialog(UserData _MyFriend, QWidget *parent)
     QuitButton->hide();
     this->connect(SendButton,SIGNAL(clicked()),this,SLOT(Send()));
     this->connect(Input,SIGNAL(textChanged()),this,SLOT(InputEditChanged()));
+    this->connect(this,SIGNAL(DoP2PConnect(uint32_t)),Socket,SLOT(DoP2PConnect(uint32_t)));
 
     setWindowTitle(Title);
 
@@ -32,6 +34,9 @@ ChatDialog::ChatDialog(UserData _MyFriend, QWidget *parent)
     Layout->addWidget(Input,1);
     Layout->addSpacing(25);
 
+    if(MyFriend.IP != 0){
+        emit DoP2PConnect(MyFriend.IP);
+    }
 }
 
 void ChatDialog::resizeEvent(QResizeEvent *){

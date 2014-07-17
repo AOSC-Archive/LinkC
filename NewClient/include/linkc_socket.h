@@ -43,11 +43,10 @@ public:
     int         Send(void* Message,size_t Length,int Flag);
     int         Recv(void* Buffer ,size_t MaxBuf,int Flag);
     int         GetSockfd(void);
-    int         DoP2PConnect(uint32_t IP32);
 signals:
 
 public slots:
-
+    void        DoP2PConnect(uint32_t IP32);
 private slots:
 
 private:

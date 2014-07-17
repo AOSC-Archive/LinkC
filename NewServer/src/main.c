@@ -1,6 +1,7 @@
 #include "../include/linkc_basic_network.h"
 #include "../include/linkc_error.h"
 #include "../include/linkc_db.h"
+#include "../include/linkc_p2p_helper.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -20,10 +21,15 @@
  */
 static void daemonize(const char *name);
 
-int main()
-{
-	daemonize("LinkC Server");
-	WaitForConnect();
+int main(){
+    pid_t pid;
+    pid = fork();
+    if(pid != 0){
+        daemonize("LinkC Server");
+        WaitForConnect();
+    }else{
+        p2p_helper();
+    }
 	return 0;                       //  返回
 }
 
@@ -33,8 +39,7 @@ int main()
 	perror(err);\
 	exit(EXIT_FAILURE);\
 }while(0);
-static void daemonize(const char *name)
-{
+static void daemonize(const char *name){
 	int i,fd0,fd1,fd2;
 	pid_t pid;
 	struct rlimit rl;
@@ -112,8 +117,8 @@ static void daemonize(const char *name)
         ERROR("Init Sqlite Db");
         exit(1);
     }
-	if(chdir("/")<0){
+	/*if(chdir("/")<0){
 		ERROR("Fail to change directory to /");
-	}
+	}*/
 }
 #undef ERROR

@@ -112,6 +112,11 @@ struct UserData_t{                  //  用户数据
     uint32_t    IP;                 // 现在IP地址
 };
 
+struct P2PInfo_t{
+    struct sockaddr_in Dest;
+    int is_server;
+};
+
 struct PthreadData_t{
     struct sockaddr_in  Addr;
     int                 Sockfd;
@@ -121,6 +126,7 @@ typedef struct MessageHeader_t  MessageHeader;
 typedef struct RequestUser_t    RequestUser;
 typedef struct LoginData_t      LoginData;
 typedef struct UserData_t       UserData;
+typedef struct P2PInfo_t        P2PInfo;
 typedef struct PthreadData_t    PthreadData;
 
 /*  ========= 数据类型 ===========  */

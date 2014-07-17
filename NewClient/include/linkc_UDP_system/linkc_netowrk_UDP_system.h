@@ -54,7 +54,6 @@ typedef struct SocketListNode_t SocketListNode;
 
 /* 链表函数定义 */
 int     InitSocketList      (void);                             //  初始LinkC_Socket环境[整个程序中只能被调用一次]
-int     AddSocketToList     (LinkC_Socket *Socket);             //  添加LinkC_Socket到链表中去
 int     IsSocketInList      (int Sockfd, LinkC_Socket**Socket); //  查询这个Socket是否存在于链表中
 int     GetSocketInList     (int Sockfd,LinkC_Socket *Socket);  //  获取对应的LinkC_Socket
 int     FindNodeInList      (SocketListNode *Node);             //  在链表中查找结点
@@ -114,6 +113,8 @@ int     CreateSocket(void);
  *      [0] 失败
  */
 
+int     AddSocketToList(int Sockfd);
+
 int     SetDestAddr(int Socket, struct sockaddr_in DestAddr);
 /*
  * TODO:    设置连接对象的地址
@@ -127,6 +128,9 @@ int     SetDestAddr(int Socket, struct sockaddr_in DestAddr);
  */
 
 int     DeleteSocket(int Socket);
+/*
+ * TODO:    添加套接字到链表中
+ */
 /*
  * TODO:    删除一个已经被添加到片轮链表中的Socket
  *

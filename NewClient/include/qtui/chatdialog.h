@@ -11,7 +11,10 @@
 #include <QPushButton>
 #include <QTextEdit>
 #include <QMenu>
+#include <stdint.h>
 #include "linkc_def.h"
+#include "linkc_netowrk_UDP_system.h"
+#include "linkc_socket.h"
 
 #define _MESSAGE_HISTORY_HEIGTH 40
 
@@ -41,6 +44,9 @@ public:
     void resizeEvent(QResizeEvent *);
     int UID;
 
+signals:
+    void    DoP2PConnect(uint32_t);
+
 private slots:
     void    Send(void);
     void    InputEditChanged();
@@ -52,6 +58,8 @@ protected:
     QVBoxLayout *Layout;
     UserData     MyFriend;
     QTimer *timer;
+    UDP_Socket  *Socket;
+
 };
 
 #endif // CHATDIALOG_H

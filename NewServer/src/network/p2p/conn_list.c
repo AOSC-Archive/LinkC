@@ -9,8 +9,8 @@
 #define CHECK_NOT_NULL(x,z) ({if (x==NULL) return z;})
 
 int conn_list_init(conn_list *list){
-    if(list != NULL){
-        LinkC_Debug("参数不为空[0]",LINKC_WARNING);
+    if(list == NULL){
+        LinkC_Debug("参数为空[5]",LINKC_WARNING);
         return -1;
     }
     if(list_init(&list->list) <0){
@@ -24,7 +24,7 @@ int conn_list_init(conn_list *list){
 
 int conn_list_destroy(conn_list *list){
     if(list == NULL){
-        LinkC_Debug("参数为空[5]",LINKC_WARNING);
+        LinkC_Debug("参数为空[6]",LINKC_WARNING);
         return LINKC_FAILURE;
     }
     if(pthread_mutex_lock(&(list->mutex)) < 0){
