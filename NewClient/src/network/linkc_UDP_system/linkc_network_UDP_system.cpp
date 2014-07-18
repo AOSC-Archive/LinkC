@@ -483,7 +483,8 @@ int IsSocketInList(int Sockfd, LinkC_Socket** Socket){
     SocketListNode *NowNode = List->StartNode;      //  新建一个节点，指向链表的开始节点
     while(NowNode){                                 //  循环[当前节点不为空]
         if(NowNode->Socket->Sockfd == Sockfd){      //  如果当前Socket等于传入的Socket
-            *Socket = NowNode->Socket;
+            if(Socket != NULL)
+                *Socket = NowNode->Socket;
             return 1;                               //  返回找到
         }
         NowNode = NowNode->Next;                    //  设置为下一个节点
