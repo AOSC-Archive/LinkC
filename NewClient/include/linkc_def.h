@@ -52,6 +52,7 @@
 #define     NO_DATA                 0x2000
 /*  ========= 指示代码 ===========  */
 
+#define CONNECTION                  0x00    //  连接
 #define USER_LOGIN                  0x01    //  登陆请求
 #define USER_LOGOUT                 0x02    //  登出请求
 /*  ========= 操作类型 ===========  */
@@ -67,6 +68,7 @@
 #define USER_DATA                   0x01    //  用户数据
 #define FRIENDS_DATA                0x02    //  全部好友数据
 #define SELF_STATUS                 0x03    //  自身状态
+#define NAT_READY                   0x04    //  NAT打洞完成
 /*  ========= 服务数据 ===========  */
 
 

@@ -67,6 +67,7 @@
 #define USER_DATA                   0x01    //  用户数据
 #define FRIENDS_DATA                0x02    //  全部好友数据
 #define SELF_STATUS                 0x03    //  自身状态
+#define NAT_READY                   0x04    //  NAT打洞完成
 /*  ========= 服务数据 ===========  */
 
 

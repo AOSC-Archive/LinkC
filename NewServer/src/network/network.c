@@ -77,6 +77,7 @@ void* MainConnect(void *Arg){
     void*       Package         = malloc(STD_PACKAGE_SIZE);
     UserData    User;
     int         Status          = 0;
+    uint8_t     ActionType;
 START:
     CHECK_FAILED(   TCP_recv(Sockfd,Package,STD_PACKAGE_SIZE,0),    "Receiving",    LINKC_FAILURE,  NULL);
     if(TCP_recv(Sockfd,Package,STD_BUFFER_SIZE,0) < 0){     //  接收数据失败
@@ -117,6 +118,7 @@ START:
             LinkC_Debug("Unpacking",LINKC_FAILURE);
             goto END;
         }
+        ActionType = GetActionType(((MessageHeader*)Buffer)->ActionType);
         if(((MessageHeader*)Buffer)->ActionType == USER_LOGOUT){
             if(SetStatus(&User,NetAddr,STATUS_OFFLINE) == LINKC_FAILURE){
                 SendActionStatus(Sockfd,LOGOUT_FAILURE);
@@ -126,8 +128,10 @@ START:
             SendActionStatus(Sockfd,LOGOUT_SUCCESS);
             LinkC_Debug("Logged Off",LINKC_SUCCESS);
             goto END;
-        }else if(GetActionType(((MessageHeader*)Buffer)->ActionType) == RQUEST_DATA){
+        }else if(ActionType == RQUEST_DATA){
             ReplyData(&User,Sockfd,GetDataType(((MessageHeader*)Buffer)->ActionType),(RequestUser*)(char*)Buffer+sizeof(MessageHeader));
+            continue;
+        }else if(ActionType == UPLOAD_DATA){
             continue;
         }
         LinkC_Debug("No Relevant Action",LINKC_WARNING);

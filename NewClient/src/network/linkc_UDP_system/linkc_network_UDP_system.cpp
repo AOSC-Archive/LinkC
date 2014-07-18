@@ -627,7 +627,7 @@ int DestroySocketList(){
     return 0;                                           //  返回函数
 }
 
-int DeleteSocket(int Socket){
+int DelSocketFromList(int Socket){
     if(List != NULL){                                               //  如果链表为空
         LinkC_Debug("DeleteSocket:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误

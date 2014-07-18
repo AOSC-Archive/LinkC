@@ -88,3 +88,4 @@ RETURN_FAILURE:
     Package = NULL;
     return LINKC_FAILURE;
 }
+

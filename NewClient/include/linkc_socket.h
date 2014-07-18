@@ -39,10 +39,12 @@ public:
     explicit    UDP_Socket(QObject *parent = 0);
     ~UDP_Socket();
     void        SetDestAddr(struct sockaddr_in  Addr);
-    int         Connect(void);
     int         Send(void* Message,size_t Length,int Flag);
     int         Recv(void* Buffer ,size_t MaxBuf,int Flag);
     int         GetSockfd(void);
+    int         NATReady(void);
+    int         DoConnect(void);
+    int         DoAccept (void);
 signals:
 
 public slots:

@@ -2,6 +2,7 @@
 #include "linkc_def.h"
 #include "linkc_client.h"
 #include "linkc_TCP_io.h"
+#include "linkc_package_ctl.h"
 #include <sys/socket.h>
 
 TCP_Socket::TCP_Socket(QObject *parent) :
@@ -72,6 +73,26 @@ int UDP_Socket::GetSockfd(){
     return Sockfd;
 }
 
+int UDP_Socket::DoConnect(){
+    int Status;
+    if(IsSocketInList(this->GetSockfd(),NULL) == 0){   // 如果没有找到
+        Status = AddSocketToList(this->GetSockfd());
+        DelSocketFromList(this->GetSockfd());
+        return Status;
+    }
+    return Connect(this->GetSockfd(),DestAddr);
+}
+
+int UDP_Socket::DoAccept(){
+    int Status;
+    if(IsSocketInList(this->GetSockfd(),NULL) == 0){   // 如果没有找到
+        Status = AddSocketToList(this->GetSockfd());
+        DelSocketFromList(this->GetSockfd());
+        return Status;
+    }
+    return Accept(this->GetSockfd(),DestAddr);
+}
+
 void UDP_Socket::DoP2PConnect(uint32_t IP32){
     struct sockaddr_in NetAddr;
     P2PInfo Info;
@@ -83,8 +104,8 @@ void UDP_Socket::DoP2PConnect(uint32_t IP32){
     sendto(Sockfd,(void*)&IP32,4,0,(struct sockaddr *)&NetAddr,len);
     recvfrom(Sockfd,(void*)&Info,sizeof(P2PInfo),0,(struct sockaddr*)&NetAddr,&len);
     if(Info.is_server == 1){
-        Accept(Sockfd,Info.Dest);
-    }else{
         this->SetDestAddr(Info.Dest);
+        this->DoAccept();
+    }else{
     }
 }
