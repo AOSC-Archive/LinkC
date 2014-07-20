@@ -106,8 +106,8 @@ void UDP_Socket::DoP2PConnect(uint32_t IP32){
     this->SetDestAddr(Info.Dest);
     AddSocketToList(this->Sockfd);
     if(Info.is_server == 1){
-        P2PAccept();
+        P2PAccept(this->Sockfd,DestAddr,NULL,NULL);
     }else{
-        P2PConnect();
+        P2PConnect(this->Sockfd,DestAddr);
     }
 }
