@@ -34,7 +34,7 @@ ChatDialog::ChatDialog(UserData _MyFriend, QWidget *parent)
     Layout->addWidget(Input,1);
     Layout->addSpacing(25);
 
-    if(MyFriend.IP != 0){
+    if(MyFriend.Status != STATUS_OFFLINE){
         emit DoP2PConnect(MyFriend.IP);
     }
 }

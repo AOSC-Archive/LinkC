@@ -194,8 +194,17 @@ int P2PAccept(int Sockfd, struct sockaddr_in Dest, void(*Function) (void*), void
     if(Function != NULL){                                   //  执行函数，这里是我发送了无用信息后向服务端确认
         Function(Arg);
     }
-    Accept(Sockfd,Dest);
-    
+    LinkC_Debug("P2PAccept:等待对方发起请求",LINKC_DEBUG);
+    _LinkC_Recv(Socket,Socket->RecvBuffer,512,0);
+    LinkC_Debug("P2PAccept:已收到请求",LINKC_DEBUG);
+    int Length = _LCUDP_Package(NULL,0,Socket,CONNECTION_MESSAGE,Socket->SendBuffer);
+    if(Length < 0){
+        LinkC_Debug("P2PAccept:打包数据失败",LINKC_FAILURE);
+        return -1;
+    }
+    _LinkC_Send(Socket,Socket->SendBuffer,Length,0);
+    LinkC_Debug("P2PAccept:已发出确认",LINKC_DEBUG);
+
     return 0;
 }
 

@@ -103,9 +103,10 @@ void UDP_Socket::DoP2PConnect(uint32_t IP32){
     socklen_t len = sizeof(struct sockaddr_in);
     sendto(Sockfd,(void*)&IP32,4,0,(struct sockaddr *)&NetAddr,len);
     recvfrom(Sockfd,(void*)&Info,sizeof(P2PInfo),0,(struct sockaddr*)&NetAddr,&len);
+    this->SetDestAddr(Info.Dest);
     if(Info.is_server == 1){
-        this->SetDestAddr(Info.Dest);
         this->DoAccept();
     }else{
+        this->DoConnect();
     }
 }
