@@ -29,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
     memset((void*)&NetAddr,0,sizeof(struct sockaddr_in));
     NetAddr.sin_family  = AF_INET;
     NetAddr.sin_port    = htons(2341);
-    inet_aton("127.0.0.1",(struct in_addr*)&NetAddr.sin_addr.s_addr);
+    inet_aton("117.59.12.104",(struct in_addr*)&NetAddr.sin_addr.s_addr);
     Socket->SetDestAddr(NetAddr);
 
     connect(LoginW,SIGNAL(SIGN_LoginStart(LoginData)),this,SLOT(DoLogin(LoginData)));

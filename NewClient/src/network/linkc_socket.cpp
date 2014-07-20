@@ -99,14 +99,15 @@ void UDP_Socket::DoP2PConnect(uint32_t IP32){
     memset((void*)&NetAddr,0,sizeof(struct sockaddr_in));
     NetAddr.sin_family  = AF_INET;
     NetAddr.sin_port    = htons(2342);
-    inet_aton("127.0.0.1",(struct in_addr*)&NetAddr.sin_addr.s_addr);
+    inet_aton("117.59.12.104",(struct in_addr*)&NetAddr.sin_addr.s_addr);
     socklen_t len = sizeof(struct sockaddr_in);
     sendto(Sockfd,(void*)&IP32,4,0,(struct sockaddr *)&NetAddr,len);
     recvfrom(Sockfd,(void*)&Info,sizeof(P2PInfo),0,(struct sockaddr*)&NetAddr,&len);
     this->SetDestAddr(Info.Dest);
+    AddSocketToList(this->Sockfd);
     if(Info.is_server == 1){
-        this->DoAccept();
+        P2PAccept();
     }else{
-        this->DoConnect();
+        P2PConnect();
     }
 }
