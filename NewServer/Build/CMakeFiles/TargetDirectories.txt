@@ -1,0 +1,1 @@
+/home/tricks/Project/LinkC/NewServer/Build/src/CMakeFiles/Server.dir

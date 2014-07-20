@@ -102,9 +102,9 @@
   <widget class="QLabel" name="UsernameLabel">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>10</x>
      <y>20</y>
-     <width>51</width>
+     <width>71</width>
      <height>21</height>
     </rect>
    </property>
@@ -118,10 +118,10 @@
   <widget class="QLabel" name="PasswordLabel">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>20</x>
      <y>50</y>
-     <width>51</width>
-     <height>16</height>
+     <width>61</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">

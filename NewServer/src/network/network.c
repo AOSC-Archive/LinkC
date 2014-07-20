@@ -79,7 +79,6 @@ void* MainConnect(void *Arg){
     int         Status          = 0;
     uint8_t     ActionType;
 START:
-    CHECK_FAILED(   TCP_recv(Sockfd,Package,STD_PACKAGE_SIZE,0),    "Receiving",    LINKC_FAILURE,  NULL);
     if(TCP_recv(Sockfd,Package,STD_BUFFER_SIZE,0) < 0){     //  接收数据失败
         LinkC_Debug("Receiving",LINKC_FAILURE);
         goto END;                                           //  跳转到end位置

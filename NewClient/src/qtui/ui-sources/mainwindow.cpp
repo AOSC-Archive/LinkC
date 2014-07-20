@@ -37,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this,SIGNAL(LoginStatus(bool)),this,SLOT(setVisible(bool)));
     connect(this,SIGNAL(LoginStatus(bool)),LoginW,SLOT(setHidden(bool)));
     connect(FList,SIGNAL(ChatTo(UserData)),this,SLOT(OpenChatDialog(UserData)));
+    connect(ui->RefreshButton,SIGNAL(clicked()),this,SLOT(DoGetFriendsData()));
 }
 
 MainWindow::~MainWindow(){
@@ -145,6 +146,7 @@ int MainWindow::DoGetFriendsData(){
         return LINKC_SUCCESS;
     }
     int Count = Length / sizeof(UserData);
+    FList->ClearFriendsList();
     FList->SetFriendCount(Count);
     int i;
     for(i=0;i<Count;i++){
