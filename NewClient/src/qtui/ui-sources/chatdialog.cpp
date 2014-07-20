@@ -8,6 +8,7 @@ ChatDialog::ChatDialog(UserData _MyFriend, QWidget *parent)
     memcpy((void *)&MyFriend,(void *)&_MyFriend,sizeof(UserData));
     SendButton  = new QPushButton(this);
     QuitButton  = new QPushButton(this);
+    ConnectButton=new QPushButton(this);
     Layout      = new QVBoxLayout(this);
     History     = new ChatHistoryView(MyFriend.UserName);
     Input       = new QTextEdit;
@@ -20,11 +21,14 @@ ChatDialog::ChatDialog(UserData _MyFriend, QWidget *parent)
 
     SendButton->setText(tr("Send"));
     SendButton->show();
+    ConnectButton->setText(tr("Connect"));
+    ConnectButton->show();
     SendButton->setEnabled(false);
     QuitButton->hide();
     this->connect(SendButton,SIGNAL(clicked()),this,SLOT(Send()));
     this->connect(Input,SIGNAL(textChanged()),this,SLOT(InputEditChanged()));
     this->connect(this,SIGNAL(DoP2PConnect(uint32_t)),Socket,SLOT(DoP2PConnect(uint32_t)));
+    this->connect(ConnectButton,SIGNAL(clicked()),this,SLOT(StartConnect()));
 
     setWindowTitle(Title);
 
@@ -34,13 +38,12 @@ ChatDialog::ChatDialog(UserData _MyFriend, QWidget *parent)
     Layout->addWidget(Input,1);
     Layout->addSpacing(25);
 
-    if(MyFriend.Status != STATUS_OFFLINE){
-        emit DoP2PConnect(MyFriend.IP);
-    }
+    this->show();
 }
 
 void ChatDialog::resizeEvent(QResizeEvent *){
     SendButton->setGeometry(this->width()-80,this->height()-30,70,25);
+    ConnectButton->setGeometry(this->width()-270,this->height()-30,70,25);
 }
 
 void ChatDialog::Send(){
@@ -50,6 +53,10 @@ void ChatDialog::Send(){
 void ChatDialog::InputEditChanged(){
     if(Input->toPlainText() == "")  SendButton->setDisabled(true);
     else                            SendButton->setDisabled(false);
+}
+
+void ChatDialog::StartConnect(){
+    DoP2PConnect(MyFriend.IP);
 }
 
 ChatDialog::~ChatDialog(){

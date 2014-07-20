@@ -145,6 +145,7 @@ int MainWindow::DoGetFriendsData(){
         LinkC_Debug(tr("获取全部好友资料").toUtf8().data(),LINKC_SUCCESS);
         return LINKC_SUCCESS;
     }
+    LinkC_Debug("刷新好友资料",LINKC_SUCCESS);
     int Count = Length / sizeof(UserData);
     FList->ClearFriendsList();
     FList->SetFriendCount(Count);
@@ -158,6 +159,7 @@ int MainWindow::DoGetFriendsData(){
 
 void MainWindow::OpenChatDialog(UserData Data){
     ChatDialog *log;
+    LinkC_Debug("Open",LINKC_DEBUG);
 
     if(!ChatDialogMap.contains(Data.UID)){
         log = new ChatDialog(Data);

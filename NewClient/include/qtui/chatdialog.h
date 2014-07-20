@@ -50,9 +50,11 @@ signals:
 private slots:
     void    Send(void);
     void    InputEditChanged();
+    void    StartConnect();
 protected:
     QPushButton *SendButton;
     QPushButton *QuitButton;
+    QPushButton *ConnectButton;
     ChatHistoryView *History;
     QTextEdit   *Input;
     QVBoxLayout *Layout;

@@ -25,7 +25,11 @@ int main(){
     pid_t pid;
     pid = fork();
     if(pid != 0){
-        daemonize("LinkC Server");
+   //     daemonize("LinkC Server");
+        if(InitSqliteDb()==LINKC_FAILURE){
+            LinkC_Debug("Initializing Database",LINKC_FAILURE);
+            exit(1);
+        }
         WaitForConnect();
     }else{
         p2p_helper();
@@ -106,12 +110,12 @@ static void daemonize(const char *name){
 	 *
 	 * 因为所有文件描述符都已经被关闭，所以fd0=0,fd1=1,fd2=2
 	 */
-	fd0=open("/tmp/linkc_server.log",O_RDWR|O_CREAT|O_TRUNC,0666);
+	/*fd0=open("/tmp/linkc_server.log",O_RDWR|O_CREAT|O_TRUNC,0666);
 	fd1=dup(0);
 	fd2=dup(0);
 	if(fd0!=0 || fd1!=1 || fd2!=2){
 		exit(-1);
-	}
+	}*/
     if(InitSqliteDb()==LINKC_FAILURE){
         LinkC_Debug("Initializing Database",LINKC_FAILURE);
         ERROR("Init Sqlite Db");

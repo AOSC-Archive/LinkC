@@ -37,6 +37,7 @@ int ReplyData (UserData* User,int Sockfd,uint8_t Request, RequestUser* Dest){
         User->UID = (ntohl(User->UID));
         goto RETURN_SUCCESS;
     }else if(Request == USER_DATA){
+        LinkC_Debug("..",LINKC_DEBUG);
         if(Dest->UID == 0){             //  获得全部好友数据
             UserData* Friends = NULL;
             int Count = GetFriendsData(User->UID,&Friends);
