@@ -20,7 +20,7 @@ int InitNetwork(int port){
     socklen_t len;                              // 长度
     struct sockaddr_in local_addr;              // 用于保存网络地址
     memset(&local_addr,0,sizeof(local_addr));   // 清空数据
-    if ((sockfd = socket (AF_INET,SOCK_STREAM, 0)) < 0) // 创建套接字[网络句柄]
+    if ((sockfd = socket (AF_INET,SOCK_STREAM, IPPROTO_TCP)) < 0) // 创建套接字[网络句柄]
     {
         perror ("Socket");                      // 打印出错信息
         exit (EXIT_FAILURE);                    // 退出
