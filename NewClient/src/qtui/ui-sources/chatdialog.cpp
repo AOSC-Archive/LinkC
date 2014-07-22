@@ -56,7 +56,7 @@ void ChatDialog::InputEditChanged(){
 }
 
 void ChatDialog::StartConnect(){
-    DoP2PConnect(MyFriend.IP);
+    emit DoP2PConnect(MyFriend.IP);
 }
 
 ChatDialog::~ChatDialog(){
