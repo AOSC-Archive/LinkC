@@ -25,6 +25,7 @@ int main(int argc,char **argv){
         DataVar.setValue(D2);
         qRegisterMetaType<UserData>("UserData");
 //注册完毕
+        InitLCUDPEnvironment();
         QApplication a(argc, argv);
         MainWindow w;
         w.hide();

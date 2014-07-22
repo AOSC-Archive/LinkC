@@ -30,6 +30,7 @@ int16_t TCP_recv(int Sockfd, void *Out, int Out_size, int flag){
     }
     int PackageLength = ntohs(Header.MessageLength)+sizeof(PackageHeader);
     if(PackageLength > Out_size){
+        printf("Send-out Size = %d\nOut Size = %d\n",PackageLength,Out_size);
         LinkC_Debug("Send-Out Buffer Too Small",LINKC_FAILURE); // Well, after fixing those Chinese strings, someone should really merge the error 
 	                                                        // outputs into some sort of function. MERGE PLEASE...
         return LINKC_FAILURE;

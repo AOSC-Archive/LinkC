@@ -151,7 +151,7 @@ int Accept(int Sockfd, struct sockaddr_in Dest){
     return 0;
 }
 int P2PConnect(int Sockfd, struct sockaddr_in Dest){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("P2PConnect:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -177,7 +177,7 @@ int P2PConnect(int Sockfd, struct sockaddr_in Dest){
 }
 
 int P2PAccept(int Sockfd, struct sockaddr_in Dest, void(*Function) (void*), void* Arg){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("P2PAccept:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -209,7 +209,7 @@ int P2PAccept(int Sockfd, struct sockaddr_in Dest, void(*Function) (void*), void
 }
 
 int SendMessage(int Sockfd, void *Message, size_t Length, int Flag){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("SendMessage:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -220,7 +220,7 @@ int SendMessage(int Sockfd, void *Message, size_t Length, int Flag){
     return _LinkC_Send(Socket,Message,Length,Flag);
 }
 int RecvMessage(int Sockfd, void *Buffers, size_t MaxBuf, int Flag){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("RecvMessage:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -232,7 +232,7 @@ int RecvMessage(int Sockfd, void *Buffers, size_t MaxBuf, int Flag){
 }
 
 int _LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("_LinkC_Send:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -240,7 +240,7 @@ int _LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
 }
 
 int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("_LinkC_Recv:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -280,7 +280,7 @@ int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
 }
 
 int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("__LinkC_Send:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -293,7 +293,7 @@ int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
 }
 
 int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("__LinkC_Recv:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -399,7 +399,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
 
 
 int ___LinkC_Send(LinkC_Socket *Socket, void *Message, size_t Length, int Flag){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("___LinkC_Send:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -415,7 +415,7 @@ int ___LinkC_Send(LinkC_Socket *Socket, void *Message, size_t Length, int Flag){
 
 
 int ___LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("___LinkC_Recv:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -474,8 +474,8 @@ int InitLCUDPEnvironment(void){
 }
 
 int InitSocketList(void){
-    if(List != NULL){                                               //  如果链表为空
-        LinkC_Debug("InitSocketList:LinkC Socket环境没有初始化",LINKC_FAILURE);
+    if(List == NULL){                                               //  如果链表为空
+        LinkC_Debug("InitSocketList:LinkC Socket环境已经初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
     List = (SocketList*)malloc(sizeof(SocketList)); //  为链表分配内存
@@ -485,7 +485,7 @@ int InitSocketList(void){
 }
 
 int IsSocketInList(int Sockfd, LinkC_Socket** Socket){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("IsSocketInList:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -512,7 +512,7 @@ int CreateSocket(void){
 }
 
 int AddSocketToList(int Sockfd){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("AddSocketToList:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -580,7 +580,7 @@ int AddSocketToList(int Sockfd){
 }
 
 int SetDestAddr(int Socket, struct sockaddr_in DestAddr){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("SetDestAddr:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -603,7 +603,7 @@ int SetDestAddr(int Socket, struct sockaddr_in DestAddr){
 }
 
 int DestroySocketList(){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("DestroySocketList:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -637,7 +637,7 @@ int DestroySocketList(){
 }
 
 int DelSocketFromList(int Socket){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("DeleteSocket:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -673,7 +673,7 @@ int DelSocketFromList(int Socket){
 }
 
 int ResendMessage(LinkC_Socket *Socket, void *Message, int Flag){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("ResendMessage:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
