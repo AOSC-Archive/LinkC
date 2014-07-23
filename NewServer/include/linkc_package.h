@@ -29,7 +29,7 @@ typedef struct PackageBody_t            PackageBody;
 
 typedef struct ConfirmationMessage_t    ConfirmationMessage;
 
-//  ####    MessageHeader   ####    MessageType ####
+//  ####    PackageHeader   ####    MessageType ####
 #define DEBUG_MESSAGE           0x00        //  测试时用的数据
 #define NORMAL_MESSAGE          0x01        //  一般的数据
 #define HEART_BEATS             0x02        //  心跳包
@@ -37,7 +37,8 @@ typedef struct ConfirmationMessage_t    ConfirmationMessage;
 #define SSL_KEY_MESSAGE         0x04        //  交换SSL证书
 #define CONFIRMATION_MESSAGE    0x05        //  收到确认消息
 #define CONNECTION_MESSAGE      0x06        //  连接包
-//  ####    MessageHeader   ####    MessageType ####    结束    ####
+#define P2P_DATA                0x07        //  P2P链接所需数据
+//  ####    PackageHeader   ####    MessageType ####    结束    ####
 
 //  ####    定义区域    ####    结束    ####
 

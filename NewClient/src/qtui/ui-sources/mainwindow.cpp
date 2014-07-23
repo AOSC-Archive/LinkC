@@ -159,8 +159,6 @@ int MainWindow::DoGetFriendsData(){
 
 void MainWindow::OpenChatDialog(UserData Data){
     ChatDialog *log;
-    LinkC_Debug("Open",LINKC_DEBUG);
-
     if(!ChatDialogMap.contains(Data.UID)){
         log = new ChatDialog(Data);
         log->show();

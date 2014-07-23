@@ -39,7 +39,6 @@ ChatDialog::ChatDialog(UserData _MyFriend, QWidget *parent)
     Layout->addSpacing(25);
 
     this->show();
-    InitLCUDPEnvironment();
 }
 
 void ChatDialog::resizeEvent(QResizeEvent *){

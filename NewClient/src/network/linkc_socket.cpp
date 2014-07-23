@@ -46,7 +46,8 @@ UDP_Socket::UDP_Socket(QObject *parent) :
     Buffer  = new char[STD_PACKAGE_SIZE];
     Sockfd  = 0;
     bzero((void*)&DestAddr,sizeof(struct sockaddr_in));
-    if ((Sockfd = CreateSocket()) < 0){         // 创建套接字[网络句柄]
+    Sockfd = CreateSocket();
+    if (Sockfd < 0){         // 创建套接字[网络句柄]
         perror ("CreateSocket[UDP]");           // 打印出错信息
         return;
     }
@@ -102,12 +103,18 @@ void UDP_Socket::DoP2PConnect(uint32_t IP32){
     inet_aton("117.59.12.104",(struct in_addr*)&NetAddr.sin_addr.s_addr);
     socklen_t len = sizeof(struct sockaddr_in);
     sendto(Sockfd,(void*)&IP32,4,0,(struct sockaddr *)&NetAddr,len);
-    recvfrom(Sockfd,(void*)&Info,sizeof(P2PInfo),0,(struct sockaddr*)&NetAddr,&len);
+    RecvMessage(Sockfd,this->Package,STD_PACKAGE_SIZE,0);
+    _UnPackage(Package,sizeof(P2PInfo),(void*)&Info);
     this->SetDestAddr(Info.Dest);
-    AddSocketToList(this->Sockfd);
     if(Info.is_server == 1){
+        if(IsSocketInList(this->Sockfd,NULL) == 0){
+            AddSocketToList(this->Sockfd);
+        }
         P2PAccept(this->Sockfd,DestAddr,NULL,NULL);
     }else{
+        if(IsSocketInList(this->Sockfd,NULL) == 0){
+            AddSocketToList(this->Sockfd);
+        }
         P2PConnect(this->Sockfd,DestAddr);
     }
 }

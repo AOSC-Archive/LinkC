@@ -1,6 +1,8 @@
 #include "../../../include/linkc_p2p_list.h"
 #include "../../../include/linkc_error.h"
 #include "../../../include/linkc_def.h"
+#include "../../../include/linkc_package_ctl.h"
+#include "../../../include/linkc_package.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
@@ -16,6 +18,7 @@ int info_size    = sizeof(P2PInfo);
 socklen_t len  = sizeof(struct sockaddr_in);
 
 int p2p_helper(void){
+    void *Package   = malloc(sizeof(PackageHeader)+sizeof(P2PInfo));
     int sockfd;                 //  网络链接句柄
     conn_list list;             //  链表[用来存储等待配对的网络对象]
     conn_list_item item;        //  操作用的item
@@ -26,6 +29,10 @@ int p2p_helper(void){
     if(conn_list_init(&(list)) < 0){
         return LINKC_FAILURE;
     }
+    ((PackageHeader*)Package)->ProtocolVersion  = PROTOCOL_VERSION;
+    ((PackageHeader*)Package)->MessageType      = NORMAL_MESSAGE;
+    ((PackageHeader*)Package)->MessageCounts    = 0;
+    ((PackageHeader*)Package)->MessageLength    = htons(sizeof(P2PInfo));
     while(1){                   //  无限循环
         bzero((void *)&addr,sizeof(struct sockaddr_in));     //  清空addr[保存网络地址用]数据
         recvfrom(sockfd,(void *)&(item.info.Dest.sin_addr.s_addr),4/*IPV4的IP地址*/,0,(struct sockaddr *)&addr,&len); //  等待从网络任何地方发来的UDP数据包
@@ -37,10 +44,12 @@ int p2p_helper(void){
         }
         info.Dest = item.info.Dest;
         info.is_server = 1;
-        sendto(sockfd,(void *)&info,info_size,0,(struct sockaddr *)&(item.info.Src),len);   //  发回信息
+        memcpy((char*)Package+sizeof(PackageHeader),(void*)&info,sizeof(PackageHeader));
+        sendto(sockfd,Package,sizeof(PackageHeader)+sizeof(P2PInfo),0,(struct sockaddr *)&(item.info.Src),len);   //  发回信息
         info.Dest = item.info.Src;
         info.is_server = 0;
-        sendto(sockfd,(void *)&info,info_size,0,(struct sockaddr *)&(item.info.Dest),len);  //  发回信息
+        memcpy((char*)Package+sizeof(PackageHeader),(void*)&info,sizeof(PackageHeader));
+        sendto(sockfd,Package,sizeof(PackageHeader)+sizeof(P2PInfo),0,(struct sockaddr *)&(item.info.Dest),len);  //  发回信息
         conn_list_remove(&list,&item);                                  //  把这组信息删掉
     }
     exit(0);

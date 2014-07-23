@@ -97,7 +97,7 @@ int ConfirmRecved(LinkC_Socket *Socket, int Count){
 }
 
 int Connect (int Sockfd, struct sockaddr_in Dest){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("Connect:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -126,7 +126,7 @@ int Connect (int Sockfd, struct sockaddr_in Dest){
     return 0;
 }
 int Accept(int Sockfd, struct sockaddr_in Dest){
-    if(List != NULL){                                               //  如果链表为空
+    if(List == NULL){                                               //  如果链表为空
         LinkC_Debug("Accept:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -226,7 +226,10 @@ int RecvMessage(int Sockfd, void *Buffers, size_t MaxBuf, int Flag){
     }
     int Byte;
     LinkC_Socket *Socket = NULL;
-    IsSocketInList(Sockfd,&Socket);
+    if(IsSocketInList(Sockfd,&Socket) == 0){
+        LinkC_Debug("套接字不在链表中",LINKC_WARNING);
+        return LINKC_FAILURE;
+    }
     Byte = _LinkC_Recv(Socket,Buffers,MaxBuf,Flag);
     return Byte;
 }
@@ -474,7 +477,7 @@ int InitLCUDPEnvironment(void){
 }
 
 int InitSocketList(void){
-    if(List == NULL){                                               //  如果链表为空
+    if(List != NULL){                                               //  如果链表为空
         LinkC_Debug("InitSocketList:LinkC Socket环境已经初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
@@ -508,6 +511,8 @@ int CreateSocket(void){
         perror("Create LCUDP");                                                 //  打印错误信息                                                          //  释放内存
         return 1;                                                               //  返回错误
     }
+    printf("Sockfd = %d\n",Sockfd);
+    AddSocketToList(Sockfd);
     return Sockfd;                                                      //  返回创建的套接子
 }
 
@@ -522,6 +527,7 @@ int AddSocketToList(int Sockfd){
     }
 
     LinkC_Socket *Socket = (LinkC_Socket*)malloc(sizeof(LinkC_Socket));
+    Socket->Sockfd = Sockfd;
 
     if(fcntl(Socket->Sockfd,F_SETOWN,getpid()) == -1){
         perror("Set Own");
@@ -558,6 +564,7 @@ int AddSocketToList(int Sockfd){
     Socket->RecvList        =   BuildPackageList();                             //  创建链表
     Socket->RecvBuffer      =   malloc(STD_BUFFER_SIZE);                        //  建立接收缓冲区
     Socket->SendBuffer      =   malloc(STD_BUFFER_SIZE);                        //  建立发送缓冲区
+    Socket->ErrorMessage    =   NULL;                                           //  挂空指针
 
 
     SocketListNode* Node;
