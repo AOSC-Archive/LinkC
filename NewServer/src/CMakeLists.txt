@@ -12,5 +12,5 @@ SET(SRC_LIST    main.c
 
 ADD_EXECUTABLE (Server ${SRC_LIST})
 SET(EXECUTABLE_OUTPUT_PATH ../)
-TARGET_LINK_LIBRARIES (Server pthread sqlite3 ssl crypto)
+TARGET_LINK_LIBRARIES (Server pthread sqlite3 ssl crypto )
 
