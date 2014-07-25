@@ -265,13 +265,15 @@ int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
     }
     PackageListNode *Node = Socket->RecvList->StartNode;
     while(Node->Next)   Node = Node->Next;                          //  跳转到最后一个Node
-    if((Node->MessageLength)+(uint32_t)8 > size){
+    uint16_t Length = ntohs(Node->MessageLength)+8;
+    if(Length > size){
         LinkC_Debug("_LinkC_Recv:传入缓冲区过小!",LINKC_FAILURE);
+        printf("Size = %d\n",Length);
         sem_post(Socket->RecvList->Semaphore);
         pthread_mutex_unlock(Socket->RecvList->MutexLock);
         return -1;
     }
-    memcpy(Message,Node->Package,Node->MessageLength+8);
+    memcpy(Message,Node->Package,Length);
     if(Flag == MSG_PEEK){
         pthread_mutex_unlock(Socket->RecvList->MutexLock);
         sem_post(Socket->RecvList->Semaphore);
@@ -279,7 +281,7 @@ int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         RemovePackageListNode(Socket->RecvList,((PackageHeader*)Message)->MessageCounts);
         pthread_mutex_unlock(Socket->RecvList->MutexLock);
     }
-    return ((PackageHeader*)Message)->MessageLength;
+    return Length   ;
 }
 
 int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
@@ -319,7 +321,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             return -1;                                                          //  返回错误
         }
     }else{                                                                      //  recvfrom返回收到数据长度为8[可能为一个消息头]
-        uint16_t Length = ((PackageHeader*)Message)->MessageLength + 8;
+        uint16_t Length = ntohs(((PackageHeader*)Message)->MessageLength) + 8;
         if(((PackageHeader*)Message)->ProtocolVersion != PROTOCOL_VERSION){     //  如果协议版本号不一致
             printf("Version = %d\nMy Version = %d\n",((PackageHeader*)Message)->ProtocolVersion,PROTOCOL_VERSION);
             LinkC_Debug("协议版本不一致",LINKC_WARNING);
@@ -511,7 +513,6 @@ int CreateSocket(void){
         perror("Create LCUDP");                                                 //  打印错误信息                                                          //  释放内存
         return 1;                                                               //  返回错误
     }
-    printf("Sockfd = %d\n",Sockfd);
     AddSocketToList(Sockfd);
     return Sockfd;                                                      //  返回创建的套接子
 }
