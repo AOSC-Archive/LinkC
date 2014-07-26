@@ -18,6 +18,7 @@ int16_t TCP_Recv(int Sockfd, void *Out, int Out_size, int flag){
         return LINKC_FAILURE;
     int PackageLength = ntohs(Header.MessageLength)+sizeof(PackageHeader);
     if(PackageLength > Out_size){
+        printf("PackageLength = %d\nOutBufferSize = %d\n",PackageLength,Out_size);
         LinkC_Debug("Send-Out Buffer Too Small",LINKC_FAILURE);
         return LINKC_FAILURE;
     }
