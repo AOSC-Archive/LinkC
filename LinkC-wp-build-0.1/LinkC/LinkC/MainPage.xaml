@@ -1,0 +1,19 @@
+﻿<Page
+    x:Class="LinkC.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:LinkC"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid Background="Black">
+    	<ListBox x:Name="Lc_IDBox" HorizontalAlignment="Left" Height="40" Margin="92,200,0,0" VerticalAlignment="Top" Width="259"/>
+    	<PasswordBox x:Name="Lc_PWBox" HorizontalAlignment="Left" Height="40" Margin="92,266,0,0" VerticalAlignment="Top" Width="259"/>
+    	<TextBox x:Name="Lc_IDView" HorizontalAlignment="Left" Height="40" Margin="5,200,0,0" TextWrapping="Wrap" Text="   账号" VerticalAlignment="Top" Width="82" Background="Black" BorderBrush="Black" Foreground="#FFFFFDFD"/>
+    	<TextBox x:Name="Lc_PWView" HorizontalAlignment="Left" Height="40" Margin="7,266,0,0" TextWrapping="Wrap" Text="  密码" VerticalAlignment="Top" Width="85" Foreground="White" Background="Black" BorderBrush="Black"/>
+    	<Button x:Name="Lc_LoginBtn" Content="进入LinkC" HorizontalAlignment="Left" Height="69" Margin="29,386,0,0" VerticalAlignment="Top" Width="322" Click="Lc_LoginBtn_Click"/>
+    	<TextBox x:Name="Lc_TopLogo" HorizontalAlignment="Left" Height="102" Margin="29,73,0,0" TextWrapping="Wrap" Text="     LinkC" VerticalAlignment="Top" Width="322" FontSize="64" Foreground="White" BorderBrush="Black" Background="Black"/>
+    </Grid>
+</Page>

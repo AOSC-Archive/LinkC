@@ -1,0 +1,10 @@
+G:\GitHub\LinkC-WindowsPhone-Client\LinkC-wp-build-0.1\LinkC\LinkC\obj\Debug\App.g.i.cs
+G:\GitHub\LinkC-WindowsPhone-Client\LinkC-wp-build-0.1\LinkC\LinkC\obj\Debug\App.g.cs
+G:\GitHub\LinkC-WindowsPhone-Client\LinkC-wp-build-0.1\LinkC\LinkC\obj\Debug\MainPage.g.i.cs
+G:\GitHub\LinkC-WindowsPhone-Client\LinkC-wp-build-0.1\LinkC\LinkC\obj\Debug\MainPage.g.cs
+G:\GitHub\LinkC-WindowsPhone-Client\LinkC-wp-build-0.1\LinkC\LinkC\obj\Debug\XamlTypeInfo.g.cs
+G:\GitHub\LinkC-WindowsPhone-Client\LinkC-wp-build-0.1\LinkC\LinkC\obj\Debug\App.xaml
+G:\GitHub\LinkC-WindowsPhone-Client\LinkC-wp-build-0.1\LinkC\LinkC\obj\Debug\MainPage.xaml
+G:\GitHub\LinkC-WindowsPhone-Client\LinkC-wp-build-0.1\LinkC\LinkC\obj\Debug\App.xbf
+G:\GitHub\LinkC-WindowsPhone-Client\LinkC-wp-build-0.1\LinkC\LinkC\obj\Debug\MainPage.xbf
+G:\GitHub\LinkC-WindowsPhone-Client\LinkC-wp-build-0.1\LinkC\LinkC\obj\Debug\XamlSaveStateFile.xml
