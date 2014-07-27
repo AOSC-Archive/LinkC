@@ -513,7 +513,6 @@ int CreateSocket(void){
         perror("Create LCUDP");                                                 //  打印错误信息                                                          //  释放内存
         return 1;                                                               //  返回错误
     }
-    AddSocketToList(Sockfd);
     return Sockfd;                                                      //  返回创建的套接子
 }
 

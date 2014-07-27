@@ -11,12 +11,30 @@
 #include <QPushButton>
 #include <QTextEdit>
 #include <QMenu>
+#include <QThread>
 #include <stdint.h>
 #include "linkc_def.h"
 #include "linkc_netowrk_UDP_system.h"
 #include "linkc_socket.h"
 
 #define _MESSAGE_HISTORY_HEIGTH 40
+
+class P2PMessageRecver : public QThread{
+    Q_OBJECT
+public:
+    explicit P2PMessageRecver(int Sockfd, QThread *parent = 0);
+    ~P2PMessageRecver();
+    void run();
+signals:
+    void    MessageRecved(QString Message);
+    void    Disconnected(void);
+
+protected:
+    int     Sockfd;
+    void*   Buffer;
+    void*   Package;
+};
+
 
 
 class ChatHistoryView : public QWidget{
@@ -27,6 +45,8 @@ public:
     void AddChatMessage(QString Msg,QString Name);
     int  GetMessageCount(void);
     void resizeEvent(QResizeEvent *);
+public slots:
+    void    MessageRecved(QString);
 protected:
     int MessageCount;
     QWidget     *MessageBase;
@@ -52,16 +72,17 @@ private slots:
     void    InputEditChanged();
     void    StartConnect();
 protected:
-    QPushButton *SendButton;
-    QPushButton *QuitButton;
-    QPushButton *ConnectButton;
-    ChatHistoryView *History;
-    QTextEdit   *Input;
-    QVBoxLayout *Layout;
-    UserData     MyFriend;
-    QTimer *timer;
-    UDP_Socket  *Socket;
+    QPushButton         *SendButton;
+    QPushButton         *QuitButton;
+    QPushButton         *ConnectButton;
+    ChatHistoryView     *History;
+    QTextEdit           *Input;
+    QVBoxLayout         *Layout;
+    UserData             MyFriend;
+    UDP_Socket          *Socket;
+    P2PMessageRecver    *Recver;
+    void                *Buffer;
+    void                *Package;
 
 };
-
 #endif // CHATDIALOG_H

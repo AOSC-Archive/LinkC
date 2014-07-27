@@ -48,7 +48,7 @@ public:
 signals:
 
 public slots:
-    void        DoP2PConnect(uint32_t IP32);
+    int DoP2PConnect(uint32_t IP32);
 private slots:
 
 private:

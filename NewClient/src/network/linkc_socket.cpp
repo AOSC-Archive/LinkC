@@ -2,6 +2,7 @@
 #include "linkc_def.h"
 #include "linkc_client.h"
 #include "linkc_TCP_io.h"
+#include "linkc_error.h"
 #include "linkc_package_ctl.h"
 #include <sys/socket.h>
 
@@ -94,9 +95,10 @@ int UDP_Socket::DoAccept(){
     return Accept(this->GetSockfd(),DestAddr);
 }
 
-void UDP_Socket::DoP2PConnect(uint32_t IP32){
+int UDP_Socket::DoP2PConnect(uint32_t IP32){
     struct sockaddr_in NetAddr;
     P2PInfo Info;
+    AddSocketToList(this->Sockfd);
     memset((void*)&NetAddr,0,sizeof(struct sockaddr_in));
     NetAddr.sin_family  = AF_INET;
     NetAddr.sin_port    = htons(2342);
@@ -104,17 +106,18 @@ void UDP_Socket::DoP2PConnect(uint32_t IP32){
     socklen_t len = sizeof(struct sockaddr_in);
     sendto(Sockfd,(void*)&IP32,4,0,(struct sockaddr *)&NetAddr,len);
     RecvMessage(Sockfd,this->Package,STD_PACKAGE_SIZE,0);
-    _UnPackage(Package,sizeof(P2PInfo),(void*)&Info);
+    _UnPackage(Package,sizeof(Info),(void*)&Info);
     this->SetDestAddr(Info.Dest);
     if(Info.is_server == 1){
         if(IsSocketInList(this->Sockfd,NULL) == 0){
             AddSocketToList(this->Sockfd);
         }
-        P2PAccept(this->Sockfd,DestAddr,NULL,NULL);
+        return P2PAccept(this->Sockfd,DestAddr,NULL,NULL);
     }else{
         if(IsSocketInList(this->Sockfd,NULL) == 0){
             AddSocketToList(this->Sockfd);
         }
-        P2PConnect(this->Sockfd,DestAddr);
+        return P2PConnect(this->Sockfd,DestAddr);
     }
+    return LINKC_FAILURE;
 }

@@ -1,4 +1,9 @@
 #include "chatdialog.h"
+#include "linkc_error.h"
+#include "linkc_package_ctl.h"
+#include "linkc_package.h"
+#include "linkc_def.h"
+#include "linkc_netowrk_UDP_system.h"
 #include <QTextEdit>
 #include <QMessageBox>
 
@@ -13,6 +18,8 @@ ChatDialog::ChatDialog(UserData _MyFriend, QWidget *parent)
     History     = new ChatHistoryView(MyFriend.UserName);
     Input       = new QTextEdit;
     Socket      = new UDP_Socket;
+    Buffer      = new char[STD_PACKAGE_SIZE];
+    Package     = new char[STD_PACKAGE_SIZE];
     this->resize(300,300);
 
     char title_tmp[20];
@@ -47,7 +54,9 @@ void ChatDialog::resizeEvent(QResizeEvent *){
 }
 
 void ChatDialog::Send(){
-
+     memcpy(Buffer,Input->toPlainText().toUtf8().data(),Input->toPlainText().length());
+     int Length = _Package(Buffer,Input->toPlainText().length(),P2P_DATA,Package);
+     SendMessage(Socket->GetSockfd(),Package,Length,0);
 }
 
 void ChatDialog::InputEditChanged(){
@@ -56,7 +65,12 @@ void ChatDialog::InputEditChanged(){
 }
 
 void ChatDialog::StartConnect(){
-    emit DoP2PConnect(MyFriend.IP);
+    if(Socket->DoP2PConnect(MyFriend.IP) == LINKC_SUCCESS){
+        Recver = new P2PMessageRecver(Socket->GetSockfd());
+        this->connect(Recver,SIGNAL(MessageRecved(QString)),History,SLOT(MessageRecved));
+        Recver->start();
+    }
+
 }
 
 ChatDialog::~ChatDialog(){
@@ -88,6 +102,10 @@ void ChatHistoryView::resizeEvent(QResizeEvent *){
     MessageBase->resize(List->width()-15,_MESSAGE_HISTORY_HEIGTH*MessageCount);
 }
 
+void ChatHistoryView::MessageRecved(QString Msg){
+    this->AddChatMessage(Msg,tr("Peer Said"));
+}
+
 void ChatHistoryView::AddChatMessage(QString Msg){
     QWidget *Histroy    = new QWidget(MessageBase);
     QLabel  *L1         = new QLabel(Histroy);
@@ -116,4 +134,32 @@ void ChatHistoryView::AddChatMessage(QString Msg, QString Name){
     MessageBase->resize(List->width()-15,_MESSAGE_HISTORY_HEIGTH*MessageCount);
     Histroy->setGeometry(0,_MESSAGE_HISTORY_HEIGTH*(MessageCount-1),500,_MESSAGE_HISTORY_HEIGTH);
     Histroy->show();
+}
+
+
+P2PMessageRecver::P2PMessageRecver(int Socket, QThread *parent):
+    QThread(parent){
+    Sockfd =Socket;
+    Buffer = new char[STD_PACKAGE_SIZE];
+    Package =new char[STD_PACKAGE_SIZE];
+}
+
+P2PMessageRecver::~P2PMessageRecver(){
+    delete (char*)Buffer;
+    delete (char*)Package;
+}
+
+void P2PMessageRecver::run(){
+    QString Recved;
+    while(1){
+        if(RecvMessage(Sockfd,Buffer,STD_PACKAGE_SIZE,0)==LINKC_FAILURE){
+            LinkC_Debug("P2PMessageRecver:RecvMessage",LINKC_FAILURE);
+        }else{
+            bzero(Package,STD_BUFFER_SIZE);
+            if(((PackageHeader*)Buffer)->MessageType != P2P_DATA)   continue;   //  忽略非P2P消息
+            _UnPackage(Buffer,STD_PACKAGE_SIZE,Package);
+            Recved = (char*)Package;
+            emit MessageRecved(Recved);
+        }
+    }
 }
