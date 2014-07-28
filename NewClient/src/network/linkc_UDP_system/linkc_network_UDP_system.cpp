@@ -386,6 +386,14 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             }
             ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts);     //  发送确认收到消息
             InsertPackageListNode(Socket->RecvList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+        }else if(((PackageHeader*)Message)->MessageType == P2P_DATA){           //  如果是P2P数据
+            if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) <= 0){         // 如果接收剩余数据失败
+                LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
+                AskForResend(Socket,((PackageHeader*)Message)->MessageCounts);  //  请求重发
+                return 0;                                                        //  返回无数据
+            }
+            ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts);     //  发送确认收到消息
+            InsertPackageListNode(Socket->RecvList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
         }else if(((PackageHeader*)Message)->MessageType == CONNECTION_MESSAGE){
             if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) <= 0){         // 如果接收剩余数据失败
                 LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);

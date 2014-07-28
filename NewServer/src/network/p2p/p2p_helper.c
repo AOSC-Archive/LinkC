@@ -44,11 +44,11 @@ int p2p_helper(void){
         }
         info.Dest = item.info.Dest;
         info.is_server = 1;
-        memcpy((char*)Package+sizeof(PackageHeader),(void*)&info,sizeof(PackageHeader));
+        memcpy((char*)Package+sizeof(PackageHeader),(void*)&info,sizeof(P2PInfo));
         sendto(sockfd,Package,sizeof(PackageHeader)+sizeof(P2PInfo),0,(struct sockaddr *)&(item.info.Src),len);   //  发回信息
         info.Dest = item.info.Src;
         info.is_server = 0;
-        memcpy((char*)Package+sizeof(PackageHeader),(void*)&info,sizeof(PackageHeader));
+        memcpy((char*)Package+sizeof(PackageHeader),(void*)&info,sizeof(P2PInfo));
         sendto(sockfd,Package,sizeof(PackageHeader)+sizeof(P2PInfo),0,(struct sockaddr *)&(item.info.Dest),len);  //  发回信息
         conn_list_remove(&list,&item);                                  //  把这组信息删掉
     }

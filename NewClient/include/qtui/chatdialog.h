@@ -26,7 +26,7 @@ public:
     ~P2PMessageRecver();
     void run();
 signals:
-    void    MessageRecved(QString Message);
+    void    MessageRecved(QString);
     void    Disconnected(void);
 
 protected:
@@ -46,7 +46,7 @@ public:
     int  GetMessageCount(void);
     void resizeEvent(QResizeEvent *);
 public slots:
-    void    MessageRecved(QString);
+    void    ShowMessage(QString);
 protected:
     int MessageCount;
     QWidget     *MessageBase;

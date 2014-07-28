@@ -102,7 +102,7 @@ int UDP_Socket::DoP2PConnect(uint32_t IP32){
     memset((void*)&NetAddr,0,sizeof(struct sockaddr_in));
     NetAddr.sin_family  = AF_INET;
     NetAddr.sin_port    = htons(2342);
-    inet_aton("117.59.12.104",(struct in_addr*)&NetAddr.sin_addr.s_addr);
+    inet_aton("127.0.0.1",(struct in_addr*)&NetAddr.sin_addr.s_addr);
     socklen_t len = sizeof(struct sockaddr_in);
     sendto(Sockfd,(void*)&IP32,4,0,(struct sockaddr *)&NetAddr,len);
     RecvMessage(Sockfd,this->Package,STD_PACKAGE_SIZE,0);
@@ -112,11 +112,13 @@ int UDP_Socket::DoP2PConnect(uint32_t IP32){
         if(IsSocketInList(this->Sockfd,NULL) == 0){
             AddSocketToList(this->Sockfd);
         }
+        LinkC_Debug("You are server!",LINKC_DEBUG);
         return P2PAccept(this->Sockfd,DestAddr,NULL,NULL);
     }else{
         if(IsSocketInList(this->Sockfd,NULL) == 0){
             AddSocketToList(this->Sockfd);
         }
+        LinkC_Debug("You are client!",LINKC_DEBUG);
         return P2PConnect(this->Sockfd,DestAddr);
     }
     return LINKC_FAILURE;

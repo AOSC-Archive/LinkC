@@ -67,7 +67,7 @@ void ChatDialog::InputEditChanged(){
 void ChatDialog::StartConnect(){
     if(Socket->DoP2PConnect(MyFriend.IP) == LINKC_SUCCESS){
         Recver = new P2PMessageRecver(Socket->GetSockfd());
-        this->connect(Recver,SIGNAL(MessageRecved(QString)),History,SLOT(MessageRecved));
+        this->connect(Recver,SIGNAL(MessageRecved(QString)),History,SLOT(ShowMessage(QString)));
         Recver->start();
     }
 
@@ -102,7 +102,7 @@ void ChatHistoryView::resizeEvent(QResizeEvent *){
     MessageBase->resize(List->width()-15,_MESSAGE_HISTORY_HEIGTH*MessageCount);
 }
 
-void ChatHistoryView::MessageRecved(QString Msg){
+void ChatHistoryView::ShowMessage(QString Msg){
     this->AddChatMessage(Msg,tr("Peer Said"));
 }
 
