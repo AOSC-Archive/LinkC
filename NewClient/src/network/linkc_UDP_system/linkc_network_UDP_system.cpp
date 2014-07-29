@@ -189,8 +189,9 @@ int P2PAccept(int Sockfd, struct sockaddr_in Dest, void(*Function) (void*), void
     EmptyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
     EmptyPackageList(Socket->SendList); 
     SetDestAddr(Sockfd,Dest);
-    int Length = _LCUDP_Package(NULL,0,Socket,CONNECTION_MESSAGE,Socket->SendBuffer);
-    ___LinkC_Send(Socket,Socket->SendBuffer,Length,MSG_DONTWAIT);
+    bzero(Socket->SendBuffer,32);
+    int Length = _Package(NULL,0,HEART_BEATS,Socket->SendBuffer);
+    _LinkC_Send(Socket,Socket->SendBuffer,Length,MSG_DONTWAIT);
     if(Function != NULL){                                   //  执行函数，这里是我发送了无用信息后向服务端确认
         Function(Arg);
     }
@@ -204,6 +205,7 @@ int P2PAccept(int Sockfd, struct sockaddr_in Dest, void(*Function) (void*), void
     }
     _LinkC_Send(Socket,Socket->SendBuffer,Length,0);
     LinkC_Debug("P2PAccept:已发出确认",LINKC_DEBUG);
+    LinkC_Debug("P2PAccept:已连接上",LINKC_DEBUG);
 
     return 0;
 }
@@ -308,6 +310,7 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         return LINKC_FAILURE;
     }
     Byte = ___LinkC_Recv(Socket,Message,8,MSG_PEEK);
+    uint16_t Length;
     if(Byte < 8){                                                               //  recvfrom返回收到数据长度小于8[出错或者无数据]
         if(Byte == 0){                                                          //  recvfrom返回收到数据长度为0[断开链接或者无数据]
             LinkC_Debug("__LinkC_Recv:未收到数据",LINKC_WARNING);
@@ -321,13 +324,15 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             return -1;                                                          //  返回错误
         }
     }else{                                                                      //  recvfrom返回收到数据长度为8[可能为一个消息头]
-        uint16_t Length = ntohs(((PackageHeader*)Message)->MessageLength) + 8;
+        Length = ntohs(((PackageHeader*)Message)->MessageLength) + 8;
         if(((PackageHeader*)Message)->ProtocolVersion != PROTOCOL_VERSION){     //  如果协议版本号不一致
             printf("Version = %d\nMy Version = %d\n",((PackageHeader*)Message)->ProtocolVersion,PROTOCOL_VERSION);
             LinkC_Debug("协议版本不一致",LINKC_WARNING);
+            ___LinkC_Recv(Socket,(char *)Message,STD_BUFFER_SIZE,Flag);         //  清除数据
             return -1;                                                          //  返回错误
         }
         if(((PackageHeader*)Message)->MessageType == HEART_BEATS){              //  若是心跳包
+            ___LinkC_Recv(Socket,(char *)Message,Length,Flag);                  //  把数据从接收缓冲区提出
             return 0;                                                           //  直接返回[忽略]
         }else if(((PackageHeader*)Message)->MessageType == RESEND_MESSAGE){     //  若是重发的数据包
             if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) < 0){          // 如果接收剩余数据失败
@@ -398,12 +403,13 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) <= 0){         // 如果接收剩余数据失败
                 LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
                 AskForResend(Socket,((PackageHeader*)Message)->MessageCounts);  //  请求重发
-               return 0;                                                        //  返回无数据
+                return 0;                                                        //  返回无数据
             }
             ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts);     //  发送确认收到消息
             InsertPackageListNode(Socket->RecvList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
         }else{
             LinkC_Debug("__LinkC_Recv:无法识别消息头",LINKC_WARNING);
+            ___LinkC_Recv(Socket,(char *)Message,STD_BUFFER_SIZE,Flag);
             return 0;
         }
     }
