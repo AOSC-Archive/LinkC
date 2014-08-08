@@ -20,6 +20,7 @@ struct LinkC_Socket_t{
     int                     Sockfd;                 //  基础网络句柄
     int                     Available;              //  剩余可从缓冲区读出的数据包个数
     int                     IsSecurity;             //  是否为安全套接字
+    int                     DoRecvCheck;            //  是否开启接收检查［0 关闭，1 开启］
     RSA*                    PublicKey;              //  私钥
     RSA*                    PrivateKey;             //  公钥
     struct sockaddr_in      Addr;                   //  目标地址
@@ -55,7 +56,7 @@ typedef struct SocketListNode_t SocketListNode;
 /* 链表函数定义 */
 int     InitSocketList      (void);                             //  初始LinkC_Socket环境[整个程序中只能被调用一次]
 int     IsSocketInList      (int Sockfd, LinkC_Socket**Socket); //  查询这个Socket是否存在于链表中
-int     GetSocketInList     (int Sockfd,LinkC_Socket *Socket);  //  获取对应的LinkC_Socket
+int     GetSocketInList     (int Sockfd, LinkC_Socket *Socket); //  获取对应的LinkC_Socket[舍弃]
 int     FindNodeInList      (SocketListNode *Node);             //  在链表中查找结点
 int     DelSocketFromList   (int Socket);                       //  从链表中删除指定LinkC_Socket
 int     DestroySocketList   (void);                             //  销毁LinkC_Socket环境[必须初始化LinkC_Socket环境后才能调用]
@@ -114,6 +115,7 @@ int     CreateSocket(void);
  */
 
 int     AddSocketToList(int Sockfd);
+int     EnableRecvCheck(int Sockfd, int Enabled);
 
 int     SetDestAddr(int Socket, struct sockaddr_in DestAddr);
 /*

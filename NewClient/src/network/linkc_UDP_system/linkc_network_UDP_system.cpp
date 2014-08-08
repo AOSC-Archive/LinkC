@@ -37,6 +37,7 @@ void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
             free(Node->Socket->ErrorMessage);                       //  释放内存
             Node->Socket->ErrorMessage = NULL;                      //  挂空指针
         }
+        if(Node->Socket->DoRecvCheck == 0)   continue;              //  如果没有开启接受检验，则跳过
         if(Node->Socket->SendList->TotalNode != 0){                 //  如果发送链表中还有剩余[也就是收到确认没有到达]
             pthread_mutex_lock(Node->Socket->SendList->MutexLock);  //  给链表上锁上锁
             PackNode = Node->Socket->SendList->StartNode;           //  设置为链表开始节点
@@ -163,6 +164,7 @@ int P2PConnect(int Sockfd, struct sockaddr_in Dest){
     EmptyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
     EmptyPackageList(Socket->SendList); 
     SetDestAddr(Sockfd,Dest);
+    EnableRecvCheck(Sockfd,0);                  //  禁用收到回复
     int Length = _LCUDP_Package(NULL,0,Socket,CONNECTION_MESSAGE,Socket->SendBuffer);
     _LinkC_Send(Socket,Socket->SendBuffer,Length,0);
     LinkC_Debug("P2PConnect:已发出请求",LINKC_DEBUG);
@@ -173,6 +175,7 @@ int P2PConnect(int Sockfd, struct sockaddr_in Dest){
         return -1;
     }
     LinkC_Debug("P2PConnect:已连接上",LINKC_DEBUG);
+    EnableRecvCheck(Sockfd,0);                  //  启动收到回复
     return 0;
 }
 
@@ -189,9 +192,10 @@ int P2PAccept(int Sockfd, struct sockaddr_in Dest, void(*Function) (void*), void
     EmptyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
     EmptyPackageList(Socket->SendList); 
     SetDestAddr(Sockfd,Dest);
+    EnableRecvCheck(Sockfd,0);
     bzero(Socket->SendBuffer,32);
     int Length = _Package(NULL,0,HEART_BEATS,Socket->SendBuffer);
-    _LinkC_Send(Socket,Socket->SendBuffer,Length,MSG_DONTWAIT);
+    ___LinkC_Send(Socket,Socket->SendBuffer,Length,MSG_DONTWAIT);
     if(Function != NULL){                                   //  执行函数，这里是我发送了无用信息后向服务端确认
         Function(Arg);
     }
@@ -206,6 +210,7 @@ int P2PAccept(int Sockfd, struct sockaddr_in Dest, void(*Function) (void*), void
     _LinkC_Send(Socket,Socket->SendBuffer,Length,0);
     LinkC_Debug("P2PAccept:已发出确认",LINKC_DEBUG);
     LinkC_Debug("P2PAccept:已连接上",LINKC_DEBUG);
+    EnableRecvCheck(Sockfd,1);
 
     return 0;
 }
@@ -291,9 +296,13 @@ int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         LinkC_Debug("__LinkC_Send:LinkC Socket环境没有初始化",LINKC_FAILURE);
         return LINKC_FAILURE;                                       //  返回错误
     }
-    ((PackageHeader *)Message)->MessageCounts = Socket->SendList->NowCount+1;               //  将本数据包的计数次设置为之前发送的数据包总数加一
-    if(InsertPackageListNode(Socket->SendList,Message,Socket->SendList->NowCount +1) != 0){ //  将本数据包存入发送缓冲区失败
-        return -1;
+    if(Socket->DoRecvCheck == 1){
+        ((PackageHeader *)Message)->MessageCounts = Socket->SendList->NowCount+1;               //  将本数据包的计数次设置为之前发送的数据包总数加一
+        if(InsertPackageListNode(Socket->SendList,Message,Socket->SendList->NowCount +1) != 0){ //  将本数据包存入发送缓冲区失败
+            return -1;
+        }
+    }else{
+        return ___LinkC_Send(Socket,Message,size,Flag);
     }
     Socket->SendList->NowCount ++;                                                          //  发送缓冲区总计数自增加一
     return ___LinkC_Send(Socket,Message,size,Flag);
@@ -337,24 +346,29 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         }else if(((PackageHeader*)Message)->MessageType == RESEND_MESSAGE){     //  若是重发的数据包
             if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) < 0){          // 如果接收剩余数据失败
                 LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
-                AskForResend(Socket,((PackageHeader*)Message)->MessageCounts);  //  请求重发
+                if(Socket->DoRecvCheck == 1)
+                    AskForResend(Socket,((PackageHeader*)Message)->MessageCounts);  //  请求重发
                 return -1;                                                      //  返回无数据
             }
-            ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts);     //  发送确认收到消息
-            InsertPackageListNode(Socket->SendList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
-            
+            if(Socket->DoRecvCheck == 1){
+                ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts); //  发送确认收到消息
+                InsertPackageListNode(Socket->SendList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+            }
         }else if(((PackageHeader*)Message)->MessageType == SSL_KEY_MESSAGE){    //  如果是SSL密钥
             if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) < 0){          // 如果接收剩余数据失败
                 LinkC_Debug("__LinkC_Recv:错误",LINKC_FAILURE);
-                AskForResend(Socket,((PackageHeader*)Message)->MessageCounts);  //  请求重发
+                if(Socket->DoRecvCheck == 1)
+                    AskForResend(Socket,((PackageHeader*)Message)->MessageCounts);  //  请求重发
                 return 0;                                                       //  返回无数据
             }
-            ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts);     //  发送确认收到消息
+            if(Socket->DoRecvCheck == 1)
+                ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts); //  发送确认收到消息
             //      保存密钥
         }else if(((PackageHeader*)Message)->MessageType == CONFIRMATION_MESSAGE){
             if(___LinkC_Recv(Socket,Message,Length,Flag) < 0){                    // 如果接收剩余数据失败
                 LinkC_Debug("__LinkC_Recv:错误",LINKC_FAILURE);
-                AskForResend(Socket,((PackageHeader*)Message)->MessageCounts);  //  请求重发
+                if(Socket->DoRecvCheck == 1)
+                    AskForResend(Socket,((PackageHeader*)Message)->MessageCounts);  //  请求重发
                 return 0;                                                       //  返回无数据
             }
             if(((ConfirmationMessage*)(((char *)Message)+8))->isRecved == 0){       //  如果说对面没有收到指定数据包
@@ -386,27 +400,36 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         }else if(((PackageHeader*)Message)->MessageType == NORMAL_MESSAGE){     //  如果是普通数据
             if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) <= 0){         // 如果接收剩余数据失败
                 LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
-                AskForResend(Socket,((PackageHeader*)Message)->MessageCounts);  //  请求重发
-               return 0;                                                        //  返回无数据
+                if(Socket->DoRecvCheck == 1)
+                    AskForResend(Socket,((PackageHeader*)Message)->MessageCounts);  //  请求重发
+                return 0;                                                        //  返回无数据
             }
-            ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts);     //  发送确认收到消息
-            InsertPackageListNode(Socket->RecvList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+            if(Socket->DoRecvCheck == 1){
+                ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts); //  发送确认收到消息
+                InsertPackageListNode(Socket->SendList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+            }
         }else if(((PackageHeader*)Message)->MessageType == P2P_DATA){           //  如果是P2P数据
             if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) <= 0){         // 如果接收剩余数据失败
                 LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
-                AskForResend(Socket,((PackageHeader*)Message)->MessageCounts);  //  请求重发
+                if(Socket->DoRecvCheck == 1)
+                    AskForResend(Socket,((PackageHeader*)Message)->MessageCounts);  //  请求重发
                 return 0;                                                        //  返回无数据
             }
-            ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts);     //  发送确认收到消息
-            InsertPackageListNode(Socket->RecvList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+            if(Socket->DoRecvCheck == 1){
+                ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts); //  发送确认收到消息
+                InsertPackageListNode(Socket->SendList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+            }
         }else if(((PackageHeader*)Message)->MessageType == CONNECTION_MESSAGE){
             if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) <= 0){         // 如果接收剩余数据失败
                 LinkC_Debug("__LinkC_Recv",LINKC_FAILURE);
-                AskForResend(Socket,((PackageHeader*)Message)->MessageCounts);  //  请求重发
+                if(Socket->DoRecvCheck == 1)
+                    AskForResend(Socket,((PackageHeader*)Message)->MessageCounts);  //  请求重发
                 return 0;                                                        //  返回无数据
             }
-            ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts);     //  发送确认收到消息
-            InsertPackageListNode(Socket->RecvList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+            if(Socket->DoRecvCheck == 1){
+                ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts); //  发送确认收到消息
+                InsertPackageListNode(Socket->SendList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+            }
         }else{
             LinkC_Debug("__LinkC_Recv:无法识别消息头",LINKC_WARNING);
             ___LinkC_Recv(Socket,(char *)Message,STD_BUFFER_SIZE,Flag);
@@ -521,7 +544,6 @@ int IsSocketInList(int Sockfd, LinkC_Socket** Socket){
     return 0;                                       //  返回未找到
 }
 int CreateSocket(void){
-
     int Sockfd          =   socket(AF_INET,SOCK_DGRAM,0);         //  创建UDP套接字
     if(Sockfd < 0){                                                     //  如果创建套接字失败
         perror("Create LCUDP");                                                 //  打印错误信息                                                          //  释放内存
@@ -579,6 +601,7 @@ int AddSocketToList(int Sockfd){
     Socket->RecvBuffer      =   malloc(STD_BUFFER_SIZE);                        //  建立接收缓冲区
     Socket->SendBuffer      =   malloc(STD_BUFFER_SIZE);                        //  建立发送缓冲区
     Socket->ErrorMessage    =   NULL;                                           //  挂空指针
+    Socket->DoRecvCheck     =   1;                                              //  启动LCUDP功能
 
 
     SocketListNode* Node;
@@ -621,6 +644,20 @@ int SetDestAddr(int Socket, struct sockaddr_in DestAddr){
         Node = Node->Next;
     }
     return -1;
+}
+
+int EnableRecvCheck(int Sockfd, int Enabled){
+    if(List == NULL){                                               //  如果链表为空
+        LinkC_Debug("SetDestAddr:LinkC Socket环境没有初始化",LINKC_FAILURE);
+        return LINKC_FAILURE;                                       //  返回错误
+    }
+    LinkC_Socket *Socket;
+    if(IsSocketInList(Sockfd,&Socket) == 0){
+        LinkC_Debug("套接字不在链表中",LINKC_WARNING);
+        return LINKC_FAILURE;
+    }
+    Socket->DoRecvCheck = Enabled;
+    return LINKC_SUCCESS;
 }
 
 int DestroySocketList(){

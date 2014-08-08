@@ -55,7 +55,7 @@ void ChatDialog::resizeEvent(QResizeEvent *){
 
 void ChatDialog::Send(){
      memcpy(Buffer,Input->toPlainText().toUtf8().data(),Input->toPlainText().length());
-     int Length = _Package(Buffer,Input->toPlainText().length(),P2P_DATA,Package);
+     int Length = _Package(Buffer,Input->toPlainText().length(),NORMAL_MESSAGE,Package);
      SendMessage(Socket->GetSockfd(),Package,Length,0);
 }
 
@@ -66,8 +66,10 @@ void ChatDialog::InputEditChanged(){
 
 void ChatDialog::StartConnect(){
     if(Socket->DoP2PConnect(MyFriend.IP) == LINKC_SUCCESS){
+        LinkC_Debug("P2P 链接",LINKC_SUCCESS);
         Recver = new P2PMessageRecver(Socket->GetSockfd());
         this->connect(Recver,SIGNAL(MessageRecved(QString)),History,SLOT(ShowMessage(QString)));
+        this->ConnectButton->setDisabled(true);
         Recver->start();
     }
 
@@ -156,9 +158,9 @@ void P2PMessageRecver::run(){
             LinkC_Debug("P2PMessageRecver:RecvMessage",LINKC_FAILURE);
         }else{
             bzero(Package,STD_BUFFER_SIZE);
-            if(((PackageHeader*)Buffer)->MessageType != P2P_DATA)   continue;   //  忽略非P2P消息
+            if(((PackageHeader*)Buffer)->MessageType != NORMAL_MESSAGE)   continue;   //  忽略非P2P消息
             _UnPackage(Buffer,STD_PACKAGE_SIZE,Package);
-            Recved = (char*)Package;
+            Recved = (const char*)Package;
             emit MessageRecved(Recved);
         }
     }
