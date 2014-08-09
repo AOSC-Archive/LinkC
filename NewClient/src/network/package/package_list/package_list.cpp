@@ -156,6 +156,7 @@ int InsertPackageListNode (PackageList* List, void *Package, uint32_t Count){
         LinkC_Debug("缓冲区溢出(雾)，剩下的包将无法读取",LINKC_WARNING);
         return -1;
     }
+    List->NowCount ++;
     for(i=0;i<(Avliable-NowAvliable);i++){
         if(sem_post(List->Semaphore) < 0){
             perror("Semaphore Post");

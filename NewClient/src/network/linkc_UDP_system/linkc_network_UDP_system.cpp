@@ -22,6 +22,8 @@
 #include <openssl/err.h>
 #include <semaphore.h>
 
+int     DeepDebug = 0;
+
 SocketList *List = NULL;            //  全局变量，套接字的链表
 
 void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
@@ -37,7 +39,10 @@ void TimerInt(int SigNo, siginfo_t* SigInfo , void* Arg){
             free(Node->Socket->ErrorMessage);                       //  释放内存
             Node->Socket->ErrorMessage = NULL;                      //  挂空指针
         }
-        if(Node->Socket->DoRecvCheck == 0)   continue;              //  如果没有开启接受检验，则跳过
+        if(Node->Socket->DoRecvCheck == 0){
+            Node = Node->Next;
+            continue;              //  如果没有开启接受检验，则跳过
+        }
         if(Node->Socket->SendList->TotalNode != 0){                 //  如果发送链表中还有剩余[也就是收到确认没有到达]
             pthread_mutex_lock(Node->Socket->SendList->MutexLock);  //  给链表上锁上锁
             PackNode = Node->Socket->SendList->StartNode;           //  设置为链表开始节点
@@ -285,7 +290,9 @@ int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         pthread_mutex_unlock(Socket->RecvList->MutexLock);
         sem_post(Socket->RecvList->Semaphore);
     }else{
-        RemovePackageListNode(Socket->RecvList,((PackageHeader*)Message)->MessageCounts);
+        if(Socket->DoRecvCheck == 1){
+            RemovePackageListNode(Socket->RecvList,((PackageHeader*)Message)->MessageCounts);
+        }
         pthread_mutex_unlock(Socket->RecvList->MutexLock);
     }
     return Length   ;
@@ -300,6 +307,8 @@ int __LinkC_Send(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         ((PackageHeader *)Message)->MessageCounts = Socket->SendList->NowCount+1;               //  将本数据包的计数次设置为之前发送的数据包总数加一
         if(InsertPackageListNode(Socket->SendList,Message,Socket->SendList->NowCount +1) != 0){ //  将本数据包存入发送缓冲区失败
             return -1;
+        }else{
+            InsertPackageListNode(Socket->SendList,Message,Socket->RecvList->NowCount+1);       //  插入已经收到的消息
         }
     }else{
         return ___LinkC_Send(Socket,Message,size,Flag);
@@ -352,7 +361,9 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             }
             if(Socket->DoRecvCheck == 1){
                 ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts); //  发送确认收到消息
-                InsertPackageListNode(Socket->SendList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+                InsertPackageListNode(Socket->RecvList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+            }else{
+                InsertPackageListNode(Socket->RecvList,Message,Socket->RecvList->NowCount+1);       //  插入已经收到的消息
             }
         }else if(((PackageHeader*)Message)->MessageType == SSL_KEY_MESSAGE){    //  如果是SSL密钥
             if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) < 0){          // 如果接收剩余数据失败
@@ -406,7 +417,9 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             }
             if(Socket->DoRecvCheck == 1){
                 ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts); //  发送确认收到消息
-                InsertPackageListNode(Socket->SendList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+                InsertPackageListNode(Socket->RecvList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+            }else{
+                InsertPackageListNode(Socket->RecvList,Message,Socket->RecvList->NowCount+1);       //  插入已经收到的消息
             }
         }else if(((PackageHeader*)Message)->MessageType == P2P_DATA){           //  如果是P2P数据
             if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) <= 0){         // 如果接收剩余数据失败
@@ -417,7 +430,9 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             }
             if(Socket->DoRecvCheck == 1){
                 ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts); //  发送确认收到消息
-                InsertPackageListNode(Socket->SendList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+                InsertPackageListNode(Socket->RecvList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+            }else{
+                InsertPackageListNode(Socket->RecvList,Message,Socket->RecvList->NowCount+1);       //  插入已经收到的消息
             }
         }else if(((PackageHeader*)Message)->MessageType == CONNECTION_MESSAGE){
             if(___LinkC_Recv(Socket,(char *)Message,Length,Flag) <= 0){         // 如果接收剩余数据失败
@@ -428,7 +443,9 @@ int __LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
             }
             if(Socket->DoRecvCheck == 1){
                 ConfirmRecved(Socket,((PackageHeader*)Message)->MessageCounts); //  发送确认收到消息
-                InsertPackageListNode(Socket->SendList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+                InsertPackageListNode(Socket->RecvList,Message,((PackageHeader*)Message)->MessageCounts);       //  插入已经收到的消息
+            }else{
+                InsertPackageListNode(Socket->RecvList,Message,Socket->RecvList->NowCount+1);       //  插入已经收到的消息
             }
         }else{
             LinkC_Debug("__LinkC_Recv:无法识别消息头",LINKC_WARNING);
