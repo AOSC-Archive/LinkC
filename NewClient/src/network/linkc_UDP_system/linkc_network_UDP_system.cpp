@@ -112,8 +112,10 @@ int Connect (int Sockfd, struct sockaddr_in Dest){
         LinkC_Debug("Connect:没有这个套接字",LINKC_FAILURE);
         return -1;
     }
-    EmptyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
-    EmptyPackageList(Socket->SendList); 
+    DestroyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
+    Socket->RecvList = BuildPackageList();
+    DestroyPackageList(Socket->SendList);
+    Socket->SendList = BuildPackageList();
     SetDestAddr(Sockfd,Dest);
     int Length = _LCUDP_Package(NULL,0,Socket,CONNECTION_MESSAGE,Socket->SendBuffer);
     if(Length < 0){
@@ -128,6 +130,10 @@ int Connect (int Sockfd, struct sockaddr_in Dest){
         LinkC_Debug("Connect:消息头不正确",LINKC_FAILURE);
         return -1;
     }
+    DestroyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
+    Socket->RecvList = BuildPackageList();
+    DestroyPackageList(Socket->SendList);
+    Socket->SendList = BuildPackageList();
     LinkC_Debug("Connect:已连接上",LINKC_DEBUG);
     return 0;
 }
@@ -141,8 +147,10 @@ int Accept(int Sockfd, struct sockaddr_in Dest){
         LinkC_Debug("Accept:没有这个套接字",LINKC_FAILURE);
         return -1;
     }
-    EmptyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
-    EmptyPackageList(Socket->SendList); 
+    DestroyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
+    Socket->RecvList = BuildPackageList();
+    DestroyPackageList(Socket->SendList);
+    Socket->SendList = BuildPackageList();
     SetDestAddr(Sockfd,Dest);
     LinkC_Debug("Accept:等待对方发起请求",LINKC_DEBUG);
     _LinkC_Recv(Socket,Socket->RecvBuffer,512,0);
@@ -153,6 +161,10 @@ int Accept(int Sockfd, struct sockaddr_in Dest){
         return -1;
     }
     _LinkC_Send(Socket,Socket->SendBuffer,Length,0);
+    DestroyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
+    Socket->RecvList = BuildPackageList();
+    DestroyPackageList(Socket->SendList);
+    Socket->SendList = BuildPackageList();
     LinkC_Debug("Accept:已发出确认",LINKC_DEBUG);
     return 0;
 }
@@ -166,8 +178,10 @@ int P2PConnect(int Sockfd, struct sockaddr_in Dest){
         LinkC_Debug("P2PConnect:没有这个套接字",LINKC_FAILURE);
         return -1;
     }
-    EmptyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
-    EmptyPackageList(Socket->SendList); 
+    DestroyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
+    Socket->RecvList = BuildPackageList();
+    DestroyPackageList(Socket->SendList);
+    Socket->SendList = BuildPackageList();
     SetDestAddr(Sockfd,Dest);
     EnableRecvCheck(Sockfd,0);                  //  禁用收到回复
     int Length = _LCUDP_Package(NULL,0,Socket,CONNECTION_MESSAGE,Socket->SendBuffer);
@@ -180,6 +194,10 @@ int P2PConnect(int Sockfd, struct sockaddr_in Dest){
         return -1;
     }
     LinkC_Debug("P2PConnect:已连接上",LINKC_DEBUG);
+    DestroyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
+    Socket->RecvList = BuildPackageList();
+    DestroyPackageList(Socket->SendList);
+    Socket->SendList = BuildPackageList();
     EnableRecvCheck(Sockfd,1);                  //  启动收到回复
     return 0;
 }
@@ -194,8 +212,10 @@ int P2PAccept(int Sockfd, struct sockaddr_in Dest, void(*Function) (void*), void
         LinkC_Debug("P2PAccept:没有这个套接字",LINKC_FAILURE);
         return -1;
     }
-    EmptyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
-    EmptyPackageList(Socket->SendList); 
+    DestroyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
+    Socket->RecvList = BuildPackageList();
+    DestroyPackageList(Socket->SendList);
+    Socket->SendList = BuildPackageList();
     SetDestAddr(Sockfd,Dest);
     EnableRecvCheck(Sockfd,0);
     bzero(Socket->SendBuffer,32);
@@ -215,6 +235,10 @@ int P2PAccept(int Sockfd, struct sockaddr_in Dest, void(*Function) (void*), void
     _LinkC_Send(Socket,Socket->SendBuffer,Length,0);
     LinkC_Debug("P2PAccept:已发出确认",LINKC_DEBUG);
     LinkC_Debug("P2PAccept:已连接上",LINKC_DEBUG);
+    DestroyPackageList(Socket->RecvList);         //  清空发送和接收缓冲区
+    Socket->RecvList = BuildPackageList();
+    DestroyPackageList(Socket->SendList);
+    Socket->SendList = BuildPackageList();
     EnableRecvCheck(Sockfd,1);
 
     return 0;
@@ -270,11 +294,6 @@ int _LinkC_Recv(LinkC_Socket *Socket, void *Message, size_t size, int Flag){
         return 0;
     }
     pthread_mutex_lock(Socket->RecvList->MutexLock);                //  上互斥锁
-    if(Socket->RecvList->TotalNode <= 0){
-        printf("出现错误[file = %s\tline = %d]\n",__FILE__,__LINE__);
-        pthread_mutex_unlock(Socket->RecvList->MutexLock);          //  解锁
-        return -1;
-    }
     PackageListNode *Node = Socket->RecvList->StartNode;
     while(Node->Next)   Node = Node->Next;                          //  跳转到最后一个Node
     uint16_t Length = ntohs(Node->MessageLength)+8;

@@ -13,7 +13,10 @@ int wLogin(WINDOW* Console,int Sockfd,LoginData Data);
 
 int wGetSelfData(WINDOW* Console, int Sockfd,UserData *Data);
 
-void     GetCommandLine(char *Buffer);
+void GetCommandLine(char *Buffer);
+
+int wGetFriendsData(WINDOW* Console,int Sockfd,UserData* Data);
+
 
 
 #define GREEN_ON_BLACK  1

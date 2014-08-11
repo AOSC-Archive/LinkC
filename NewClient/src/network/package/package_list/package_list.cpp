@@ -57,10 +57,11 @@ int DestroyPackageList(PackageList *List){
     }
     pthread_mutex_unlock(List->MutexLock);
     pthread_mutex_destroy(List->MutexLock);     //  销毁互斥锁
+    List    = NULL;
     return 0;
 }
 
-int EmptyPackageList(PackageList *List){
+int EmptyPackageList(PackageList *List){        //  BUG!!!!
     if(List == NULL){
         LinkC_Debug("PackageList is NULL",LINKC_FAILURE);
         return LINKC_FAILURE;                   //  返回错误

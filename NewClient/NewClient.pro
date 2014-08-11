@@ -7,6 +7,8 @@ TARGET = NewClient
 QT += widgets core gui
 DEPENDPATH += . Gui include Window
 INCLUDEPATH += . include include/linkc_TCP_system include/linkc_UDP_system include/qtui
+CONFIG      += debug
+QMAKE_CXXFLAGS  += -g -ggdb
 
 # Input
 HEADERS += include/linkc_basic_network.h \
@@ -50,7 +52,9 @@ SOURCES += \
 LIBS    += -lsqlite3 \
            -lssl \
            -lcrypto \
-           -lcurses
+           -lcurses \
+           -g       \
+           -ggdb
 
 FORMS += \
            src/qtui/ui-files/mainwindow.ui \

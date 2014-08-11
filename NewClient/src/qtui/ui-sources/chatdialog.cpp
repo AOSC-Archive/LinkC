@@ -152,6 +152,7 @@ P2PMessageRecver::~P2PMessageRecver(){
 }
 
 void P2PMessageRecver::run(){
+    LinkC_Debug("P2P Recver",LINKC_STARTED);
     QString Recved;
     while(1){
         if(RecvMessage(Sockfd,Buffer,STD_PACKAGE_SIZE,0)==LINKC_FAILURE){
@@ -161,6 +162,7 @@ void P2PMessageRecver::run(){
             if(((PackageHeader*)Buffer)->MessageType != NORMAL_MESSAGE)   continue;   //  忽略非P2P消息
             _UnPackage(Buffer,STD_PACKAGE_SIZE,Package);
             Recved = (const char*)Package;
+            printf("Recved:%s\n",Recved.toUtf8().data());
             emit MessageRecved(Recved);
         }
     }

@@ -114,6 +114,9 @@ TRY:
                 continue;
             }
             wLinkC_Debug(Console,"Fetching SelfData",LINKC_DONE);
+        }else if(strcmp(Command,"GetFriendsData")){
+
+        }else if(strcmp(Command,"List")){
         }else{
             wLinkC_Debug(Console,"No Relevant Action Available",LINKC_WARNING);
             continue;
