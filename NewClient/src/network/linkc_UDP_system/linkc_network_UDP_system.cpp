@@ -180,7 +180,7 @@ int P2PConnect(int Sockfd, struct sockaddr_in Dest){
         return -1;
     }
     LinkC_Debug("P2PConnect:已连接上",LINKC_DEBUG);
-    EnableRecvCheck(Sockfd,0);                  //  启动收到回复
+    EnableRecvCheck(Sockfd,1);                  //  启动收到回复
     return 0;
 }
 
