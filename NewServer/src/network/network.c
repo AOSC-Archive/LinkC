@@ -79,10 +79,12 @@ void* MainConnect(void *Arg){
     int         Status          = 0;
     uint8_t     ActionType;
 START:
+    LinkC_Debug("The first package recving....",LINKC_DEBUG);
     if(TCP_recv(Sockfd,Package,STD_BUFFER_SIZE,0) < 0){     //  接收数据失败
         LinkC_Debug("Receiving",LINKC_FAILURE);
         goto END;                                           //  跳转到end位置
     }
+    LinkC_Debug("The first package unpacking....",LINKC_DEBUG);
     if(_UnPackage(Package,STD_BUFFER_SIZE,Buffer) < 0){     //  解包
         LinkC_Debug("Unpacking",LINKC_FAILURE);
         goto END;
@@ -104,6 +106,7 @@ START:
     SendActionStatus(Sockfd,SET_STATUS_SUCCESS);
     LinkC_Debug("Login",LINKC_DONE);
     while(1){
+        LinkC_Debug("Following package recving......",LINKC_DEBUG);
         Status = TCP_recv(Sockfd,Package,STD_BUFFER_SIZE,0);
         if(Status == LINKC_NO_DATA){                            //  没有数据就视作对方关闭了链接
             LinkC_Debug("Disconnection",LINKC_WARNING);
@@ -119,6 +122,7 @@ START:
         }
         ActionType = GetActionType(((MessageHeader*)Buffer)->ActionType);
         if(((MessageHeader*)Buffer)->ActionType == USER_LOGOUT){
+            LinkC_Debug("Log in/out Request",LINKC_DEBUG);
             if(SetStatus(&User,NetAddr,STATUS_OFFLINE) == LINKC_FAILURE){
                 SendActionStatus(Sockfd,LOGOUT_FAILURE);
                 LinkC_Debug("Logged Off",LINKC_FAILURE);
@@ -128,6 +132,7 @@ START:
             LinkC_Debug("Logged Off",LINKC_SUCCESS);
             goto END;
         }else if(ActionType == RQUEST_DATA){
+            LinkC_Debug("Data Request",LINKC_DEBUG);
             ReplyData(&User,Sockfd,GetDataType(((MessageHeader*)Buffer)->ActionType),(RequestUser*)(char*)Buffer+sizeof(MessageHeader));
             continue;
         }else if(ActionType == UPLOAD_DATA){

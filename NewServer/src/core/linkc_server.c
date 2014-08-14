@@ -24,6 +24,7 @@ int ReplyData (UserData* User,int Sockfd,uint8_t Request, RequestUser* Dest){
     bzero(Buffer,sizeof(MessageHeader)+sizeof(UserData));
     bzero(Package,STD_PACKAGE_SIZE);
     if(Request == SELF_DATA){
+        LinkC_Debug("Self Data",LINKC_DEBUG);
         if(GetUserData(User->UID,User->UID,User) == LINKC_FAILURE){
             LinkC_Debug("Accessing Databse [1]",LINKC_FAILURE);
             SendActionStatus(Sockfd,GET_DATA_FAILURE);
@@ -37,6 +38,7 @@ int ReplyData (UserData* User,int Sockfd,uint8_t Request, RequestUser* Dest){
         User->UID = (ntohl(User->UID));
         goto RETURN_SUCCESS;
     }else if(Request == USER_DATA){
+        LinkC_Debug("User Data",LINKC_DEBUG);
         LinkC_Debug("..",LINKC_DEBUG);
         if(Dest->UID == 0){             //  获得全部好友数据
             UserData* Friends = NULL;
