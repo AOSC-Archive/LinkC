@@ -57,9 +57,8 @@ void MainWindow::DoLogin(LoginData Data){
     }
     LinkC_Debug(tr("连接到服务器").toUtf8().data(),LINKC_DONE);
     ((MessageHeader*)Buffer)->ActionType = USER_LOGIN;
-    memcpy((void*)((char*)Buffer+4),(void*)&Data,sizeof(LoginData));
+    memcpy((void*)((char*)Buffer+sizeof(MessageHeader)),(void*)&Data,sizeof(LoginData));
     int size = sizeof(MessageHeader) + sizeof(LoginData);
-    printf("Total Length = %d\n",size);
     int Length = _Package(Buffer,size,NORMAL_MESSAGE,Package);
     Socket->Send(Package,Length,0);
 

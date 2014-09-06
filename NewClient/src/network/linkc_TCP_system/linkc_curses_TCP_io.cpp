@@ -12,12 +12,11 @@
 #include <unistd.h>
 #include <curses.h>
 
-char    recv_buffer[MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1];    // 接收缓冲区
-char    Tmp[MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1];        // 临时缓冲区
+/*char    Tmp[MAX_BUFFER_SIZE + STD_PACKAGE_SIZE + 1];        // 临时缓冲区
 int    is_remain    = 0;    // 上次数据是否有剩余
 int    Length         = 0;    // 接收到数据的长度
 int    tmp;
-uint16_t    TmpLength;
+uint16_t    TmpLength;*/
 
 
 int16_t wTCP_Recv(WINDOW* Console,int Sockfd, void *Out, int Out_size, int flag){

@@ -37,6 +37,7 @@ int16_t TCP_recv(int Sockfd, void *Out, int Out_size, int flag){
         printf("Length:\t\t\tHEX:0x%x\tDEC:%d\n",Header.MessageLength,Header.MessageLength);
         printf("Type:\t\t\tHEX:0x%x\n",Header.MessageType);
         printf("Count:\t\t\t%d\n",Header.MessageCounts);
+        printf("<--------END-------->\n");
         
         return LINKC_FAILURE;
     }

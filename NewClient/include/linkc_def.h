@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 
+#pragma pack(push)
+#pragma pack(1)
+
 /*  ============ 系统 ============  */
 /*  定义LinkC协议的版本号           */
 #define PROTOCOL_VERSION        2
@@ -132,5 +135,5 @@ typedef struct P2PInfo_t        P2PInfo;
 typedef struct PthreadData_t    PthreadData;
 
 /*  ========= 数据类型 ===========  */
-
+#pragma pack(pop)
 #endif // LINKC_DEF_H
