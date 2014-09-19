@@ -15,5 +15,7 @@ install:
   - cmake ../
   
 script:
+  - make -j 4
+  - echo "Server built!"
   - cd ../../NewClient
   - qmake && make -j 4

@@ -43,3 +43,5 @@
     server    --> LinkC 的旧服务端[和旧客户端可以协作]
     user      --> LinkC 的旧客户端[和旧服务端可以协作]
     testing   --> 一些只在测试阶段的临时代码[可能有参考意义]
+## Status
+    Travis CI build: [![Build Status](https://travis-ci.org/AOSC-Dev/LinkC.svg?branch=master)](https://travis-ci.org/AOSC-Dev/LinkC)
