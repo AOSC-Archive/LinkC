@@ -13,6 +13,7 @@ install:
   - mkdir build
   - cd build
   - cmake ../
- script:
+  
+script:
   - cd ../../NewClient
   - qmake && make -j 4
