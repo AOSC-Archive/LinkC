@@ -1,4 +1,0 @@
-这里主要涉及到三个文件
-basic_network_io.c   基础网络IO封装，发送和接受消息
-package_control.c    协议的数据包管理
-send_friends_data.c  发送好友数据[单独被分了出来]
