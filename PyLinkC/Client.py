@@ -3,6 +3,7 @@
 
 import socket
 import _thread
+from protocol.Gurgle import *
 from codecs import decode, encode
 
 if __name__ == '__main__':
