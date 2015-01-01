@@ -33,15 +33,9 @@
     Junfeng Zhang  --- <SternWZhang@outlook.com>
 
 ## Build Dependencies:
-    libsqlite3-dev qt-4(or qt-5)
+    None
 ## Runtime Dependencies:
-    qt-4(or qt-5)
+    Python3
 
 ## Directories
-    NewServer --> LinkC 的新服务端
-    NewClient --> LinkC 的新客户端
-    server    --> LinkC 的旧服务端[和旧客户端可以协作]
-    user      --> LinkC 的旧客户端[和旧服务端可以协作]
-    testing   --> 一些只在测试阶段的临时代码[可能有参考意义]
-## Status
-Travis CI build: [![Build Status](https://travis-ci.org/AOSC-Dev/LinkC.svg?branch=master)](https://travis-ci.org/AOSC-Dev/LinkC)
+    PyServer        --> Python写的新版服务端，开发中
