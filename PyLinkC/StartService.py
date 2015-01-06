@@ -6,6 +6,7 @@ import time
 import codecs
 
 from protocol.Gurgle import *
+from core.serviceMain import *
 
 if __name__ == '__main__':
     SERVICE_PORT = 40097
