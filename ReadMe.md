@@ -39,3 +39,4 @@
 
 ## Directories
     PyServer        --> Python写的新版服务端，开发中
+    Docs              --> Documentation for PyLinkC
