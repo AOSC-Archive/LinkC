@@ -1,0 +1,3 @@
+[submodule "gurgle"]
+	path = gurgle
+	url = https://github.com/AOSC-Dev/gurgle
