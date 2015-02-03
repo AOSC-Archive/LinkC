@@ -87,6 +87,10 @@ class gurgle:
             self.last_error = error_message
             self.last_error_code = gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
             return gurgle.GURGLE_FAILED
+        if not (user_name and pass_word):
+            self.last_error = 'Username or password is incorrect!'
+            self.last_error_code = gurgle.GURGLE_FAILED_TO_LOGIN
+            return gurgle.GURGLE_FAILED
         return gurgle.GURGLE_SUCCESS
 
     def disconnect_from_server(self):
