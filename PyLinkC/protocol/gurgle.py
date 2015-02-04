@@ -8,6 +8,7 @@ import _thread
 class gurgle:
     GURGLE_CLIENT                       = 1
     GURGLE_SERVER                       = 2
+    GURGLE_GROUP                        = 3
     GURGLE_FAILED                       = False
     GURGLE_SUCCESS                      = True
     GURGLE_HOST_NOT_SET                 = 10
@@ -28,8 +29,10 @@ class gurgle:
         self.socket             = None
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
             print ('Gurgle version',self.__gurgleVersion,'initlalize as Client')
-        else:
+        else if self.__runtime_mode == gurgle.GURGLE_SERVER:
             print ('Gurgle version',self.__gurgleVersion,'initlalize as Server')
+        else:
+            print ('Gurgle version',self.__gurgleVersion,'initlalize as Group server')
     def __del__(self):
         print ('Gurgle Deleting....')
     def set_remote_host(self,strHost):
