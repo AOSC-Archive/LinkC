@@ -23,6 +23,12 @@ def serviceMain(_Socket , _Addr):
     if not len(buf):
         _thread.exit()
     data = json.loads(json.loads(decode(buf)))
+
+    senddata = json.dumps('{"id":"%d", "version":"%s"}' % (self.create_id(),self.get_version()))    ## !!!!
+    try:
+        self.socket.send(encode(senddata))
+    except socket.error as e:
+        print('Error sending data:%s' %e)
     if(data['version'] != core.get_version()):
         print ("Protocol's version is not the same!")
         _thread.exit()
