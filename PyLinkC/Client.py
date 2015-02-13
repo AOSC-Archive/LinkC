@@ -7,8 +7,8 @@ from protocol.gurgle import *
 from codecs import decode, encode
 
 if __name__ == '__main__':
-    clientSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    clientSocket.connect(('127.0.0.1',40097))
-    while True:
-        data = input("Input a text:")
-        clientSocket.send(encode(data))
+    core = gurgle(gurgle.GURGLE_CLIENT)
+    core.set_remote_host('127.0.0.1')
+    core.set_remote_port(400097)
+    core.connect_to_server('127.0.0.1',40097,'tricks','2341')
+    print (core.get_last_error())

@@ -5,16 +5,32 @@ import sys
 import _thread
 sys.path.append("..")
 from protocol.gurgle import *
+from codecs import decode, encode
 
 def serviceMain(_Socket , _Addr):
-    Addr = _Addr
-    Socket = _Socket
-    core = gurgle()
-    core.set_remote_host(_Addr[0])
-    core.set_remote_port(_Addr[1]);
-    print ('Connect from ',  _Addr)
-    while True:
-        pass
+    addr = _Addr
+    s_socket = _Socket
+    core = gurgle(gurgle.GURGLE_SERVER)
+    core.set_remote_host(addr[0])
+    core.set_remote_port(addr[1]);
+    print ('Connect from ',  addr)
+    #while True:
+    try:
+        buf = s_socket.recv(1024)
+    except socket.error as e:
+        print('Error receiving data: %s' % e)
+        _thread.exit()
+    if not len(buf):
+        _thread.exit()
+    data = json.loads(json.loads(decode(buf)))
+    if(data['version'] != core.get_version()):
+        print ("Protocol's version is not the same!")
+        _thread.exit()
+    else:
+        print ("Protocol's version is the same!")
+        _thread.exit()
+    _thread.exit()
+
 
 if __name__ == '__main__':
     SERVICE_PORT = 40097
