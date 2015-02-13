@@ -6,73 +6,85 @@ import json
 import _thread
 
 class packageNode:
-    next    = None
-    data    = None
-    id      = 0
+    nextNode    = None
+    data        = None
+    packageID   = 0
     def __init__(self,nodeData):
         self.data = nodeData
 
 class packageList:
-    root = None
-    size = 0;
     def __init__(self,newRoot):
-        self.root = newRoot
+        self.size = 0
+        self.root = packageNode()
+        if newRoot is None:
+            self.root = None
+            return
+        else:
+            self.root = newRoot
+            self.size += 1
+            return
     def __init__(self):
         self.root = None
-        size = 0
+        self.size = 0
     def __del__(self):
         if self.root is None:
             return
         curNode = self.root
-        while curNode.next is not None:
+        while curNode.nextNode is not None:
             tempNode = curNode
-            curNode = curNode.next
+            curNode = curNode.nextNode
             tempNode = None
         curNode = None
-    def Insert(self,newData):
+    def insert(self,newData,packageID):
         newNode = packageNode(newData)
+        newNode.packageID = packageID
         if self.root is None:
             self.root = newNode
+            self.size += 1
             return
         tempNode = self.root
-        while tempNode.next is not None:
-            tempNode = tempNode.next
-        tempNode.next = newNode
+        while tempNode.nextNode is not None:
+            tempNode = tempNode.nextNode
+        tempNode.nextNode = newNode
         self.size += 1
-    def GetData(self,pos):
-        if pos >= self.size or pos < 0:
+    def getData(self,packageID):
+        if self.size == 0:
             return None
         else:
             tempNode = self.root
-            for i in range(0,pos):
-                tempNode = tempNode.next
-            return tempNode.data
-    def Remove(self,theData):
-        curNode = self.root
-        if curNode is None:
+            for i in range(0,self.size):
+                if tempNode.packageID == packageID:
+                    return tempNode.data
+                else:
+                    tempNode = tempNode.nextNode
+            return None
+    def remove(self,packageID):
+        if self.root is None:
             return
-        if self.size == 1 and curNode.data == theData:
-            curNode.data = None
-            curNode = None
+        if self.root.packageID == packageID:
+            tempNode = self.root.nextNode
+            self.root = None
             self.size -= 1
+            self.root = tempNode
             return
-        while curNode.next is not None:
-            if curNode.next.data == theData:
-                tempNode = curNode.next
-                curNode.next = curNode.next.next
+        curNode = self.root
+        while curNode.nextNode is not None:
+            if curNode.nextNode.packageID == packageID:
+                tempNode = curNode.nextNode
+                curNode.nextNode = curNode.nextNode.nextNode
                 tempNode = None  #remove the node,but curNode stays still
                 self.size -= 1
             else:
-                curNode = curNode.next
-    def GetRoot(self):
+                curNode = curNode.nextNode
+    def getRoot(self):
         return self.root
-    def GetSize(self):
+    def getSize(self):
         return self.size
-    def Print(self):
+    def printList(self):
         tempNode = self.root
         while tempNode is not None:
             print (tempNode.data)
-            tempNode = tempNode.next
+            tempNode = tempNode.nextNode
 
 class gurgle:
     GURGLE_CLIENT                       = 1
@@ -96,6 +108,7 @@ class gurgle:
         self.last_error_code    = None
         self.__runtime_mode     = _mode
         self.socket             = None
+        self.__packageList      = packageList();
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
             print ('Gurgle version',self.__gurgleVersion,'initlalized as Client')
         if self.__runtime_mode == gurgle.GURGLE_SERVER:
@@ -187,3 +200,11 @@ if __name__ == '__main__':
     print (core.get_last_error())
     data = {"'version':%s" % core.get_version()}
     print('check version stream is %s' % data);
+
+
+    tmpList = packageList()
+    tmpList.insert("23",1)
+    tmpList.insert("24",2)
+    tmpList.insert("25",3)
+    tmpList.printList()
+
