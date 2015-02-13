@@ -5,6 +5,75 @@ import socket
 import json
 import _thread
 
+class packageNode:
+    next    = None
+    data    = None
+    id      = 0
+    def __init__(self,nodeData):
+        self.data = nodeData
+
+class packageList:
+    root = None
+    size = 0;
+    def __init__(self,newRoot):
+        self.root = newRoot
+    def __init__(self):
+        self.root = None
+        size = 0
+    def __del__(self):
+        if self.root is None:
+            return
+        curNode = self.root
+        while curNode.next is not None:
+            tempNode = curNode
+            curNode = curNode.next
+            tempNode = None
+        curNode = None
+    def Insert(self,newData):
+        newNode = packageNode(newData)
+        if self.root is None:
+            self.root = newNode
+            return
+        tempNode = self.root
+        while tempNode.next is not None:
+            tempNode = tempNode.next
+        tempNode.next = newNode
+        self.size += 1
+    def GetData(self,pos):
+        if pos >= self.size or pos < 0:
+            return None
+        else:
+            tempNode = self.root
+            for i in range(0,pos):
+                tempNode = tempNode.next
+            return tempNode.data
+    def Remove(self,theData):
+        curNode = self.root
+        if curNode is None:
+            return
+        if self.size == 1 and curNode.data == theData:
+            curNode.data = None
+            curNode = None
+            self.size -= 1
+            return
+        while curNode.next is not None:
+            if curNode.next.data == theData:
+                tempNode = curNode.next
+                curNode.next = curNode.next.next
+                tempNode = None  #remove the node,but curNode stays still
+                self.size -= 1
+            else:
+                curNode = curNode.next
+    def GetRoot(self):
+        return self.root
+    def GetSize(self):
+        return self.size
+    def Print(self):
+        tempNode = self.root
+        while tempNode is not None:
+            print (tempNode.data)
+            tempNode = tempNode.next
+
 class gurgle:
     GURGLE_CLIENT                       = 1
     GURGLE_SERVER                       = 2
@@ -28,13 +97,15 @@ class gurgle:
         self.__runtime_mode     = _mode
         self.socket             = None
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
-            print ('Gurgle version',self.__gurgleVersion,'initlalize as Client')
-        else if self.__runtime_mode == gurgle.GURGLE_SERVER:
-            print ('Gurgle version',self.__gurgleVersion,'initlalize as Server')
-        else:
-            print ('Gurgle version',self.__gurgleVersion,'initlalize as Group server')
+            print ('Gurgle version',self.__gurgleVersion,'initlalized as Client')
+        if self.__runtime_mode == gurgle.GURGLE_SERVER:
+            print ('Gurgle version',self.__gurgleVersion,'initlalized as Server')
+        if self.__runtime_mode == gurgle.GURGLE_GROUP:
+            print ('Gurgle version',self.__gurgleVersion,'initlalized as Group server')
     def __del__(self):
         print ('Gurgle Deleting....')
+    def get_version(self):
+        return self.__gurgleVersion;
     def set_remote_host(self,strHost):
         self.__remoteHost = strHost
     def set_remote_port(self,nPort):
@@ -64,16 +135,16 @@ class gurgle:
     def is_connected(self):
         return __is_connected
     def connect_to_server(self,strDomain,nPort,user_name,pass_word):
+        if self.is_connected():                             #
+            self.last_error = 'You have already connected to remote,connection was refused!'
+            self.last_error_code = gurgle.GURGLE_ALREADY_CONNECTED
+            return gurgle.GURGLE_FAILED
         self.set_remote_host(strDomain)
         self.set_remote_port(nPort)
         if not is_remote_addr_set():                        # if the strDomain or nPort is None
             return gurgle.GURGLE_FAILED                     # alrealy set error code in function
         if self.__runtime_mode == gurgle.GURGLE_SERVER:
             return gurgle.GURGLE_FAILED                     # no error occupy
-        if self.is_connected():
-            self.last_error = 'You have already connected to remote,connection was refused!'
-            self.last_error_code = gurgle.GURGLE_ALREADY_CONNECTED
-            return gurgle.GURGLE_FAILED
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except socket.error as error_message:
@@ -94,6 +165,9 @@ class gurgle:
             self.last_error = 'Username or password is incorrect!'
             self.last_error_code = gurgle.GURGLE_FAILED_TO_LOGIN
             return gurgle.GURGLE_FAILED
+#   Check version
+        data = json.loads('{"version":%s}' % gurgle.__gurgleVersion)
+        print('check version stream is %s' % data);
         return gurgle.GURGLE_SUCCESS
 
     def disconnect_from_server(self):
@@ -111,3 +185,5 @@ if __name__ == '__main__':
     core.set_remote_host('127.0.0.1')
     core.set_remote_port(400097)
     print (core.get_last_error())
+    data = {"'version':%s" % core.get_version()}
+    print('check version stream is %s' % data);
