@@ -19,7 +19,8 @@ def serviceMain(_Socket , _Addr):
             _thread.exit()
         data = json.loads(json.loads(decode(buf)))
 
-        senddata = json.dumps('{"id":"%d", "version":"%s"}' % (core.create_id(),core.get_version()))    ## !!!!
+        senddata = json.dumps('{"id":"%d", "version":"%s"}' % (int(data['id']),core.get_version()))
+        print("send data = %s"%senddata)
         if core.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
             _thread.exit()
         if(data['version'] != core.get_version()):
