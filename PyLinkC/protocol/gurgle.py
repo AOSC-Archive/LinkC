@@ -4,6 +4,7 @@
 import socket
 import json
 import _thread
+import sys
 from codecs import decode, encode
 
 class packageNode:
@@ -105,8 +106,6 @@ class gurgle:
         self.__remoteHost       = None
         self.__remotePort       = None
         self.__is_connected     = False
-        self.last_error         = None
-        self.last_error_code    = None
         self.__runtime_mode     = _mode
         self.socket             = None
         self.__packageList      = packageList();
@@ -134,29 +133,20 @@ class gurgle:
         return self.__remoteHost
     def get_remote_port(self):
         return self.__remotePort
-    def get_last_error(self):
-        returnStrVar = self.last_error
-        returnIntVar = self.last_error_code
-        self.last_error = 'success'
-        self.last_error_code = gurgle.GURGLE_SUCCESS
-        return (returnStrVar,returnIntVar)
     def is_remote_addr_set(self):
         if not self.__remoteHost:
-            self.last_error = 'Remote addr is not set!'
-            self.last_error_code = gurgle.GURGLE_HOST_NOT_SET
-            return gurgle.GURGLE_FAILED
+            sys.stderr.write('Remote addr is not set!\n')
+            return gurgle.GURGLE_HOST_NOT_SET
         if not self.__remotePort:
-            self.last_error = 'Remote port is not set!'
-            self.last_error_code = gurgle.GURGLE_PORT_NOT_SET
-            return gurgle.GURGLE_FAILED
+            sys.stderr.write('Remote port is not set!\n')
+            return gurgle.GURGLE_PORT_NOT_SET
         return gurgle.GURGLE_SUCCESS
     def is_connected(self):
         return self.__is_connected
     def connect_to_server(self,strDomain,nPort,user_name,pass_word):
         if self.is_connected():                             #
-            self.last_error = 'You have already connected to remote,connection was refused!'
-            self.last_error_code = gurgle.GURGLE_ALREADY_CONNECTED
-            return gurgle.GURGLE_FAILED
+            sys.stderr.write('You have already connected to remote,connection was refused!\n')
+            return gurgle.GURGLE_ALREADY_CONNECTED
         if strDomain is not None:
             self.set_remote_host(strDomain)
         if nPort is not None:
@@ -168,23 +158,19 @@ class gurgle:
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except socket.error as error_message:
-            self.last_error = error_message
-            self.last_error_code = gurgle.GURGLE_FAILED_TO_CREATE_SOCKET
-            return gurgle.GURGLE_FAILED
+            sys.stderr.write('Error creating socket:%s\n' %error_message)
+            return gurgle.GURGLE_FAILED_TO_CREATE_SOCKET
         try:
             self.socket.connect((self.get_remote_host(),self.get_remote_port()))
         except socket.gaierror as error_message:
-            self.last_error = error_message
-            self.last_error_code = gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
-            return gurgle.GURGLE_FAILED
+            sys.stderr.write('Error[gaierror]:%s\n'%error_message)
+            return gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
         except socket.error as error_message:
-            self.last_error = error_message
-            self.last_error_code = gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
-            return gurgle.GURGLE_FAILED
+            sys.stderr.write('Error connecting:%s\n'%error_message)
+            return gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
         if not (user_name and pass_word):
-            self.last_error = 'Username or password is incorrect!'
-            self.last_error_code = gurgle.GURGLE_FAILED_TO_LOGIN
-            return gurgle.GURGLE_FAILED
+            sys.stderr.write('Username or password is incorrect!\n')
+            return gurgle.GURGLE_FAILED_TO_LOGIN
 #   Check version
         data = json.dumps('{"id":"%d", "version":"%s"}' % (self.create_id(),self.get_version()))
         try:
@@ -192,13 +178,21 @@ class gurgle:
         except socket.error as e:
             print('Error sending data:%s' %e)
             return gurgle.GURGLE_FAILED
+        data = None
+        try:
+            buf = self.socket.recv(1024)
+        except socket.error as e:
+            print('Error recving data:%s' %e)
+        buf = json.loads(json.loads(decode(buf)))
+        if not buf['version'] == core.get_version():
+            sys.stderr.write("Protocol's version do not match!\n")
+            return gurgle.GURGLE_FAILED_TO_LOGIN
         return gurgle.GURGLE_SUCCESS
 
     def disconnect_from_server(self):
         if not self.is_connected:                           # if you do not connected to server
-            self.last_error = 'You have not connected to remote!'
-            self.last_error_code = gurgle.GURGLE_HAVENT_CONNECTED
-            return gurgle.GURGLE_FAILED
+            sys.stderr.write('You have not connected to remote!\n')
+            return  gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
         else:
             pass                                            # wait for adding
         return gurgle.GURGLE_SUCCESS
@@ -209,4 +203,3 @@ if __name__ == '__main__':
     core.set_remote_host('127.0.0.1')
     core.set_remote_port(400097)
     core.connect_to_server('127.0.0.1',40097,'tricks','2341')
-    print (core.get_last_error())
