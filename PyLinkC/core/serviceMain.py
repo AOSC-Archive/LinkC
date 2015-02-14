@@ -9,28 +9,22 @@ from codecs import decode, encode
 
 def serviceMain(_Socket , _Addr):
     addr = _Addr
-    s_socket = _Socket
     core = gurgle(gurgle.GURGLE_SERVER)
+    core.set_socket(_Socket)
     core.set_remote_host(addr[0])
     core.set_remote_port(addr[1]);
-    #while True:
-    try:
-        buf = s_socket.recv(1024)
-    except socket.error as e:
-        sys.stderr.write('Error receiving data: %s' % e)
-        _thread.exit()
-    if not len(buf):
-        _thread.exit()
-    data = json.loads(json.loads(decode(buf)))
+    while True:
+        buf = core.recv(1024)
+        if buf is None:
+            _thread.exit()
+        data = json.loads(json.loads(decode(buf)))
 
-    senddata = json.dumps('{"id":"%d", "version":"%s"}' % (core.create_id(),core.get_version))    ## !!!!
-    try:
-        s_socket.send(encode(senddata))
-    except socket.error as e:
-        sys.stderr.write('Error sending data:%s' %e)
-    if(data['version'] != core.get_version()):
-        sys.stderr.write("Protocol's version is not the same!")
-        _thread.exit()
+        senddata = json.dumps('{"id":"%d", "version":"%s"}' % (core.create_id(),core.get_version()))    ## !!!!
+        if core.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
+            _thread.exit()
+        if(data['version'] != core.get_version()):
+            sys.stderr.write("Protocol's version is not the same!")
+            _thread.exit()
     _thread.exit()
 
 

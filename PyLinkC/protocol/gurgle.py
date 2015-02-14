@@ -4,6 +4,7 @@
 import socket
 import json
 import _thread
+import random
 import sys
 from codecs import decode, encode
 
@@ -101,15 +102,17 @@ class gurgle:
     GURGLE_FAILED_TO_LOGIN              = 14
     GURGLE_FAILED_TO_CREATE_SOCKET      = 15
     GURGLE_FAILED_TO_CONNECT_TO_REMOTE  = 16
+    GURGLE_FAILED_TO_RECV               = 17
+    GURGLE_FAILED_TO_SEND               = 18
+    GURGLE_CONNECTION_CLOSED            = 19
     def __init__(self,_mode):
-        self.__gurgleVersion= 'Unusable'
+        self.__gurgleVersion    = 'Unusable'
         self.__remoteHost       = None
         self.__remotePort       = None
         self.__is_connected     = False
         self.__runtime_mode     = _mode
         self.socket             = None
         self.__packageList      = packageList();
-        self.__current_id       = 0
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
             print ('Gurgle version',self.__gurgleVersion,'initlalized as Client')
         if self.__runtime_mode == gurgle.GURGLE_SERVER:
@@ -120,9 +123,28 @@ class gurgle:
         print ('Gurgle Deleting....')
     def get_version(self):
         return self.__gurgleVersion;
+    def set_socket(self,sockfd):
+        self.socket = sockfd
+        self.__is_connected = True
     def create_id(self):
-        self.__current_id += 1
-        return self.__current_id;
+        return random.randint(0,2147483647);
+    def recv(self,bufsize):
+        try:
+            buf = self.socket.recv(bufsize)
+        except socket.error as e:
+            sys.stderr.write('Error receiving data: %s\n' % e)
+            return None
+        if not len(buf):
+            sys.stderr.write('Connection closed\n')
+            return None
+        return buf
+    def send(self,buf):
+        try:
+            self.socket.send(buf)
+        except socket.error as e:
+            sys.stderr.write('Error sending data:%s\n' %e)
+            return gurgle.GURGLE_FAILED_TO_SEND
+        return gurgle.GURGLE_SUCCESS
     def set_remote_host(self,strHost):
         self.__remoteHost = strHost
     def set_remote_port(self,nPort):
@@ -173,19 +195,15 @@ class gurgle:
             return gurgle.GURGLE_FAILED_TO_LOGIN
 #   Check version
         data = json.dumps('{"id":"%d", "version":"%s"}' % (self.create_id(),self.get_version()))
-        try:
-            self.socket.send(encode(data))
-        except socket.error as e:
-            print('Error sending data:%s' %e)
-            return gurgle.GURGLE_FAILED
-        data = None
-        try:
-            buf = self.socket.recv(1024)
-        except socket.error as e:
-            print('Error recving data:%s' %e)
-        buf = json.loads(json.loads(decode(buf)))
-        if not buf['version'] == core.get_version():
+        if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
+            return gurgle.GURGLE_FAILED_TO_SEND
+        data = self.recv(1024)
+        if data is None:
+            return gurgle.GURGLE_FAILED_TO_RECV
+        data = json.loads(json.loads(decode(data)))
+        if data['version'] != core.get_version():
             sys.stderr.write("Protocol's version do not match!\n")
+            self.socket.close()
             return gurgle.GURGLE_FAILED_TO_LOGIN
         return gurgle.GURGLE_SUCCESS
 
