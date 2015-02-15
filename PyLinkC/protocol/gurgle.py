@@ -90,6 +90,7 @@ class packageList:
             tempNode = tempNode.nextNode
 
 class gurgle:
+    auth_method_supported               = ["plain"]
     GURGLE_CLIENT                       = 1
     GURGLE_SERVER                       = 2
     GURGLE_GROUP                        = 3
@@ -99,7 +100,7 @@ class gurgle:
     GURGLE_PORT_NOT_SET                 = 11
     GURGLE_ALREADY_CONNECTED            = 12
     GURGLE_HAVENT_CONNECTED             = 13
-    GURGLE_FAILED_TO_LOGIN              = 14
+    GURGLE_FAILED_TO_SIGN_IN            = 14
     GURGLE_FAILED_TO_CREATE_SOCKET      = 15
     GURGLE_FAILED_TO_CONNECT_TO_REMOTE  = 16
     GURGLE_FAILED_TO_RECV               = 17
@@ -111,26 +112,28 @@ class gurgle:
         self.__remotePort       = None
         self.__is_connected     = False
         self.__runtime_mode     = _mode
-        self.socket             = None
+        self.__socket           = None
         self.__packageList      = packageList();
+        self.__auth_method      = 'plain'
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
             print ('Gurgle version',self.__gurgleVersion,'initlalized as Client')
         if self.__runtime_mode == gurgle.GURGLE_SERVER:
             print ('Gurgle version',self.__gurgleVersion,'initlalized as Server')
         if self.__runtime_mode == gurgle.GURGLE_GROUP:
             print ('Gurgle version',self.__gurgleVersion,'initlalized as Group server')
+        print ('Use authenticated method [%s] by default', %self.__auth_method)
     def __del__(self):
         print ('Gurgle Deleting....')
     def get_version(self):
         return self.__gurgleVersion;
     def set_socket(self,sockfd):
-        self.socket = sockfd
+        self.__socket = sockfd
         self.__is_connected = True
     def create_id(self):
         return random.randint(0,2147483647);
     def recv(self,bufsize):
         try:
-            buf = self.socket.recv(bufsize)
+            buf = self.__socket.recv(bufsize)
         except socket.error as e:
             sys.stderr.write('Error receiving data: %s\n' % e)
             return None
@@ -140,7 +143,7 @@ class gurgle:
         return buf
     def send(self,buf):
         try:
-            self.socket.send(buf)
+            self.__socket.send(buf)
         except socket.error as e:
             sys.stderr.write('Error sending data:%s\n' %e)
             return gurgle.GURGLE_FAILED_TO_SEND
@@ -155,6 +158,8 @@ class gurgle:
         return self.__remoteHost
     def get_remote_port(self):
         return self.__remotePort
+    def get_auth_method(self):
+        return self.__auth_method;
     def is_remote_addr_set(self):
         if not self.__remoteHost:
             sys.stderr.write('Remote addr is not set!\n')
@@ -163,6 +168,11 @@ class gurgle:
             sys.stderr.write('Remote port is not set!\n')
             return gurgle.GURGLE_PORT_NOT_SET
         return gurgle.GURGLE_SUCCESS
+    def sign_in(self,username, password):
+        if not (username and password):
+            sys.stderr.write('Username or password is incorrect!\n')
+            return gurgle.GURGLE_FAILED_TO_SIGN_IN
+        data = json.dumps('{"id":"%d", "cmd":"sign_in", "from":"grgl:%s@%s/%s","params":{"method":"%s", "password":"%s"}}' % (self.create_id(),username,self.get_remote_host(),self.create_termianl_code(),self.get_auth_method(),password))
     def is_connected(self):
         return self.__is_connected
     def connect_to_server(self,strDomain,nPort,user_name,pass_word):
@@ -192,7 +202,7 @@ class gurgle:
             return gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
         if not (user_name and pass_word):
             sys.stderr.write('Username or password is incorrect!\n')
-            return gurgle.GURGLE_FAILED_TO_LOGIN
+            return gurgle.GURGLE_FAILED_TO_SIGN_IN
 #   Check version
         data = json.dumps('{"id":"%d", "version":"%s"}' % (self.create_id(),self.get_version()))
         if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
@@ -204,11 +214,24 @@ class gurgle:
         if data['version'] != core.get_version():
             sys.stderr.write("Protocol's version do not match!\n")
             self.socket.close()
-            return gurgle.GURGLE_FAILED_TO_LOGIN
-        return gurgle.GURGLE_SUCCESS
+            return gurgle.GURGLE_FAILED_TO_SIGN_IN
+#   Get authentication method
+        data = json.dumps('"id":"%d", "cmd":"query", "params":{"query": "auth_method"}' % (self.create_id()))
+        if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
+            return gurgle.GURGLE_FAILED_TO_SEND
+        data = self.recv(1024)
+        if data is None:
+            return gurgle.GURGLE_FAILED_TO_RECV
+        data = json.loads(json.loads(decode(data)))
+        self.auth_method = data['params']['answer']
+        for method in gurgle.auth_method_supported:
+            if method == self.__auth_method:
+                return self.sign_in(user_name,pass_word)   # sign in
+        sys.stderr.write("Authenticated method [%s] wasn't supported\n" %self.__auth_method)
+        return gurgle.GURGLE_FAILED_TO_SIGN_IN
 
     def disconnect_from_server(self):
-        if not self.is_connected:                           # if you do not connected to server
+        if not self.is_connected:                           # if you did not connected to server
             sys.stderr.write('You have not connected to remote!\n')
             return  gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
         else:
