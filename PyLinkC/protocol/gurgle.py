@@ -115,6 +115,7 @@ class gurgle:
         self.__socket           = None
         self.__packageList      = packageList();
         self.__auth_method      = 'plain'
+        self.__terminal_id      = None
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
             print ('Gurgle version',self.__gurgleVersion,'initlalized as Client')
         if self.__runtime_mode == gurgle.GURGLE_SERVER:
@@ -131,6 +132,17 @@ class gurgle:
         self.__is_connected = True
     def create_id(self):
         return random.randint(0,2147483647);
+    def create_terminal_id(self):
+        if not self.__terminal_id:
+            str = ''
+            chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789'
+            length = len(chars) - 1
+            random = Random()
+            for i in range(8):
+                str+=chars[random.randint(0, length)]
+            return str
+        else :
+            return self.__terminal_id
     def recv(self,bufsize):
         try:
             buf = self.__socket.recv(bufsize)
