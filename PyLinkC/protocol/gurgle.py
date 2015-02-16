@@ -7,6 +7,7 @@ import _thread
 import random
 import sys
 from codecs import decode, encode
+import string
 
 class packageNode:
     nextNode    = None
@@ -100,7 +101,7 @@ class gurgle:
     GURGLE_PORT_NOT_SET                 = 11
     GURGLE_ALREADY_CONNECTED            = 12
     GURGLE_HAVENT_CONNECTED             = 13
-    GURGLE_FAILED_TO_SIGN_IN            = 14
+    GURGLE_FAILED_TO_AUTH               = 14
     GURGLE_FAILED_TO_CREATE_SOCKET      = 15
     GURGLE_FAILED_TO_CONNECT_TO_REMOTE  = 16
     GURGLE_FAILED_TO_RECV               = 17
@@ -122,7 +123,7 @@ class gurgle:
             print ('Gurgle version',self.__gurgleVersion,'initlalized as Server')
         if self.__runtime_mode == gurgle.GURGLE_GROUP:
             print ('Gurgle version',self.__gurgleVersion,'initlalized as Group server')
-        print ('Use authenticated method [%s] by default', %self.__auth_method)
+        print ('Use authenticated method [%s] by default' %self.get_auth_method())
     def __del__(self):
         print ('Gurgle Deleting....')
     def get_version(self):
@@ -134,13 +135,7 @@ class gurgle:
         return random.randint(0,2147483647);
     def create_terminal_id(self):
         if not self.__terminal_id:
-            str = ''
-            chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789'
-            length = len(chars) - 1
-            random = Random()
-            for i in range(8):
-                str+=chars[random.randint(0, length)]
-            return str
+            return ''.join(random.sample(string.ascii_letters + string.digits,8))
         else :
             return self.__terminal_id
     def recv(self,bufsize):
@@ -180,11 +175,26 @@ class gurgle:
             sys.stderr.write('Remote port is not set!\n')
             return gurgle.GURGLE_PORT_NOT_SET
         return gurgle.GURGLE_SUCCESS
-    def sign_in(self,username, password):
+    def do_auth(self,username, password):
         if not (username and password):
             sys.stderr.write('Username or password is incorrect!\n')
-            return gurgle.GURGLE_FAILED_TO_SIGN_IN
-        data = json.dumps('{"id":"%d", "cmd":"sign_in", "from":"grgl:%s@%s/%s","params":{"method":"%s", "password":"%s"}}' % (self.create_id(),username,self.get_remote_host(),self.create_termianl_code(),self.get_auth_method(),password))
+            return gurgle.GURGLE_FAILED_TO_AUTH
+        senddata = json.dumps('{"id":"%d", "cmd":"auth", "from":"%s","params":{"method":"%s","password":"%s"}}'
+                %(self.create_id(),
+                    "grgl:%s@%s/%s"%(username,self.get_remote_host(),self.create_terminal_id()),
+                    self.get_auth_method(),password))
+        self.send(encode(senddata))
+    def ping(self):
+        senddata = json.dumps('{"id":"%d", "cmd":"ping"}'
+                %self.create_id())
+        if self.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
+            return gurgle.GURGLE_FAILED_TO_SEND
+        recvdata = self.recv(1024)
+        if recvdata is None:
+            return gurgle.GURGLE_FAILED_TO_RECV
+        data = json.loads(json.loads(decode(recvdata)))
+        # do something
+        return gurgle.GURGLE_SUCCESS
     def is_connected(self):
         return self.__is_connected
     def connect_to_server(self,strDomain,nPort,user_name,pass_word):
@@ -200,12 +210,12 @@ class gurgle:
         if self.__runtime_mode == gurgle.GURGLE_SERVER:
             return gurgle.GURGLE_FAILED                     # no error occupy
         try:
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except socket.error as error_message:
             sys.stderr.write('Error creating socket:%s\n' %error_message)
             return gurgle.GURGLE_FAILED_TO_CREATE_SOCKET
         try:
-            self.socket.connect((self.get_remote_host(),self.get_remote_port()))
+            self.__socket.connect((self.get_remote_host(),self.get_remote_port()))
         except socket.gaierror as error_message:
             sys.stderr.write('Error[gaierror]:%s\n'%error_message)
             return gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
@@ -214,33 +224,37 @@ class gurgle:
             return gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
         if not (user_name and pass_word):
             sys.stderr.write('Username or password is incorrect!\n')
-            return gurgle.GURGLE_FAILED_TO_SIGN_IN
+            return gurgle.GURGLE_FAILED_TO_AUTH
 #   Check version
         data = json.dumps('{"id":"%d", "version":"%s"}' % (self.create_id(),self.get_version()))
         if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
-        data = self.recv(1024)
-        if data is None:
+        recvdata = self.recv(1024)
+        if recvdata is None:
             return gurgle.GURGLE_FAILED_TO_RECV
-        data = json.loads(json.loads(decode(data)))
+        data = None
+        data = json.loads(json.loads(decode(recvdata)))
         if data['version'] != core.get_version():
             sys.stderr.write("Protocol's version do not match!\n")
-            self.socket.close()
-            return gurgle.GURGLE_FAILED_TO_SIGN_IN
+            self.__socket.close()
+            return gurgle.GURGLE_FAILED_TO_AUTH
 #   Get authentication method
-        data = json.dumps('"id":"%d", "cmd":"query", "params":{"query": "auth_method"}' % (self.create_id()))
+        data = json.dumps('{"id":"%d", "cmd":"query", "params":{"query":"auth_method"}}'
+                %self.create_id())
         if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
-        data = self.recv(1024)
+        recvdata = self.recv(1024)
         if data is None:
             return gurgle.GURGLE_FAILED_TO_RECV
-        data = json.loads(json.loads(decode(data)))
-        self.auth_method = data['params']['answer']
+        data = json.loads(json.loads(decode(recvdata)))
+        self.__auth_method = data['params']['answer']
+        print ('auth method = %s'%self.__auth_method)
+        self.ping()
         for method in gurgle.auth_method_supported:
             if method == self.__auth_method:
-                return self.sign_in(user_name,pass_word)   # sign in
+                return self.do_auth(user_name,pass_word)   # sign in
         sys.stderr.write("Authenticated method [%s] wasn't supported\n" %self.__auth_method)
-        return gurgle.GURGLE_FAILED_TO_SIGN_IN
+        return gurgle.GURGLE_FAILED_TO_AUTH
 
     def disconnect_from_server(self):
         if not self.is_connected:                           # if you did not connected to server

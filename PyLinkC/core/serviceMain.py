@@ -18,14 +18,65 @@ def serviceMain(_Socket , _Addr):
         if buf is None:
             _thread.exit()
         data = json.loads(json.loads(decode(buf)))
-
-        senddata = json.dumps('{"id":"%d", "version":"%s"}' % (int(data['id']),core.get_version()))
-        print("send data = %s"%senddata)
+        if not 'id' in data:
+            print ('This package has no id, It will be droped!')
+            continue                            # 强制结束本回合！
+        if 'version' in data:
+            senddata = json.dumps('{"id":"%d", "version":"%s"}'%(int(data['id']),core.get_version()))
+            if core.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
+                _thread.exit()
+            if(data['version'] != core.get_version()):
+                sys.stderr.write("Protocol's version is not the same!")
+                _thread.exit()
+            continue                            # 不论如何这个回合都会结束
+        if 'cmd' in data:                           # 命令
+            if data['cmd']  == 'ping':              # ping
+                if 'payload' in data:
+                    senddata = json.dumps('{"id":"%d", "cmd":"pong", "payload":"%s"}'
+                            %(core.create_id(),data['payload']))
+                else:
+                    senddata = json.dumps('{"id":"%d", "cmd":"pong"}'
+                            %(core.create_id()))
+            elif data['cmd'] == 'query':              # 请求
+                if not data['params']:
+                    sys.stderr.write('Query without params,ID = [%d] will be droped'%data['id'])
+                    sendata = json.dumps('{"id":"%d", "cmd":"kill", "error":"%s", "reason":"%s"}'
+                            %(int(data['id']),
+                                "Unknown query",
+                                "Query[%s] isn't supported"%data['params']['query']))
+                    core.send(encode(senddata))
+                    _thread.exit()
+                if 'query' in data['params']:
+                    if data['params']['query'] == 'auth_method':
+                        senddata = json.dumps('{"id":"%d", "params":{"answer":"%s"}}'
+                                %(int(data['id']),core.get_auth_method()))
+                    else:   #end if of [query]
+                        sys.stderr.write("Such query[%s] isn't supported"%data['params']['query'])
+                        sendata = json.dumps('{"id":"%d", "cmd":"kill", "error":"%s", "reason":"%s"}'
+                                %(int(data['id']),
+                                    "Unknown query",
+                                    "Query[%s] isn't supported"%data['params']['query']))
+                        core.send(encode(senddata))
+                        _thread.exit()
+                else:   #end if of [params]
+                    sys.stderr.write("Such query[%s] isn't supported"%data['params'])
+                    sendata = json.dumps('{"id":"%d", "cmd":"kill", "error":"%s", "reason":"%s"}'
+                            %(int(data['id']),
+                                "Unknown Params",
+                                "Params[%s] isn't supported"%data['params']))
+                    core.send(encode(senddata))
+                    _thread.exit()
+            else:   # end if of [cmd]
+                sys.stderr.write("Such cmd[%s] isn't supported"%data['cmd'])
+                sendata = json.dumps('{"id":"%d", "cmd":"kill", "error":"%s", "reason":"%s"}'
+                        %(int(data['id']),
+                            "Unknown Cmd",
+                            "Cmd[%s] isn't supported"%data['cmd']))
+                core.send(encode(senddata))
+                _thread.exit()
         if core.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
             _thread.exit()
-        if(data['version'] != core.get_version()):
-            sys.stderr.write("Protocol's version is not the same!")
-            _thread.exit()
+
     _thread.exit()
 
 
