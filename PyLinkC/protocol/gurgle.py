@@ -8,6 +8,7 @@ import random
 import sys
 from codecs import decode, encode
 import string
+import mysql.connector as mysql
 
 class packageNode:
     nextNode    = None
@@ -117,6 +118,8 @@ class gurgle:
         self.__packageList      = packageList();
         self.__auth_method      = 'plain'
         self.__terminal_id      = None
+        self.__mysql_fd         = None
+        self.__mysql_conn       = None
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
             print ('Gurgle version',self.__gurgleVersion,'initlalized as Client')
         if self.__runtime_mode == gurgle.GURGLE_SERVER:
@@ -138,6 +141,21 @@ class gurgle:
             return ''.join(random.sample(string.ascii_letters + string.digits,8))
         else :
             return self.__terminal_id
+    def mysql_excute(self,database='linkc_users',cmd=None):
+        if not cmd:
+            sys.stderr.write('No command will be excuted!\n')
+            return None
+        try:
+            self.__mysql_conn   = mysql.connect(host='localhost',user='root',passwd='root',port=3306)
+        except mysql.Error as e:
+            sys.stderr.write('Error connecting to SQL server:%s\n'%e)
+            return None
+        self.__mysql_fd     = self.__mysql_conn.cursor()
+        try:
+            self.__mysql_fd.select_db(database)
+        except mysql.Error as e:
+            sys.stderr.write('Error selecting database to [%s]:%s'%(database,e))
+            return None
     def recv(self,bufsize):
         try:
             buf = self.__socket.recv(bufsize)
