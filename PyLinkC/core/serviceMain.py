@@ -19,8 +19,12 @@ def serviceMain(_Socket , _Addr):
             _thread.exit()
         data = json.loads(json.loads(decode(buf)))
         if not 'id' in data:
-            print ('This package has no id, It will be droped!')
-            continue                            # 强制结束本回合！
+            sys.stderr.write("Data without ID")
+            sendata = json.dumps('{"id":"0", "cmd":"kill", "error":"%s", "reason":"%s"}'
+                    %'SyntaxError',
+                        "This package has no ID! Emergency quit!")
+            core.send(encode(senddata))
+            _thread.exit()
         if 'version' in data:
             senddata = json.dumps('{"id":"%d", "version":"%s"}'%(int(data['id']),core.get_version()))
             if core.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
@@ -42,8 +46,8 @@ def serviceMain(_Socket , _Addr):
                     sys.stderr.write('Query without params,ID = [%d] will be droped'%data['id'])
                     sendata = json.dumps('{"id":"%d", "cmd":"kill", "error":"%s", "reason":"%s"}'
                             %(int(data['id']),
-                                "Unknown query",
-                                "Query[%s] isn't supported"%data['params']['query']))
+                                'SyntaxError',
+                                'Query without params'))
                     core.send(encode(senddata))
                     _thread.exit()
                 if 'query' in data['params']:
@@ -54,23 +58,32 @@ def serviceMain(_Socket , _Addr):
                         sys.stderr.write("Such query[%s] isn't supported"%data['params']['query'])
                         sendata = json.dumps('{"id":"%d", "cmd":"kill", "error":"%s", "reason":"%s"}'
                                 %(int(data['id']),
-                                    "Unknown query",
+                                    "UnknownQuery",
                                     "Query[%s] isn't supported"%data['params']['query']))
                         core.send(encode(senddata))
                         _thread.exit()
                 else:   #end if of [params]
-                    sys.stderr.write("Such query[%s] isn't supported"%data['params'])
+                    sys.stderr.write("Such params[%s] isn't supported"%data['params'])
                     sendata = json.dumps('{"id":"%d", "cmd":"kill", "error":"%s", "reason":"%s"}'
                             %(int(data['id']),
-                                "Unknown Params",
+                                "UnknownParams",
                                 "Params[%s] isn't supported"%data['params']))
+                    core.send(encode(senddata))
+                    _thread.exit()
+            elif data['cmd'] == 'auth':
+                if not 'from' in data:
+                    sys.stderr.write("Auth without from")
+                    sendata = json.dumps('{"id":"%d", "cmd":"kill", "error":"%s", "reason":"%s"}'
+                            %(int(data['id']),
+                                'SyntaxError',
+                                'Auth without the from field'))
                     core.send(encode(senddata))
                     _thread.exit()
             else:   # end if of [cmd]
                 sys.stderr.write("Such cmd[%s] isn't supported"%data['cmd'])
                 sendata = json.dumps('{"id":"%d", "cmd":"kill", "error":"%s", "reason":"%s"}'
                         %(int(data['id']),
-                            "Unknown Cmd",
+                            "UnknownCmd",
                             "Cmd[%s] isn't supported"%data['cmd']))
                 core.send(encode(senddata))
                 _thread.exit()
