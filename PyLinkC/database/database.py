@@ -12,6 +12,8 @@ class database_controllor:
     DATABASE_PORT       = 3306
     DATABASE_SUCCESS    = True
     DATABASE_FAILED     = False
+    AUTH_FAILED         = 10
+    AUTH_SUCCESS        = 11
     def __init__(self):
         self.__is_connected     = False
         self.__mysql_fd         = None
@@ -42,7 +44,13 @@ class database_controllor:
         if not self.is_connected():
             if not self.connect_to_database():
                 return database_controllor.DATABASE_FAILED
-        pass
+        self.__mysql_conn.select_db('linkc_users')
+        self.__mysql_fd.execute("select password from user_info where username = '%s'"%username)
+        data = self.__mysql_fd.fetchone()
         self.disconnect_from_database()
-        return database_controllor.DATABASE_SUCCESS
+        if data == None:
+            return database_controllor.AUTH_FAILED
+        if data != password:
+            return database_controllor.AUTH_FAILED
+        return database_controllor.AUTH_SUCCESS
 
