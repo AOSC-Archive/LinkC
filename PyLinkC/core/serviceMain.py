@@ -18,7 +18,6 @@ usernameAllowed = [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 
                     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
                     'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
                     '+', '-', '_', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
-
 def serviceMain(_Socket , _Addr):
     addr = _Addr
     core = gurgle(gurgle.GURGLE_SERVER)
@@ -59,9 +58,9 @@ def serviceMain(_Socket , _Addr):
                     core.emergency_quit('SyntaxError','Query without params')
                     _thread.exit()
                 if 'query' in data['params']:
-                    if data['params']['query'] == 'auth_method':
+                    if data['params']['query'] == 'encrypted_method':
                         senddata = json.dumps('{"id":"%d", "params":{"answer":"%s"}}'
-                                %(int(data['id']),core.get_auth_method()))
+                                %(int(data['id']),core.get_encrypted_method()))
                     else:   #end if of [query]
                         core.emergency_quit('UnknownQuery',
                             "Query[%s] isn't supported"%data['params']['query'])
@@ -79,8 +78,15 @@ def serviceMain(_Socket , _Addr):
                     core.write_log("Auth without from",gurgle.GURGLE_LOG_MODE_ERROR)
                     core.emergency_quit('SyntaxError','Auth without the from field')
                     _thread.exit()
-                FullGurgleID    = data['from']
+                FullSignInID    = data['from']
+                (protocol,ID)   = FullSignInID.split(':')
             elif data['cmd'] == 'quit':
+                if 'reason' in data:
+                    core.write_log('Client quited because %s'%data['reason'],
+                            gurgle.GURGLE_LOG_MODE_DEBUG)
+                else:
+                    core.write_log('Client quited without reason',
+                            gurgle.GURGLE_LOG_MODE_DEBUG)
                 core.disconnect_from_remote()
                 _thread.exit()
             else:   # end if of [cmd]

@@ -92,7 +92,8 @@ class packageList:
             tempNode = tempNode.nextNode
 
 class gurgle:
-    auth_method_supported               = ["plain"]
+    encrypt_method_supported            = ["plain"]
+    protocol_supported                  = ["grgl"]
     GURGLE_LOG_MODE_DEBUG               = 0
     GURGLE_LOG_MODE_COMMON              = 1
     GURGLE_LOG_MODE_ERROR               = 2
@@ -119,7 +120,7 @@ class gurgle:
         self.__runtime_mode     = _mode
         self.__socket           = None
         self.__packageList      = packageList();
-        self.__auth_method      = 'plain'
+        self.__encrypted_method = 'plain'
         self.__terminal_id      = None
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
             self.write_log ('Gurgle version %s %s'%(self.__gurgleVersion,'initlalized as Client'))
@@ -127,7 +128,7 @@ class gurgle:
             self.write_log ('Gurgle version %s %s'%(self.__gurgleVersion,'initlalized as Server'))
         if self.__runtime_mode == gurgle.GURGLE_GROUP:
             self.write_log ('Gurgle version %s %s'%(self.__gurgleVersion,'initlalized as Group server'))
-        self.write_log ('Use authenticated method [%s] by default' %self.get_auth_method())
+        self.write_log ('Use encrypted method [%s] by default' %self.get_encrypted_method())
     def __del__(self):
         self.write_log ('Gurgle Deleting....')
     def get_version(self):
@@ -178,8 +179,8 @@ class gurgle:
         return self.__remoteHost
     def get_remote_port(self):
         return self.__remotePort
-    def get_auth_method(self):
-        return self.__auth_method;
+    def get_encrypted_method(self):
+        return self.__encrypted_method;
     def is_remote_addr_set(self):
         if not self.__remoteHost:
             self.write_log('Remote addr is not set!',gurgle.GURGLE_LOG_MODE_ERROR)
@@ -188,15 +189,21 @@ class gurgle:
             self.write_log('Remote port is not set!',gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_PORT_NOT_SET
         return gurgle.GURGLE_SUCCESS
-    def do_auth(self,username, password):
-        if not (username and password):
-            self.write_log('Username or password is incorrect!',gurgle.GURGLE_LOG_MODE_ERROR)
+    def do_auth(self,ID, password,protocol = 'grgl'):
+        if not (ID and password):
+            self.write_log('ID or password is empty!',gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_FAILED_TO_AUTH
-        senddata = json.dumps('{"id":"%d", "cmd":"auth", "from":"%s","params":{"method":"%s","password":"%s"}}'
-                %(self.create_id(),
-                    "grgl:%s@%s/%s"%(username,self.get_remote_host(),self.create_terminal_id()),
-                    self.get_auth_method(),password))
-        self.send(encode(senddata))
+        if self.runtime_mode() == gurgle.GURGLE_CLIENT:
+            senddata = json.dumps('{"id":"%d", "cmd":"auth", "from":"%s","params":{"method":"%s","password":"%s"}}'
+                    %(self.create_id(),
+                        "%s:%s"%(protocol,ID)),
+                        self.get_encrypted_method(),password)
+            #self.send(encode(senddata))
+            #recvdata = json.loads(json.loads(decode(self.recv(512))))
+            # something to do
+        else:
+            # something to do ,too
+            pass
     def ping(self):
         self.write_log('ping',gurgle.GURGLE_LOG_MODE_DEBUG)
         senddata = json.dumps('{"id":"%d", "cmd":"ping"}'
@@ -257,7 +264,7 @@ class gurgle:
             self.__socket.close()
             return gurgle.GURGLE_FAILED_TO_AUTH
 #   Get authentication method
-        data = json.dumps('{"id":"%d", "cmd":"query", "params":{"query":"auth_method"}}'
+        data = json.dumps('{"id":"%d", "cmd":"query", "params":{"query":"encrypted_method"}}'
                 %self.create_id())
         if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
@@ -265,17 +272,17 @@ class gurgle:
         if data is None:
             return gurgle.GURGLE_FAILED_TO_RECV
         data = json.loads(json.loads(decode(recvdata)))
-        self.__auth_method = data['params']['answer']
-        self.write_log ('auth method = %s'%self.__auth_method, 0)
+        self.__encrypted_method = data['params']['answer']
+        self.write_log ('encrypted method = %s'%self.__encrypted_method, 0)
         self.ping()
         self.__is_connected = True
         self.disconnect_from_remote()
         return
-        for method in gurgle.auth_method_supported:
-            if method == self.__auth_method:
-                return self.do_auth(user_name,pass_word)   # sign in
+        for method in gurgle.encrypted_method_supported:
+            if method == self.__encrypted_method:
+                return self.do_auth('%s@%s/@s'%(user_name,self.get_remote_host(),self.create_terminal_id()),pass_word)
         self.write_log("Authenticated method [%s] wasn't supported"
-                %self.__auth_method,gurgle.GURGLE_LOG_MODE_ERROR)
+                %self.__encrypted_method,gurgle.GURGLE_LOG_MODE_ERROR)
         self.disconnect_from_remote()
         return gurgle.GURGLE_FAILED_TO_AUTH
 

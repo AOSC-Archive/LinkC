@@ -2,6 +2,8 @@
 #!encoding='utf-8'
 import mysql.connector as mysql
 import sys
+sys.path.append("..")
+from protocol.gurgle import *
 
 class database_controllor:
     DATABASE_HOST       = 'localhost'
@@ -18,10 +20,12 @@ class database_controllor:
         return self.__is_connected
     def connect_to_database(self):
         try:
-            self.__mysql_conn   = mysql.connect(host = self.DATABASE_HOST,user = self.DATABASE_USER,
-                    passwd = self.DATABASE_PASS, port = self.DATABASE_PORT)
+            self.__mysql_conn   = mysql.connect(host = self.DATABASE_HOST,
+                    user = self.DATABASE_USER,
+                    passwd = self.DATABASE_PASS,
+                    port = self.DATABASE_PORT)
         except mysql.Error as e:
-            sys.stderr.write('Error connecting to SQL server:%s\n'%e)
+            gurgle.write_log(e,gurgle.GURGLE_LOG_MODE_ERROR)
             return database_controllor.DATABASE_FAILED
         self.__musql_fd         = self.__mysql_conn.cursor()
         self.__is_connected     = True
