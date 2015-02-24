@@ -8,6 +8,7 @@ import random
 import sys
 from codecs import decode, encode
 import string
+import time
 
 class packageNode:
     nextNode    = None
@@ -92,6 +93,9 @@ class packageList:
 
 class gurgle:
     auth_method_supported               = ["plain"]
+    GURGLE_LOG_MODE_DEBUG               = 0
+    GURGLE_LOG_MODE_COMMON              = 1
+    GURGLE_LOG_MODE_ERROR               = 2
     GURGLE_CLIENT                       = 1
     GURGLE_SERVER                       = 2
     GURGLE_GROUP                        = 3
@@ -118,14 +122,14 @@ class gurgle:
         self.__auth_method      = 'plain'
         self.__terminal_id      = None
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
-            print ('Gurgle version',self.__gurgleVersion,'initlalized as Client')
+            self.write_log ('Gurgle version %s %s'%(self.__gurgleVersion,'initlalized as Client'))
         if self.__runtime_mode == gurgle.GURGLE_SERVER:
-            print ('Gurgle version',self.__gurgleVersion,'initlalized as Server')
+            self.write_log ('Gurgle version %s %s'%(self.__gurgleVersion,'initlalized as Server'))
         if self.__runtime_mode == gurgle.GURGLE_GROUP:
-            print ('Gurgle version',self.__gurgleVersion,'initlalized as Group server')
-        print ('Use authenticated method [%s] by default' %self.get_auth_method())
+            self.write_log ('Gurgle version %s %s'%(self.__gurgleVersion,'initlalized as Group server'))
+        self.write_log ('Use authenticated method [%s] by default' %self.get_auth_method())
     def __del__(self):
-        print ('Gurgle Deleting....')
+        self.write_log ('Gurgle Deleting....')
     def get_version(self):
         return self.__gurgleVersion;
     def set_socket(self,sockfd):
@@ -138,21 +142,30 @@ class gurgle:
             return ''.join(random.sample(string.ascii_letters + string.digits,8))
         else :
             return self.__terminal_id
+    def write_log(self,log,mode = None):
+        if mode == None:
+            mode = gurgle.GURGLE_LOG_MODE_COMMON
+        if  mode == gurgle.GURGLE_LOG_MODE_COMMON:      # common mode
+            sys.stdout.write ("[%s] : %s\n"%(time.asctime(time.localtime()),log))
+        elif mode == gurgle.GURGLE_LOG_MODE_ERROR:     # error mode
+            sys.stderr.write ("[%s] : %s\n"%(time.asctime(time.localtime()),log))
+        elif mode == gurgle.GURGLE_LOG_MODE_DEBUG:
+            sys.stdout.write ("[%s] : %s\n"%(time.asctime(time.localtime()),log))
     def recv(self,bufsize):
         try:
             buf = self.__socket.recv(bufsize)
         except socket.error as e:
-            sys.stderr.write('Error receiving data: %s\n' % e)
+            self.write_log(e,gurgle.GURGLE_LOG_MODE_ERROR)
             return None
         if not len(buf):
-            sys.stderr.write('Connection closed\n')
+            self.write_log('Connection closed',gurgle.GURGLE_LOG_MODE_ERROR)
             return None
         return buf
     def send(self,buf):
         try:
             self.__socket.send(buf)
         except socket.error as e:
-            sys.stderr.write('Error sending data:%s\n' %e)
+            self.write_log(e,gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_FAILED_TO_SEND
         return gurgle.GURGLE_SUCCESS
     def set_remote_host(self,strHost):
@@ -169,15 +182,15 @@ class gurgle:
         return self.__auth_method;
     def is_remote_addr_set(self):
         if not self.__remoteHost:
-            sys.stderr.write('Remote addr is not set!\n')
+            self.write_log('Remote addr is not set!',gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_HOST_NOT_SET
         if not self.__remotePort:
-            sys.stderr.write('Remote port is not set!\n')
+            self.write_log('Remote port is not set!',gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_PORT_NOT_SET
         return gurgle.GURGLE_SUCCESS
     def do_auth(self,username, password):
         if not (username and password):
-            sys.stderr.write('Username or password is incorrect!\n')
+            self.write_log('Username or password is incorrect!',gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_FAILED_TO_AUTH
         senddata = json.dumps('{"id":"%d", "cmd":"auth", "from":"%s","params":{"method":"%s","password":"%s"}}'
                 %(self.create_id(),
@@ -185,6 +198,7 @@ class gurgle:
                     self.get_auth_method(),password))
         self.send(encode(senddata))
     def ping(self):
+        self.write_log('ping',gurgle.GURGLE_LOG_MODE_DEBUG)
         senddata = json.dumps('{"id":"%d", "cmd":"ping"}'
                 %self.create_id())
         if self.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
@@ -193,13 +207,17 @@ class gurgle:
         if recvdata is None:
             return gurgle.GURGLE_FAILED_TO_RECV
         data = json.loads(json.loads(decode(recvdata)))
+        if 'cmd' not in data:
+            self.emergency_quit('SyntaxError','Pong without cmd field')
+        self.write_log('%s'%data['cmd'],gurgle.GURGLE_LOG_MODE_DEBUG)
         # do something
         return gurgle.GURGLE_SUCCESS
     def is_connected(self):
         return self.__is_connected
     def connect_to_server(self,strDomain,nPort,user_name,pass_word):
         if self.is_connected():                             #
-            sys.stderr.write('You have already connected to remote,connection was refused!\n')
+            self.write_log('You have already connected to remote,connection was refused!'
+                    ,gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_ALREADY_CONNECTED
         if strDomain is not None:
             self.set_remote_host(strDomain)
@@ -212,18 +230,18 @@ class gurgle:
         try:
             self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except socket.error as error_message:
-            sys.stderr.write('Error creating socket:%s\n' %error_message)
+            self.write_log(error_message,gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_FAILED_TO_CREATE_SOCKET
         try:
             self.__socket.connect((self.get_remote_host(),self.get_remote_port()))
         except socket.gaierror as error_message:
-            sys.stderr.write('Error[gaierror]:%s\n'%error_message)
+            self.write_log(error_message,gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
         except socket.error as error_message:
-            sys.stderr.write('Error connecting:%s\n'%error_message)
+            self.write_log(error_message,gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
         if not (user_name and pass_word):
-            sys.stderr.write('Username or password is incorrect!\n')
+            self.write_log('Username or password is incorrect!',gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_FAILED_TO_AUTH
 #   Check version
         data = json.dumps('{"id":"%d", "version":"%s"}' % (self.create_id(),self.get_version()))
@@ -235,7 +253,7 @@ class gurgle:
         data = None
         data = json.loads(json.loads(decode(recvdata)))
         if data['version'] != core.get_version():
-            sys.stderr.write("Protocol's version do not match!\n")
+            self.write_log("Protocol's version do not match!",gurgle.GURGLE_LOG_MODE_ERROR)
             self.__socket.close()
             return gurgle.GURGLE_FAILED_TO_AUTH
 #   Get authentication method
@@ -248,20 +266,45 @@ class gurgle:
             return gurgle.GURGLE_FAILED_TO_RECV
         data = json.loads(json.loads(decode(recvdata)))
         self.__auth_method = data['params']['answer']
-        print ('auth method = %s'%self.__auth_method)
+        self.write_log ('auth method = %s'%self.__auth_method, 0)
         self.ping()
+        self.__is_connected = True
+        self.disconnect_from_remote()
+        return
         for method in gurgle.auth_method_supported:
             if method == self.__auth_method:
                 return self.do_auth(user_name,pass_word)   # sign in
-        sys.stderr.write("Authenticated method [%s] wasn't supported\n" %self.__auth_method)
+        self.write_log("Authenticated method [%s] wasn't supported"
+                %self.__auth_method,gurgle.GURGLE_LOG_MODE_ERROR)
+        self.disconnect_from_remote()
         return gurgle.GURGLE_FAILED_TO_AUTH
 
-    def disconnect_from_server(self):
-        if not self.is_connected:                           # if you did not connected to server
-            sys.stderr.write('You have not connected to remote!\n')
+    def emergency_quit(self,error='UnknownError',reason="Some errors occupied"):
+        cmd = "kill"
+        if self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
+            cmd = "quit"
+        senddata = json.dumps('{"id":"%d", "cmd":"%s", "error":"%s", "reason":"%s"}'
+                %(self.create_id(),cmd,error,reason))
+        self.send(encode(senddata))
+        self.__socket.close()
+    def disconnect_from_remote(self,reason = "I just wanna to quit"):
+        if not self.is_connected():               # if you did not connected to server
+            self.write_log('You have not connected to remote!',gurgle.GURGLE_LOG_MODE_ERROR)
             return  gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
+        elif self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
+            senddata = json.dumps('{"id":"%d", "cmd":"quit","reason":"%s"}'
+                    %(self.create_id(),reason))
+            self.send(encode(senddata))
+            recvdata = self.recv(512)
+            recvdata = json.loads(json.loads(decode(recvdata)))
+            if not 'cmd' in recvdata:
+                self.write_log('Some errors occupied,Just quit',gurgle.GURGLE_LOG_MODE_ERROR)
+            else:
+                self.write_log('server replied %s'%recvdata['cmd'])
         else:
-            pass                                            # wait for adding
+            senddata = json.dumps('{"id":"%d","cmd":"bye"}')
+            self.send(encode(senddata))
+        self.__socket.close()
         return gurgle.GURGLE_SUCCESS
 
 

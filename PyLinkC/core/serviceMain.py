@@ -6,6 +6,18 @@ import _thread
 sys.path.append("..")
 from protocol.gurgle import *
 from codecs import decode, encode
+passwordAllowed = [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+                    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+                    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+                    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+                    '!', '@', '#', '$', '%', '^', '&', '*', '-', '_', '=', '<', '>',
+                    '+', '?', '/', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
+
+usernameAllowed = [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+                    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+                    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+                    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+                    '+', '-', '_', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
 
 def serviceMain(_Socket , _Addr):
     addr = _Addr
@@ -19,18 +31,17 @@ def serviceMain(_Socket , _Addr):
             _thread.exit()
         data = json.loads(json.loads(decode(buf)))
         if not 'id' in data:
-            sys.stderr.write("Data without ID")
-            sendata = json.dumps('{"id":"0", "cmd":"kill", "error":"%s", "reason":"%s"}'
-                    %'SyntaxError',
-                        "This package has no ID! Emergency quit!")
-            core.send(encode(senddata))
+            core.write_log("Data without ID",gurgle.GURGLE_LOG_MODE_ERROR)
+            core.emergency_quit('SyntaxError','This package has no ID! Emergency quit!')
             _thread.exit()
         if 'version' in data:
-            senddata = json.dumps('{"id":"%d", "version":"%s"}'%(int(data['id']),core.get_version()))
+            senddata = json.dumps('{"id":"%d", "version":"%s"}'
+                    %(int(data['id']),core.get_version()))
             if core.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
                 _thread.exit()
             if(data['version'] != core.get_version()):
-                sys.stderr.write("Protocol's version is not the same!")
+                core.write_log("Protocol's version is not the same!"
+                        ,gurgle.GURGLE_LOG_MODE_ERROR)
                 _thread.exit()
             continue                            # 不论如何这个回合都会结束
         if 'cmd' in data:                           # 命令
@@ -43,51 +54,42 @@ def serviceMain(_Socket , _Addr):
                             %(core.create_id()))
             elif data['cmd'] == 'query':              # 请求
                 if not data['params']:
-                    sys.stderr.write('Query without params,ID = [%d] will be droped'%data['id'])
-                    sendata = json.dumps('{"id":"%d", "cmd":"kill", "error":"%s", "reason":"%s"}'
-                            %(int(data['id']),
-                                'SyntaxError',
-                                'Query without params'))
-                    core.send(encode(senddata))
+                    core.write_log('Query without params,ID = [%d] will be droped'%data['id']
+                            ,gurgle.GURGLE_LOG_MODE_ERROR)
+                    core.emergency_quit('SyntaxError','Query without params')
                     _thread.exit()
                 if 'query' in data['params']:
                     if data['params']['query'] == 'auth_method':
                         senddata = json.dumps('{"id":"%d", "params":{"answer":"%s"}}'
                                 %(int(data['id']),core.get_auth_method()))
                     else:   #end if of [query]
-                        sys.stderr.write("Such query[%s] isn't supported"%data['params']['query'])
-                        sendata = json.dumps('{"id":"%d", "cmd":"kill", "error":"%s", "reason":"%s"}'
-                                %(int(data['id']),
-                                    "UnknownQuery",
-                                    "Query[%s] isn't supported"%data['params']['query']))
-                        core.send(encode(senddata))
+                        core.emergency_quit('UnknownQuery',
+                            "Query[%s] isn't supported"%data['params']['query'])
+                        core.write_log("Such query[%s] isn't supported"%data['params']['query']
+                                ,gurgle.GURGLE_LOG_MODE_ERROR)
                         _thread.exit()
                 else:   #end if of [params]
-                    sys.stderr.write("Such params[%s] isn't supported"%data['params'])
-                    sendata = json.dumps('{"id":"%d", "cmd":"kill", "error":"%s", "reason":"%s"}'
-                            %(int(data['id']),
-                                "UnknownParams",
-                                "Params[%s] isn't supported"%data['params']))
-                    core.send(encode(senddata))
+                    core.write_log("Such params[%s] isn't supported"%data['params']
+                            ,gurgle.GURGLE_LOG_MODE_ERROR)
+                    core.emergency_quit('UnknownParams',
+                            "Params[%s] isn't supported"%data['params'])
                     _thread.exit()
             elif data['cmd'] == 'auth':
                 if not 'from' in data:
-                    sys.stderr.write("Auth without from")
-                    sendata = json.dumps('{"id":"%d", "cmd":"kill", "error":"%s", "reason":"%s"}'
-                            %(int(data['id']),
-                                'SyntaxError',
-                                'Auth without the from field'))
-                    core.send(encode(senddata))
+                    core.write_log("Auth without from",gurgle.GURGLE_LOG_MODE_ERROR)
+                    core.emergency_quit('SyntaxError','Auth without the from field')
                     _thread.exit()
+                FullGurgleID    = data['from']
+            elif data['cmd'] == 'quit':
+                core.disconnect_from_remote()
+                _thread.exit()
             else:   # end if of [cmd]
-                sys.stderr.write("Such cmd[%s] isn't supported"%data['cmd'])
-                sendata = json.dumps('{"id":"%d", "cmd":"kill", "error":"%s", "reason":"%s"}'
-                        %(int(data['id']),
-                            "UnknownCmd",
-                            "Cmd[%s] isn't supported"%data['cmd']))
-                core.send(encode(senddata))
+                core.write_log("Such cmd[%s] isn't supported"%data['cmd']
+                        ,gurgle.GURGLE_LOG_MODE_ERROR)
+                core.emergency_quit('UnknownCmd', "Cmd[%s] isn't supported"%data['cmd'])
                 _thread.exit()
         if core.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
+            core.emergency_quit()
             _thread.exit()
 
     _thread.exit()
