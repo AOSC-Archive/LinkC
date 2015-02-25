@@ -5,7 +5,7 @@ import sys
 sys.path.append("..")
 from protocol.gurgle import *
 
-class database_controllor:
+class grgl_mysql_controllor:
     DATABASE_HOST       = 'localhost'
     DATABASE_USER       = 'root'
     DATABASE_PASS       = '123321123'
@@ -20,37 +20,37 @@ class database_controllor:
         self.__mysql_conn       = None
     def is_connected(self):
         return self.__is_connected
-    def connect_to_database(self):
+    def connect_to_database(self,db):
         try:
             self.__mysql_conn   = mysql.connect(host = self.DATABASE_HOST,
                     user = self.DATABASE_USER,
                     passwd = self.DATABASE_PASS,
-                    port = self.DATABASE_PORT)
+                    port = self.DATABASE_PORT,
+                    database = db)
         except mysql.Error as e:
             gurgle.write_log(e,gurgle.GURGLE_LOG_MODE_ERROR)
-            return database_controllor.DATABASE_FAILED
-        self.__musql_fd         = self.__mysql_conn.cursor()
+            return grgl_mysql_controllor.DATABASE_FAILED
+        self.__mysql_fd         = self.__mysql_conn.cursor()
         self.__is_connected     = True
-        return database_controllor.DATABASE_SUCCESS
+        return grgl_mysql_controllor.DATABASE_SUCCESS
     def disconnect_from_database(self):
         if self.is_connected():
             if self.__mysql_fd:
                 self.__mysql_fd.close()
-            if self.__musql_conn:
+            if self.__mysql_conn:
                 self.__mysql_conn.close()
             self.__is_connected = False
-        return database_controllor.DATABASE_SUCCESS
-    def auth_password(self,username,password):
+        return grgl_mysql_controllor.DATABASE_SUCCESS
+    def authenticate(self,username,password):
         if not self.is_connected():
-            if not self.connect_to_database():
-                return database_controllor.DATABASE_FAILED
-        self.__mysql_conn.select_db('linkc_users')
+            if not self.connect_to_database('linkc_users'):
+                return grgl_mysql_controllor.DATABASE_FAILED
         self.__mysql_fd.execute("select password from user_info where username = '%s'"%username)
         data = self.__mysql_fd.fetchone()
         self.disconnect_from_database()
-        if data == None:
-            return database_controllor.AUTH_FAILED
-        if data != password:
-            return database_controllor.AUTH_FAILED
-        return database_controllor.AUTH_SUCCESS
+        if str(data)[2:-3] == None:
+            return grgl_mysql_controllor.AUTH_FAILED
+        if str(data)[2:-3] != password:
+            return grgl_mysql_controllor.AUTH_FAILED
+        return grgl_mysql_controllor.AUTH_SUCCESS
 

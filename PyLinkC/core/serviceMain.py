@@ -5,6 +5,7 @@ import sys
 import _thread
 sys.path.append("..")
 from protocol.gurgle import *
+from database.mysql import *
 from codecs import decode, encode
 passwordAllowed = [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
                     'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -18,12 +19,15 @@ usernameAllowed = [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 
                     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
                     'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
                     '+', '-', '_', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
+
+protocolSupported=[ 'grgl'  ]
 def serviceMain(_Socket , _Addr):
     addr = _Addr
     core = gurgle(gurgle.GURGLE_SERVER)
     core.set_socket(_Socket)
     core.set_remote_host(addr[0])
     core.set_remote_port(addr[1]);
+    grgl_mysql = grgl_mysql_controllor()
     while True:
         buf = core.recv(1024)
         if buf is None:
@@ -79,7 +83,65 @@ def serviceMain(_Socket , _Addr):
                     core.emergency_quit('SyntaxError','Auth without the from field')
                     _thread.exit()
                 FullSignInID    = data['from']
-                (protocol,ID)   = FullSignInID.split(':')
+                if FullSignInID.find(':') == -1:
+                    core.emergency_quit('SyntaxError','ID syntax error')
+                    _thread.exit()
+                (protocol,ID)   = FullSignInID.split(':',1)
+                isProtocolSupported = False
+                for t in protocolSupported:
+                    if t == protocol:
+                        isProtocolSupported = True
+                        if protocol == 'grgl':
+                            if ID.find('@') == -1:
+                                core.emergency_quit('SyntaxError','ID syntax error')
+                                _thread.exit()
+                            (username,suffix) = ID.split('@',1)
+                            ch = 'a'
+                            t  = 'a'
+                            isFound = False
+                            for ch in username:
+                                isFound = False
+                                for a in usernameAllowed:
+                                    if a == ch:
+                                        isFound = True
+                                        break
+                                if isFound == False:
+                                    core.emergency_quit('SyntaxError','ID syntax error')
+                                    _thread.exit()
+                                continue
+                            if suffix.find('/') == -1:
+                                core.emergency_quit('SyntaxError','ID syntax error')
+                                _thread.exit()
+                            (domain,terminal) = suffix.split('/',1)
+                            if 'params' not in data:
+                                core.write_log("Auth without params",gurgle.GURGLE_LOG_MODE_ERROR)
+                                core.emergency_quit('SyntaxError','Auth without the params field')
+                                _thread.exit()
+                            if 'method' not in data['params']:
+                                method = core.get_encrypted_method()
+                            if 'password' not in data['params']:
+                                core.write_log("Auth without password",gurgle.GURGLE_LOG_MODE_ERROR)
+                                core.emergency_quit('SyntaxError','Auth without the password field')
+                                _thread.exit()
+                            password = data['params']['password']
+                            if (password == None) or (username == None):
+                                core.emergency_quit('SyntaxError','ID syntax error')
+                                _thread.exit()
+                            if grgl_mysql.authenticate(username,password) == grgl_mysql_controllor.AUTH_FAILED:
+                                senddata = json.dumps('{"id":"%d", "to":"%s","error":"%s"}'
+                                        %(int(data['id']),FullSignInID,'Username or password is incorrect'))
+                                core.send(encode(senddata))
+                            else:
+                                senddata = json.dumps('{"id":"%d", "to":"%s","error":"%s"}'
+                                        %(int(data['id']),FullSignInID,'null'))
+                                core.send(encode(senddata))
+                            break
+                if isProtocolSupported == True:
+                    continue
+                core.write_log("Protocol[%s] hasn't been supported yet"%protocol,gurgle.GURGLE_LOG_MODE_ERROR)
+                core.emergency_quit("ProtocolUnSupported','Protocol[%s] hasn't been supported yet"
+                        %protocol)
+                _thread.exit()
             elif data['cmd'] == 'quit':
                 if 'reason' in data:
                     core.write_log('Client quited because %s'%data['reason'],
