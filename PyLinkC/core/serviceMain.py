@@ -67,14 +67,14 @@ def serviceMain(_Socket , _Addr):
                     core.emergency_quit('SyntaxError','Query without params')
                     _thread.exit()
                 if 'query' in data['params']:
-                    if data['params']['query'] == 'encrypted_method':
+                    if data['params']['query'] == 'auth_method':
                         senddata = json.dumps('{    \
                                 "id"    :"%d",      \
                                 "params":{          \
                                     "answer":"%s"   \
                                 }                   \
                             }'
-                            %(int(data['id']),core.get_encrypted_method()))
+                            %(int(data['id']),core.get_auth_method()))
                     else:   #end if of [query]
                         core.emergency_quit('UnknownQuery',
                             "Query[%s] isn't supported"
@@ -142,7 +142,7 @@ def serviceMain(_Socket , _Addr):
                             )
                         _thread.exit()
                     if 'method' not in data['params']:
-                        method = core.get_encrypted_method()
+                        method = core.get_auth_method()
                     if 'password' not in data['params']:
                         core.write_log("Auth without password"
                                 ,gurgle.GURGLE_LOG_MODE_ERROR)
