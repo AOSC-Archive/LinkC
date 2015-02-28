@@ -9,6 +9,7 @@ import sys
 from codecs import decode, encode
 import string
 import time
+import datetime
 
 class packageNode:
     nextNode    = None
@@ -122,6 +123,7 @@ class gurgle:
         self.__packageList      = packageList();
         self.__encrypted_method = 'plain'
         self.__terminal_id      = None
+        self.__authenticated    = False
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
             self.write_log ('Gurgle version %s %s'
                     %(self.__gurgleVersion,'initlalized as Client'))
@@ -201,6 +203,9 @@ class gurgle:
             return gurgle.GURGLE_PORT_NOT_SET
         return gurgle.GURGLE_SUCCESS
     def do_auth(self,ID, password,protocol = 'grgl'):
+        if self.authenticated() == True:
+            self.write_log("You have already been authenticated")
+            return gurgle.GURGLE_SUCCESS
         if not (ID and password):
             self.write_log('ID or password is empty!'
                     ,gurgle.GURGLE_LOG_MODE_ERROR)
@@ -221,10 +226,14 @@ class gurgle:
                     password))
             self.send(encode(senddata))
             recvdata = self.recv(512)
+            if recvdata == None:
+                return gurgle.GURGLE_FAILED_TO_RECV
             data = json.loads(json.loads(decode(recvdata)))
             if 'error' in data:
                 if data['error'] == 'null':
                     self.write_log("Auth successfully")
+                    self.set_authenticated(True)
+                    return gurgle.GURGLE_SUCCESS
                 else:
                     self.write_log("Auth Error[%s]"%data['error'])
             else:
@@ -234,13 +243,17 @@ class gurgle:
                     Server to server authentication hasn't been supported",
                     gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_FAILED_TO_AUTH
+    def authenticated(self):
+        return self.__authenticated
+    def set_authenticated(self,Authenticated):
+        self.__authenticated = Authenticated
     def ping(self):
-        self.write_log('ping',gurgle.GURGLE_LOG_MODE_DEBUG)
         senddata = json.dumps('{    \
                 "id":"%d",          \
                 "cmd":"ping"        \
             }'
             %self.create_id())
+        preSentTime = datetime.datetime.now().microsecond;
         if self.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
         recvdata = self.recv(1024)
@@ -249,7 +262,8 @@ class gurgle:
         data = json.loads(json.loads(decode(recvdata)))
         if 'cmd' not in data:
             self.emergency_quit('SyntaxError','Pong without cmd field')
-        self.write_log('%s'%data['cmd'],gurgle.GURGLE_LOG_MODE_DEBUG)
+        postSentTime = datetime.datetime.now().microsecond;
+        self.write_log("ping......%.2f ms"%((postSentTime - preSentTime)/1000))
         # do something
         return gurgle.GURGLE_SUCCESS
     def check_encrypted_method(self):
@@ -349,9 +363,13 @@ class gurgle:
                 )
             return gurgle.GURGLE_FAILED_TO_CONNECT
 #   Auth
-        return self.do_auth('%s@%s/%s'
+        result = self.do_auth('%s@%s/%s'
                 %(user_name,self.get_remote_host(),self.create_terminal_id()),
                 pass_word)
+        if result == gurgle.GURGLE_SUCCESS:
+            result = self.do_auth('%s@%s/%s'
+                    %(user_name,self.get_remote_host(),self.create_terminal_id()),
+                    pass_word)
 
     def emergency_quit(self,error='UnknownError',reason="Unkonwn reason"):
         cmd = "kill"

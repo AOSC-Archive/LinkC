@@ -51,10 +51,10 @@ def serviceMain(_Socket , _Addr):
         if 'cmd' in data:                           # 命令
             if data['cmd']  == 'ping':              # ping
                 if 'payload' in data:
-                    senddata = json.dumps('{
-                            "id"     :"%d",
-                            "cmd"    :"pong",
-                            "payload":"%s"
+                    senddata = json.dumps('{    \
+                            "id"     :"%d",     \
+                            "cmd"    :"pong",   \
+                            "payload":"%s"      \
                         }'
                         %(core.create_id(),data['payload']))
                 else:
@@ -68,11 +68,11 @@ def serviceMain(_Socket , _Addr):
                     _thread.exit()
                 if 'query' in data['params']:
                     if data['params']['query'] == 'encrypted_method':
-                        senddata = json.dumps('{
-                                "id"    :"%d",
-                                "params":{
-                                    "answer":"%s"
-                                }
+                        senddata = json.dumps('{    \
+                                "id"    :"%d",      \
+                                "params":{          \
+                                    "answer":"%s"   \
+                                }                   \
                             }'
                             %(int(data['id']),core.get_encrypted_method()))
                     else:   #end if of [query]
@@ -155,7 +155,17 @@ def serviceMain(_Socket , _Addr):
                     if (password == None) or (username == None):
                         core.emergency_quit('SyntaxError','ID syntax error')
                         _thread.exit()
-                    if not grgl_mysql.authenticate(username,password):
+                    result = grgl_mysql.authenticate(username,password)
+                    if result == grgl_mysql_controllor.AUTH_SUCCESS:
+                        senddata = json.dumps('{    \
+                                "id"    :"%d",      \
+                                "to"    :"%s",      \
+                                "error" :"%s"       \
+                            }'
+                            %(int(data['id']),
+                                FullSignInID,
+                                'null'))
+                    elif result == grgl_mysql_controllor.AUTH_INCORRECT:
                         senddata = json.dumps('{    \
                                 "id"    :"%d",      \
                                 "to"    :"%s",      \
@@ -165,8 +175,6 @@ def serviceMain(_Socket , _Addr):
                                 FullSignInID,
                                 'Username or password is incorrect')
                         )
-                        if not core.send(encode(senddata)):
-                            core.disconnect_from_remote()
                     else:
                         senddata = json.dumps('{    \
                                 "id"    :"%d",      \
@@ -174,10 +182,12 @@ def serviceMain(_Socket , _Addr):
                                 "error" :"%s"       \
                             }'
                             %(int(data['id']),
-                                FullSignInID,
-                                'null'))
-                        if not core.send(encode(senddata)):
-                            core.disconnect_from_remote()
+                            FullSignInID,
+                            'Your account has been disabled or deactivated')
+                        )
+                    if not core.send(encode(senddata)):
+                        core.disconnect_from_remote()
+                        _thread.exit()
                     continue
                 core.write_log("Protocol[%s] hasn't been supported yet"
                         %protocol,gurgle.GURGLE_LOG_MODE_ERROR)

@@ -12,8 +12,9 @@ class grgl_mysql_controllor:
     DATABASE_PORT       = 3306
     DATABASE_SUCCESS    = True
     DATABASE_FAILED     = False
-    AUTH_FAILED         = False
-    AUTH_SUCCESS        = True
+    AUTH_FAILED         = 0
+    AUTH_SUCCESS        = 1
+    AUTH_INCORRECT      = 2
     def __init__(self):
         self.__is_connected     = False
         self.__mysql_fd         = None
@@ -48,13 +49,21 @@ class grgl_mysql_controllor:
             if not self.connect_to_database('linkc_users'):
                 return grgl_mysql_controllor.DATABASE_FAILED
         self.__mysql_fd.execute(    \
+                "select disabled from user_info where username = '%s'"
+                %username)
+        data = self.__mysql_fd.fetchone()
+        if str(data)[1:-2] == None:
+            return grgl_mysql_controllor.AUTH_INCORRECT
+        if str(data)[1:-2] == '1':
+            return grgl_mysql_controllor.AUTH_FAILED
+        self.__mysql_fd.execute(    \
                 "select password from user_info where username = '%s'"
                 %username)
         data = self.__mysql_fd.fetchone()
         self.disconnect_from_database()
         if str(data)[2:-3] == None:
-            return grgl_mysql_controllor.AUTH_FAILED
+            return grgl_mysql_controllor.AUTH_INCORRECT
         if str(data)[2:-3] != password:
-            return grgl_mysql_controllor.AUTH_FAILED
+            return grgl_mysql_controllor.AUTH_INCORRECT
         return grgl_mysql_controllor.AUTH_SUCCESS
 
