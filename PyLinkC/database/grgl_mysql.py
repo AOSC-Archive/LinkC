@@ -12,6 +12,7 @@ class grgl_mysql_controllor:
     DATABASE_PORT       = 3306
     DATABASE_SUCCESS    = True
     DATABASE_FAILED     = False
+    ERROR_EMPRY_ARGUMENT= False
     AUTH_FAILED         = 0
     AUTH_SUCCESS        = 1
     AUTH_INCORRECT      = 2
@@ -24,11 +25,11 @@ class grgl_mysql_controllor:
     def connect_to_database(self,db):
         try:
             self.__mysql_conn   = mysql.connect(    \
-                    host = self.DATABASE_HOST,
-                    user = self.DATABASE_USER,
-                    passwd = self.DATABASE_PASS,
-                    port = self.DATABASE_PORT,
-                    database = db
+                    host = self.DATABASE_HOST,      \
+                    user = self.DATABASE_USER,      \
+                    passwd = self.DATABASE_PASS,    \
+                    port = self.DATABASE_PORT,      \
+                    database = db                   \
                 )
         except mysql.Error as e:
             gurgle.write_log(e,gurgle.GURGLE_LOG_MODE_ERROR)
@@ -45,6 +46,8 @@ class grgl_mysql_controllor:
             self.__is_connected = False
         return grgl_mysql_controllor.DATABASE_SUCCESS
     def authenticate(self,username,password):
+        if username is None:
+            return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
         if not self.is_connected():
             if not self.connect_to_database('linkc_users'):
                 return grgl_mysql_controllor.DATABASE_FAILED
@@ -59,11 +62,28 @@ class grgl_mysql_controllor:
         self.__mysql_fd.execute(    \
                 "select password from user_info where username = '%s'"
                 %username)
-        data = self.__mysql_fd.fetchone()
+        db_password = self.__mysql_fd.fetchone()
         self.disconnect_from_database()
-        if str(data)[2:-3] == None:
+        if db_password is None:
             return grgl_mysql_controllor.AUTH_INCORRECT
-        if str(data)[2:-3] != password:
+        if db_password[0] != password:
             return grgl_mysql_controllor.AUTH_INCORRECT
         return grgl_mysql_controllor.AUTH_SUCCESS
-
+    def get_user_presence(self,username = None):
+        if username is None:
+            return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
+        if not self.is_connected():
+            if not self.connect_to_database('linkc_users'):
+                return grgl_mysql_controllor.DATABASE_FAILED
+        self.__mysql_fd.execute(    \
+                "select status,mood from user_info where username = '%s'"
+                %username)
+        data = self.__mysql_fd.fetchone()
+        if data is None:
+            return None
+        (status,mood) = data
+        if status   == 'None':
+            status  = 'null'
+        if mood     == 'None':
+            mood    = 'null'
+        return (status,mood)

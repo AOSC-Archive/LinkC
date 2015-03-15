@@ -5,7 +5,7 @@ import sys
 import _thread
 sys.path.append("..")
 from protocol.gurgle import *
-from database.mysql import *
+from database.grgl_mysql import *
 from codecs import decode, encode
 passwordAllowed = [ 'a','b','c','d','e','f','g','h','i','j','k','l','m',
                     'n','o','p','q','r','s','t','u','v','w','x','y','z',

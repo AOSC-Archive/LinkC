@@ -282,7 +282,7 @@ class gurgle:
                     self.set_authenticated(True)
                     return gurgle.GURGLE_SUCCESS
                 else:
-                    self.write_log("Auth Error[%s]"%data['error'])
+                    self.write_log("Auth Error[%s]"%recvdata['error'])
             else:
                 self.write_log(data)
         else:
@@ -375,6 +375,10 @@ class gurgle:
         return gurgle.GURGLE_SUCCESS
     def get_self_information(self):
         pass
+    def publish_presence(self,status = 'avalible', mood = 'null'):
+        if not self.authenticated():
+            self.write_log("Can't publish presence without been authenticated")
+            return gurgle.GURGLE_FAILED
     def is_connected(self):
         return self.__is_connected
     def connect_to_server(self,strDomain,nPort,user_name,pass_word,timeout=5):
