@@ -28,19 +28,23 @@ def serviceMain(_Socket , _Addr):
     core.set_remote_host(addr[0])
     core.set_remote_port(addr[1]);
     grgl_mysql = grgl_mysql_controllor()
+    is_authenticated = "Unauthenticated"
     while True:
-        buf = core.recv(1024)
-        if buf is None:
+        data = core.recv(1024)
+        if data is None:
             core.write_log("Connection was closed by peer")
             _thread.exit()
-        data = json.loads(json.loads(decode(buf)))
         if not 'id' in data:
             core.write_log("Data without ID",gurgle.GURGLE_LOG_MODE_ERROR)
-            core.emergency_quit('SyntaxError','This package has no ID!')
+            core.emergency_quit(    \
+                    'SyntaxError',
+                    'This package has no ID!'
+                )
             _thread.exit()
+        request_id = int(data['id'])
         if 'version' in data:
             senddata = json.dumps('{"id":"%d", "version":"%s"}'
-                    %(int(data['id']),core.get_version()))
+                    %(request_id,core.get_version()))
             if core.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
                 core.disconnect_from_remote()
                 _thread.exit()
@@ -56,29 +60,44 @@ def serviceMain(_Socket , _Addr):
                             "cmd"    :"pong",   \
                             "payload":"%s"      \
                         }'
-                        %(core.create_id(),data['payload']))
+                        %(request_id,data['payload']))
                 else:
                     senddata = json.dumps('{"id":"%d", "cmd":"pong"}'
-                            %(core.create_id()))
+                            %request_id)
             elif data['cmd'] == 'query':              # 请求
                 if not data['params']:
                     core.write_log('Query without params'
                             ,gurgle.GURGLE_LOG_MODE_ERROR)
-                    core.emergency_quit('SyntaxError','Query without params')
+                    core.emergency_quit(
+                            'SyntaxError',
+                            'Query without params',
+                            request_id
+                        )
                     _thread.exit()
                 if 'query' in data['params']:
                     if data['params']['query'] == 'auth_method':
                         senddata = json.dumps('{    \
-                                "id"    :"%d",      \
+                                "id"    : "%d",     \
                                 "params":{          \
-                                    "answer":"%s"   \
+                                    "answer" : "%s" \
                                 }                   \
                             }'
-                            %(int(data['id']),core.get_auth_method()))
+                            %(request_id,core.get_auth_method()))
+                    elif data['params']['query'] == 'auth_status':
+                        senddata = json.dumps('{    \
+                                "id"    : "%d",     \
+                                "params": {         \
+                                    "answer" : "%s" \
+                                }                   \
+                            }'
+                            %(request_id,is_authenticated))
                     else:   #end if of [query]
-                        core.emergency_quit('UnknownQuery',
-                            "Query[%s] isn't supported"
-                                %data['params']['query'])
+                        core.emergency_quit(    \
+                                'UnknownQuery',
+                                "Query[%s] isn't supported"
+                                    %data['params']['query'],
+                                 request_id
+                            )
                         core.write_log("Such query[%s] isn't supported"
                                 %data['params']['query']
                                 ,gurgle.GURGLE_LOG_MODE_ERROR)
@@ -87,31 +106,39 @@ def serviceMain(_Socket , _Addr):
                     core.write_log("Such params[%s] isn't supported"
                                 %data['params']
                             ,gurgle.GURGLE_LOG_MODE_ERROR)
-                    core.emergency_quit('UnknownParams',
+                    core.emergency_quit(    \
+                            'UnknownParams',
                             "Params[%s] isn't supported"
-                                %data['params'])
+                                %data['params'],
+                            request_id
+                        )
                     _thread.exit()
             elif data['cmd'] == 'auth':
                 if not 'from' in data:
                     core.write_log("Auth without from",
                             gurgle.GURGLE_LOG_MODE_ERROR)
-                    core.emergency_quit('SyntaxError',
-                            'Auth without the from field')
+                    core.emergency_quit(    \
+                            'SyntaxError',
+                            'Auth without the from field',
+                            request_id
+                        )
                     _thread.exit()
                 FullSignInID    = data['from']
                 if FullSignInID.find(':') == -1:
                     core.emergency_quit(
                             'SyntaxError',
-                            'ID syntax error'
+                            'ID syntax error',
+                            request_id
                         )
                     _thread.exit()
                 (protocol,ID)   = FullSignInID.split(':',1)
                 isProtocolSupported = False
                 if protocol == 'grgl':
                     if ID.find('@') == -1:
-                        core.emergency_quit(
+                        core.emergency_quit(    \
                                 'SyntaxError',
-                                'ID syntax error'
+                                'ID syntax error',
+                                request_id
                             )
                         _thread.exit()
                     (username,suffix) = ID.split('@',1)
@@ -125,20 +152,27 @@ def serviceMain(_Socket , _Addr):
                                 isFound = True
                                 break
                         if isFound == False:
-                            core.emergency_quit(
+                            core.emergency_quit(    \
                                     'SyntaxError',
-                                    'ID syntax error'
+                                    'ID syntax error',
+                                    request_id
                                 )
                             _thread.exit()
                     if suffix.find('/') == -1:
-                        core.emergency_quit('SyntaxError','ID syntax error')
+                        core.emergency_quit(    \
+                                'SyntaxError',
+                                'ID syntax error',
+                                request_id
+                            )
                         _thread.exit()
                     (domain,terminal) = suffix.split('/',1)
                     if 'params' not in data:
                         core.write_log("Auth without params",
                                 gurgle.GURGLE_LOG_MODE_ERROR)
                         core.emergency_quit(    \
-                                'SyntaxError','Auth without the params field'
+                                'SyntaxError',
+                                'Auth without the params field',
+                                request_id
                             )
                         _thread.exit()
                     if 'method' not in data['params']:
@@ -147,13 +181,18 @@ def serviceMain(_Socket , _Addr):
                         core.write_log("Auth without password"
                                 ,gurgle.GURGLE_LOG_MODE_ERROR)
                         core.emergency_quit(    \
-                                'SyntaxError',  \
-                                'Auth without the password field'
+                                'SyntaxError',
+                                'Auth without the password field',
+                                request_id
                             )
                         _thread.exit()
                     password = data['params']['password']
                     if (password == None) or (username == None):
-                        core.emergency_quit('SyntaxError','ID syntax error')
+                        core.emergency_quit(    \
+                                'SyntaxError',
+                                'ID syntax error',
+                                request_id
+                            )
                         _thread.exit()
                     result = grgl_mysql.authenticate(username,password)
                     if result == grgl_mysql_controllor.AUTH_SUCCESS:
@@ -162,26 +201,27 @@ def serviceMain(_Socket , _Addr):
                                 "to"    :"%s",      \
                                 "error" :"%s"       \
                             }'
-                            %(int(data['id']),
+                            %(request_id,
                                 FullSignInID,
                                 'null'))
+                        is_authenticated = 'Authenticated'
                     elif result == grgl_mysql_controllor.AUTH_INCORRECT:
                         senddata = json.dumps('{    \
                                 "id"    :"%d",      \
                                 "to"    :"%s",      \
                                 "error" :"%s"       \
                             }'
-                            %(int(data['id']),
+                            %(request_id,
                                 FullSignInID,
                                 'Username or password is incorrect')
-                        )
+                            )
                     else:
                         senddata = json.dumps('{    \
                                 "id"    :"%d",      \
                                 "to"    :"%s",      \
                                 "error" :"%s"       \
                             }'
-                            %(int(data['id']),
+                            %(request_id,
                             FullSignInID,
                             'Your account has been disabled or deactivated')
                         )
@@ -189,10 +229,14 @@ def serviceMain(_Socket , _Addr):
                         core.disconnect_from_remote()
                         _thread.exit()
                     continue
-                core.write_log("Protocol[%s] hasn't been supported yet"
+                core.write_log("Protocol[%s] is not supported yet"
                         %protocol,gurgle.GURGLE_LOG_MODE_ERROR)
-                core.emergency_quit("ProtocolUnSupported',  \
-                        'Protocol[%s] hasn't been supported yet"%protocol)
+                core.emergency_quit(    \
+                        "ProtocolUnSupported",
+                        "Protocol[%s] is not supported yet"
+                            %protocol,
+                        request_id
+                    )
                 _thread.exit()
             elif data['cmd'] == 'quit':
                 if 'reason' in data:
@@ -208,8 +252,11 @@ def serviceMain(_Socket , _Addr):
             else:   # end if of [cmd]
                 core.write_log("Such cmd[%s] isn't supported"%data['cmd']
                         ,gurgle.GURGLE_LOG_MODE_ERROR)
-                core.emergency_quit('UnknownCmd',
-                        "Cmd[%s] isn't supported"%data['cmd'])
+                core.emergency_quit(    \
+                        'UnknownCmd',
+                        "Cmd[%s] isn't supported"%data['cmd'],
+                        request_id
+                    )
                 _thread.exit()
         if core.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
             core.emergency_quit()
