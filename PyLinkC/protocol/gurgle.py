@@ -163,7 +163,7 @@ class gurgle:
         elif mode == gurgle.GURGLE_LOG_MODE_DEBUG:
             sys.stdout.write ("[%s] : %s\n"
                     %(time.asctime(time.localtime()),log))
-    def recv(self,buf_size = 512, timeout = 5, request_id = 0, max_try = 2):
+    def recv(self,buf_size = 512, request_id = 0, timeout = 5, max_try = 2):
         if self.is_connected() == False:
             return None
         data = self.__package_list.get_data(request_id)
@@ -258,6 +258,7 @@ class gurgle:
                     ,gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_FAILED_TO_AUTH
         if self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
+            request_id = self.create_id()
             senddata = json.dumps('{    \
                     "id"    :"%d",      \
                     "cmd"   :"auth",    \
@@ -267,12 +268,12 @@ class gurgle:
                         "password":"%s" \
                     }                   \
                 }'
-                %(self.create_id(),
+                %(request_id,
                     "%s:%s"%(protocol,ID),
                     self.get_auth_method(),
                     password))
             self.send(encode(senddata))
-            recvdata = self.recv(512)
+            recvdata = self.recv(512,request_id)
             if recvdata == None:
                 return gurgle.GURGLE_FAILED_TO_RECV
             if 'error' in recvdata:
@@ -293,7 +294,7 @@ class gurgle:
         if self.get_runtime_mode() != gurgle.GURGLE_CLIENT:
             return self.__is_authenticated
         else:
-            message_id = self.create_id()
+            request_id = self.create_id()
             senddata = json.dumps('{            \
                     "id"    : "%d",             \
                     "cmd"   : "query",          \
@@ -301,10 +302,10 @@ class gurgle:
                         "query" : "auth_status" \
                     }                           \
                 }'
-                %message_id)
+                %request_id)
             if self.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
                 return gurgle.GURGLE_FAILED_TO_SEND
-            recvdata = self.recv(1024,request_id = message_id)
+            recvdata = self.recv(1024,request_id)
             if recvdata is None:
                 return gurgle.GURGLE_FAILED_TO_RECV
             if 'params' not in recvdata:
@@ -315,19 +316,19 @@ class gurgle:
                 return True
             else:
                 return False
-
     def set_authenticated(self,Authenticated):
         self.__is_authenticated = Authenticated
     def ping(self):
+        request_id = self.create_id()
         senddata = json.dumps('{    \
                 "id"    : "%d",     \
                 "cmd"   : "ping"   \
             }'
-            %self.create_id())
+            %request_id)
         preSentTime = datetime.datetime.now().microsecond;
         if self.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
-        recvdata = self.recv(1024)
+        recvdata = self.recv(1024,request_id)
         if recvdata is None:
             return gurgle.GURGLE_FAILED_TO_RECV
         if 'cmd' not in recvdata:
@@ -337,6 +338,7 @@ class gurgle:
         # do something
         return gurgle.GURGLE_SUCCESS
     def check_auth_method(self):
+        request_id = self.create_id()
         data = json.dumps('{                \
                 "id"    :"%d",              \
                 "cmd"   :"query",           \
@@ -344,10 +346,10 @@ class gurgle:
                     "query":"auth_method"   \
                 }                           \
             }'
-            %self.create_id())
+            %request_id)
         if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
-        recvdata = self.recv(1024)
+        recvdata = self.recv(1024,request_id)
         if recvdata is None:
             return gurgle.GURGLE_FAILED_TO_RECV
         self.__auth_method = recvdata['params']['answer']
@@ -357,14 +359,15 @@ class gurgle:
                 isAuthenticatedMethodSupported = True
         return isAuthenticatedMethodSupported
     def check_version(self):
+        request_id = self.create_id()
         data = json.dumps('{    \
                 "id"     :"%d", \
                 "version":"%s"  \
             }'
-            % (self.create_id(),self.get_version()))
+            % (request_id,self.get_version()))
         if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
-        recvdata = self.recv(1024)
+        recvdata = self.recv(1024,request_id)
         if recvdata is None:
             return gurgle.GURGLE_FAILED_TO_RECV
         if recvdata['version'] != self.get_version():
@@ -436,13 +439,17 @@ class gurgle:
             return gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
 #   Auth
         result = self.do_auth('%s@%s/%s'
-                %(user_name,self.get_remote_host(),self.create_terminal_id()),
-                pass_word)
+                                    %(user_name,
+                                    self.get_remote_host(),
+                                    self.create_terminal_id()
+                                    ),pass_word
+                            )
         if result == gurgle.GURGLE_SUCCESS:
             result = self.do_auth('%s@%s/%s'
-                    %(user_name,self.get_remote_host(),self.create_terminal_id()),
-                    pass_word)
-
+                    %(user_name,self.get_remote_host(),
+                        self.create_terminal_id()),
+                        pass_word
+                    )
     def emergency_quit(self,error       =   "UnknownError",     \
                             reason      =   "Unkonwn reason",   \
                             request_id  =   0                   \
@@ -490,6 +497,4 @@ class gurgle:
 
 if __name__ == '__main__':
     core = gurgle(gurgle.GURGLE_CLIENT)
-    core.set_remote_host('127.0.0.1')
-    core.set_remote_port(400097)
     core.connect_to_server('127.0.0.1',40097,'tricks','123321123')
