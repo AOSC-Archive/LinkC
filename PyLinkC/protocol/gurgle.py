@@ -246,6 +246,12 @@ class gurgle:
                     ,gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_PORT_NOT_SET
         return gurgle.GURGLE_SUCCESS
+    def query_user_info(self,UserID):
+        pass
+    def update_self_info(self):
+        pass
+    def upload_self_info(self,Info):
+        pass
     def do_auth(self,ID, password,protocol = 'grgl'):
         status = self.is_authenticated()
         if status == None:
