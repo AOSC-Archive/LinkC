@@ -215,6 +215,7 @@ def serviceMain(_Socket , _Addr):
                                 FullSignInID,
                                 'Username or password is incorrect')
                             )
+                        is_authenticated = 'Unauthenticated'
                     else:
                         senddata = json.dumps('{    \
                                 "id"    :"%d",      \
@@ -225,6 +226,7 @@ def serviceMain(_Socket , _Addr):
                             FullSignInID,
                             'Your account has been disabled or deactivated')
                         )
+                        is_authenticated = 'Unauthenticated'
                     if not core.send(encode(senddata)):
                         core.disconnect_from_remote()
                         _thread.exit()

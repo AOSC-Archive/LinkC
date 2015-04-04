@@ -124,6 +124,8 @@ class gurgle:
         self.__auth_method      = 'plain_password'
         self.__terminal_id      = None
         self.__is_authenticated = False
+        self.__roster           = None
+        self.__roster_etag      = None
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
             self.write_log ('Gurgle version %s %s'
                     %(self.__gurgleVersion,'initlalized as Client'))
@@ -145,7 +147,10 @@ class gurgle:
         self.__socket = sockfd
         self.__is_connected = True
     def create_id(self):
-        return random.randint(0,2147483647);
+        return random.randint(0,2147483647)
+    def create_random_str(self,length):
+            return ''.join(random.sample(   \
+                string.ascii_letters+string.digits,length))
     def create_terminal_id(self):
         if not self.__terminal_id:
             return ''.join(random.sample(string.ascii_letters+string.digits,8))
@@ -236,6 +241,8 @@ class gurgle:
         return self.__remotePort
     def get_auth_method(self):
         return self.__auth_method;
+    def get_roster_etag(self):
+        return self.__roster_etag
     def is_remote_addr_set(self):
         if not self.__remoteHost:
             self.write_log('Remote addr is not set!'
@@ -246,11 +253,33 @@ class gurgle:
                     ,gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_PORT_NOT_SET
         return gurgle.GURGLE_SUCCESS
-    def query_user_info(self,UserID):
-        pass
-    def update_self_info(self):
-        pass
-    def upload_self_info(self,Info):
+    def request_roster(self,UserID):
+# check whether authenticated
+        if not self.is_authenticated(onlineCheck = False):
+            if not self.is_authenticated(onlineCheck = False):
+                self.write_log("You have not been authenticated!");
+                return gurgle.GURGLE_FAILED;
+        senddata = None
+        request_id = self.create_id()
+        rosterETag = self.get_roster_etag()
+        if not rosterETag:
+        # Directly get the whole of roster
+            senddata = json.dumps('(        \
+                    "id"    : "%d",         \
+                    "cmd"   : "get_roster", \
+                )'
+                %request_id)
+        else:
+        # Use ETag
+            senddata = json.dumps('(        \
+                    "id"    : "%d",         \
+                    "cmd"   : "get_roster", \
+                    "params":{              \
+                        "etag"  : "%s"      \
+                    }                       \
+                )'
+                %(request_id,rosterETag))
+    def update_roster(self):
         pass
     def do_auth(self,ID, password,protocol = 'grgl'):
         status = self.is_authenticated()
@@ -296,10 +325,12 @@ class gurgle:
                     Server to server authentication is not supported",
                     gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_FAILED_TO_AUTH
-    def is_authenticated(self):
+    def is_authenticated(self,onlineCheck = False):
         if self.get_runtime_mode() != gurgle.GURGLE_CLIENT:
             return self.__is_authenticated
         else:
+            if not onlineCheck:
+                return self.__is_authenticated
             request_id = self.create_id()
             senddata = json.dumps('{            \
                     "id"    : "%d",             \
@@ -315,12 +346,16 @@ class gurgle:
             if recvdata is None:
                 return gurgle.GURGLE_FAILED_TO_RECV
             if 'params' not in recvdata:
+                self.set_authenticated(False)
                 return False
             if 'answer' not in recvdata['params']:
+                self.set_authenticated(False)
                 return False
             if recvdata['params']['answer'] == 'Authenticated':
+                self.set_authenticated(True)
                 return True
             else:
+                self.set_authenticated(False)
                 return False
     def set_authenticated(self,Authenticated):
         self.__is_authenticated = Authenticated
