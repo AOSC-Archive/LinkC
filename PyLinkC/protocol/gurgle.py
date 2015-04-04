@@ -243,6 +243,8 @@ class gurgle:
         return self.__auth_method;
     def get_roster_etag(self):
         return self.__roster_etag
+    def set_roster(self):
+        pass
     def is_remote_addr_set(self):
         if not self.__remoteHost:
             self.write_log('Remote addr is not set!'
@@ -253,7 +255,7 @@ class gurgle:
                     ,gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_PORT_NOT_SET
         return gurgle.GURGLE_SUCCESS
-    def request_roster(self,UserID):
+    def request_roster(self):
 # check whether authenticated
         if not self.is_authenticated(onlineCheck = False):
             if not self.is_authenticated(onlineCheck = False):

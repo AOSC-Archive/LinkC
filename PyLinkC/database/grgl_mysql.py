@@ -75,9 +75,13 @@ class grgl_mysql_controllor:
         if not self.is_connected():
             if not self.connect_to_database('linkc_users'):
                 return grgl_mysql_controllor.DATABASE_FAILED
-        self.__mysql_fd.execute(    \
+        try:
+            self.__mysql_fd.execute(    \
                 "select status,mood from user_info where username = '%s'"
                 %username)
+        except mysql.connector.Error as err:
+            print ("Database Error : [%s]",err);
+            return None
         data = self.__mysql_fd.fetchone()
         if data is None:
             return None
@@ -87,3 +91,52 @@ class grgl_mysql_controllor:
         if mood     == 'None':
             mood    = 'null'
         return (status,mood)
+    def get_roster(self,username = None):
+        if username is None:
+            return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
+        if not self.is_connected():
+            if not self.connect_to_database('linkc_users'):
+                return grgl_mysql_controllor.DATABASE_FAILED
+        self.__mysql_fd.execute(    \
+                "select id from user_info where username = '%s'"
+                %username)
+        data = self.__mysql_fd.fetchone()
+        if data is None:
+            return None
+        print ("id = %s"%data[0])
+        self.disconnect_from_database()
+    def add_user(self,username = None, password = None):
+        if username is None:
+            return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
+        if password is None:
+            return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
+        if not self.is_connected():
+            if not self.connect_to_database('linkc_users'):
+                return grgl_mysql_controllor.DATABASE_FAILED
+        try:
+            self.__mysql_fd.execute(    \
+                    "insert into user_info (username,password)"
+                    "values('%s','%s')"
+                    %(username,password)
+                    )
+            self.__mysql_conn.commit();
+        except mysql.Error as err:
+            print("Error %s"%err)
+        try:
+            self.__mysql_fd.execute(    \
+                    "select id from user_info where username = '%s'"
+                    %username)
+        except mysql.Error as err:
+            print("Error %s"%err)
+        data = self.__mysql_fd.fetchone()
+        try:
+            self.__mysql_fd.execute(    \
+                    "create table id_%d (friend_id int, nickname char(32))"
+                    %data[0])
+            self.__mysql_conn.commit();
+        except mysql.Error as err:
+            print("Error %s"%err)
+
+if __name__ == '__main__':
+    s = grgl_mysql_controllor()
+    s.add_user('test','123321123')
