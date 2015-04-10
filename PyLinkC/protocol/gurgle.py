@@ -92,11 +92,23 @@ class packageList:
             print (tempNode.data)
             tempNode = tempNode.nextNode
 
+class gurgle_protocol_error(Exception):
+    pass
+
+class gurgle_network_error(Exception):
+    pass
+
+class gurgle_auth_error(Exception):
+    pass
+
+class gurgle_params_error(Exception):
+    pass
+
 class gurgle:
     auth_method_supported               = ["plain_password"]
-    GURGLE_LOG_MODE_DEBUG               = 0
-    GURGLE_LOG_MODE_COMMON              = 1
-    GURGLE_LOG_MODE_ERROR               = 2
+    GURGLE_LOG_MODE_ERROR               = 1
+    GURGLE_LOG_MODE_COMMON              = 2
+    GURGLE_LOG_MODE_DEBUG               = 3
     GURGLE_CLIENT                       = 1
     GURGLE_SERVER                       = 2
     GURGLE_GROUP                        = 3
@@ -120,12 +132,13 @@ class gurgle:
         self.__is_connected     = False
         self.__runtime_mode     = _mode
         self.__socket           = None
-        self.__package_list     = packageList();
+        self.__package_list     = packageList()
         self.__auth_method      = 'plain_password'
         self.__terminal_id      = None
         self.__is_authenticated = False
         self.__roster           = None
         self.__roster_etag      = None
+        self.__log_level        = 3
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
             self.write_log ('Gurgle version %s %s'
                     %(self.__gurgleVersion,'initlalized as Client'))
@@ -159,11 +172,14 @@ class gurgle:
     def write_log(self,log,mode = None):
         if mode == None:
             mode = gurgle.GURGLE_LOG_MODE_COMMON
-        if  mode == gurgle.GURGLE_LOG_MODE_COMMON:      # common mode
-            sys.stdout.write ("[%s] : %s\n"
-                    %(time.asctime(time.localtime()),log))
-        elif mode == gurgle.GURGLE_LOG_MODE_ERROR:     # error mode
+        level = self.get_log_level()
+        if mode > level:
+            return None
+        if mode == gurgle.GURGLE_LOG_MODE_ERROR:     # error mode
             sys.stderr.write ("[%s] : %s\n"
+                    %(time.asctime(time.localtime()),log))
+        elif  mode == gurgle.GURGLE_LOG_MODE_COMMON:      # common mode
+            sys.stdout.write ("[%s] : %s\n"
                     %(time.asctime(time.localtime()),log))
         elif mode == gurgle.GURGLE_LOG_MODE_DEBUG:
             sys.stdout.write ("[%s] : %s\n"
@@ -184,11 +200,13 @@ class gurgle:
                 continue
             except socket.error as e:
                 self.write_log(e,gurgle.GURGLE_LOG_MODE_ERROR)
-                return None
+                raise gurgle_network_error(e)
             if not len(buf):
                 self.write_log('Connection was closed by peer')
                 self.__is_connected = False
-                return None
+                raise gurgle_network_error(
+                        'Connection was unexpectedly closed by peer'
+                    )
             buf = json.loads(json.loads(decode(buf)))
             if 'id' not in buf:
                 if request_id == 0:
@@ -209,7 +227,9 @@ class gurgle:
                             %(error,reason),
                             gurgle.GURGLE_LOG_MODE_ERROR)
                     self.__is_connected = False
-                    return None
+                    raise gurgle_network_error(
+                            'Connection was closed by peer'
+                        )
             if request_id == 0:
                 return buf
             if int(buf['id']) == request_id:
@@ -219,15 +239,19 @@ class gurgle:
                 current_try += 1
                 continue
         self.write_log("Failed to receive",gurgle.GURGLE_LOG_MODE_ERROR)
-        return None
+        raise gurgle_network_error(
+                'Failed to recvice'
+            )
     def send(self,buf):
         if self.is_connected() == False:
-            return gurgle.GURGLE_FAILED_TO_SEND
+            raise gurgle_network_error(
+                    'Connection has not been established'
+                )
         try:
             self.__socket.send(buf)
         except socket.error as e:
             self.write_log(e,gurgle.GURGLE_LOG_MODE_ERROR)
-            return gurgle.GURGLE_FAILED_TO_SEND
+            raise gurgle_network_error(e)
         return gurgle.GURGLE_SUCCESS
     def set_remote_host(self,strHost):
         self.__remoteHost = strHost
@@ -245,6 +269,10 @@ class gurgle:
         return self.__roster_etag
     def set_roster(self):
         pass
+    def set_log_level(self,level):
+        self.__log_level = int(level)
+    def get_log_level(self):
+        return self.__log_level
     def is_remote_addr_set(self):
         if not self.__remoteHost:
             self.write_log('Remote addr is not set!'
@@ -447,25 +475,25 @@ class gurgle:
         except socket.error as error_message:
             self.write_log(error_message,
                     gurgle.GURGLE_LOG_MODE_ERROR)
-            return gurgle.GURGLE_FAILED_TO_CREATE_SOCKET
+            raise gurgle_network_error(error_message[1])
         self.__socket.settimeout(timeout)
         try:
             self.__socket.connect((
                 self.get_remote_host(),
                 self.get_remote_port())
             )
-        except socket.timeout:
+        except socket.timeout as error_message:
             self.write_log("Failed to connect [Connection time out]"
                     ,gurgle.GURGLE_LOG_MODE_ERROR)
-            return gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
+            raise gurgle_network_error(error_message)
         except socket.gaierror as error_message:
             self.write_log(error_message,
                     gurgle.GURGLE_LOG_MODE_ERROR)
-            return gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
+            raise gurgle_network_error(error_message)
         except socket.error as error_message:
             self.write_log(error_message,
                     gurgle.GURGLE_LOG_MODE_ERROR)
-            return gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
+            raise gurgle_network_error(error_message)
 #   Basic connection was built
         self.__is_connected = True
 #   Check version
@@ -483,7 +511,9 @@ class gurgle:
             self.disconnect_from_remote(
                     "Authenticated method is not supported"
                 )
-            return gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
+            raise gurgle_protocol_error(
+                    'Authenticated method is not supported'
+                )
 #   Auth
         result = self.do_auth('%s@%s/%s'
                                     %(user_name,
@@ -497,6 +527,10 @@ class gurgle:
                         self.create_terminal_id()),
                         pass_word
                     )
+        else:
+            raise gurgle_protocol_error(
+                    'Failed to authenticate'
+                )
     def emergency_quit(self,error       =   "UnknownError",     \
                             reason      =   "Unkonwn reason",   \
                             request_id  =   0                   \
@@ -544,4 +578,9 @@ class gurgle:
 
 if __name__ == '__main__':
     core = gurgle(gurgle.GURGLE_CLIENT)
-    core.connect_to_server('127.0.0.1',40097,'tricks','123321123')
+    try:
+        core.connect_to_server('127.0.0.1',40097,'tricks','123321123')
+    except gurgle_network_error:
+        pass
+    except gurgle_protocol_error:
+        pass
