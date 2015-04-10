@@ -169,10 +169,13 @@ class gurgle:
             return ''.join(random.sample(string.ascii_letters+string.digits,8))
         else :
             return self.__terminal_id
-    def write_log(self,log,mode = None):
+    def write_log(self,log,mode = None,l_level = None):
         if mode == None:
             mode = gurgle.GURGLE_LOG_MODE_COMMON
-        level = self.get_log_level()
+        if l_level != None:
+            level = int(l_level)
+        else:
+            level = self.get_log_level()
         if mode > level:
             return None
         if mode == gurgle.GURGLE_LOG_MODE_ERROR:     # error mode
@@ -319,9 +322,11 @@ class gurgle:
             self.write_log("You have already been authenticated")
             return gurgle.GURGLE_SUCCESS
         if not (ID and password):
-            self.write_log('ID or password is empty!'
+            self.write_log('Username or password is empty!'
                     ,gurgle.GURGLE_LOG_MODE_ERROR)
-            return gurgle.GURGLE_FAILED_TO_AUTH
+            raise gurgle_auth_error(
+                    'Username or password is empty'
+                )
         if self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
             request_id = self.create_id()
             senddata = json.dumps('{    \
@@ -347,14 +352,21 @@ class gurgle:
                     self.set_authenticated(True)
                     return gurgle.GURGLE_SUCCESS
                 else:
-                    self.write_log("Auth Error[%s]"%recvdata['error'])
+                    self.write_log(
+                            "Authenticate Error [%s]"%recvdata['error']
+                        )
+                    raise gurgle_auth_error(
+                            'Authenticate Error [%s]'%recvdata['error']
+                        )
             else:
                 self.write_log(data)
         else:
             self.write_log("    \
                     Server to server authentication is not supported",
                     gurgle.GURGLE_LOG_MODE_ERROR)
-            return gurgle.GURGLE_FAILED_TO_AUTH
+            raise gurgle_auth_error(
+                    "Server to server authentication is not supported"
+                )
     def is_authenticated(self,onlineCheck = False):
         if self.get_runtime_mode() != gurgle.GURGLE_CLIENT:
             return self.__is_authenticated
@@ -515,22 +527,16 @@ class gurgle:
                     'Authenticated method is not supported'
                 )
 #   Auth
-        result = self.do_auth('%s@%s/%s'
+        try:
+            self.do_auth('%s@%s/%s'
                                     %(user_name,
                                     self.get_remote_host(),
                                     self.create_terminal_id()
                                     ),pass_word
                             )
-        if result == gurgle.GURGLE_SUCCESS:
-            result = self.do_auth('%s@%s/%s'
-                    %(user_name,self.get_remote_host(),
-                        self.create_terminal_id()),
-                        pass_word
-                    )
-        else:
-            raise gurgle_protocol_error(
-                    'Failed to authenticate'
-                )
+        except gurgle_auth_error as err:
+#   Failed to authenticate
+            raise gurgle_auth_error(err)
     def emergency_quit(self,error       =   "UnknownError",     \
                             reason      =   "Unkonwn reason",   \
                             request_id  =   0                   \
@@ -583,4 +589,6 @@ if __name__ == '__main__':
     except gurgle_network_error:
         pass
     except gurgle_protocol_error:
+        pass
+    except gurgle_auth_error:
         pass
