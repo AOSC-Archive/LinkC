@@ -154,6 +154,7 @@ class gurgle:
         self.write_log ('Gurgle Deleting....')
         if self.is_connected():
             self.disconnect_from_remote("Porgram was terminated")
+        del self.__package_list
     def get_version(self):
         return self.__gurgleVersion;
     def set_socket(self,sockfd):

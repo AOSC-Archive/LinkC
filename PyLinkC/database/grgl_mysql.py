@@ -69,7 +69,7 @@ class grgl_mysql_controllor:
                     "   password char(32) not null,"
                     "   last_name char(16),"
                     "   first_name char(16),"
-                    "   join_time datetime not null,"
+                    "   join_time date not null,"
                     "   status char(128),"
                     "   mood char(16) not null,"
                     "   disabled bool not null"

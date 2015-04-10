@@ -30,9 +30,9 @@ def serviceMain(_Socket , _Addr):
     grgl_mysql = grgl_mysql_controllor()
     is_authenticated = "Unauthenticated"
     while True:
-        data = core.recv(1024)
-        if data is None:
-            core.write_log("Connection was closed by peer")
+        try:
+            data = core.recv(1024)
+        except gurgle_network_error:
             _thread.exit()
         if not 'id' in data:
             core.write_log("Data without ID",gurgle.GURGLE_LOG_MODE_ERROR)
