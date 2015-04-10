@@ -9,6 +9,8 @@ class grgl_mysql_controllor:
     DATABASE_HOST       = 'localhost'
     DATABASE_USER       = 'root'
     DATABASE_PASS       = '123321123'
+    DATABASE_NAME       = 'linkc_users'
+    USER_INFO_TABLE_NAME= 'user_info'
     DATABASE_PORT       = 3306
     DATABASE_SUCCESS    = True
     DATABASE_FAILED     = False
@@ -20,19 +22,81 @@ class grgl_mysql_controllor:
         self.__is_connected     = False
         self.__mysql_fd         = None
         self.__mysql_conn       = None
-    def is_connected(self):
-        return self.__is_connected
-    def connect_to_database(self,db):
         try:
             self.__mysql_conn   = mysql.connect(    \
                     host = self.DATABASE_HOST,      \
                     user = self.DATABASE_USER,      \
                     passwd = self.DATABASE_PASS,    \
                     port = self.DATABASE_PORT,      \
-                    database = db                   \
                 )
-        except mysql.Error as e:
-            gurgle.write_log(e,gurgle.GURGLE_LOG_MODE_ERROR)
+        except mysql.Error as err:
+            gurgle.write_log(gurgle,"MySQL Connect Error [%s]"%err,
+                    gurgle.GURGLE_LOG_MODE_ERROR)
+            return None
+        self.__mysql_fd         = self.__mysql_conn.cursor()
+        self.__is_connected     = True
+        try:
+            self.__mysql_fd.execute(    \
+                    "create database if not exists %s"%self.DATABASE_NAME
+                )
+        except mysql.Error as err:
+            gurgle.write_log(gurgle,"MySQL create database Error [%s]"%err,
+                    gurgle.GURGLE_LOG_MODE_ERROR)
+            return None
+        try:
+            self.__mysql_conn   = mysql.connect(    \
+                    host = self.DATABASE_HOST,      \
+                    user = self.DATABASE_USER,      \
+                    passwd = self.DATABASE_PASS,    \
+                    port = self.DATABASE_PORT,      \
+                    db = grgl_mysql_controllor.DATABASE_NAME
+                )
+        except mysql.Error as err:
+            gurgle.write_log(gurgle,"MySQL Connect Error [%s]"%err,
+                    gurgle.GURGLE_LOG_MODE_ERROR)
+            return None
+        self.__mysql_fd         = self.__mysql_conn.cursor()
+        self.__is_connected     = True
+        try:
+            self.__mysql_fd.execute(    \
+                    "create table if not exists %s ("
+                    "   id int not null primary key auto_increment,"
+                    "   username char(32) not null,"
+                    "   password char(32) not null,"
+                    "   last_name char(16),"
+                    "   first_name char(16),"
+                    "   join_time datetime not null,"
+                    "   status char(128),"
+                    "   mood char(16) not null,"
+                    "   disabled bool not null"
+                    ")"%self.USER_INFO_TABLE_NAME
+                )
+        except mysql.Error as err:
+            gurgle.write_log(gurgle,"Mysql create table Error [%s]"%err,
+                    gurgle.GURGLE_LOG_MODE_ERROR)
+            return None
+    def is_connected(self):
+        return self.__is_connected
+    def connect_to_database(self,db = None):
+        try:
+            if db != None:
+                self.__mysql_conn   = mysql.connect(    \
+                        host = self.DATABASE_HOST,      \
+                        user = self.DATABASE_USER,      \
+                        passwd = self.DATABASE_PASS,    \
+                        port = self.DATABASE_PORT,      \
+                        database = db                   \
+                    )
+            else:
+                self.__mysql_conn   = mysql.connect(    \
+                        host = self.DATABASE_HOST,      \
+                        user = self.DATABASE_USER,      \
+                        passwd = self.DATABASE_PASS,    \
+                        port = self.DATABASE_PORT,      \
+                    )
+        except mysql.Error as err:
+            gurgle.write_log(gurgle,"MySQL Connect Error [%s]"%err,
+                    gurgle.GURGLE_LOG_MODE_ERROR)
             return grgl_mysql_controllor.DATABASE_FAILED
         self.__mysql_fd         = self.__mysql_conn.cursor()
         self.__is_connected     = True
@@ -49,19 +113,20 @@ class grgl_mysql_controllor:
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
         if not self.is_connected():
-            if not self.connect_to_database('linkc_users'):
+            if not self.connect_to_database(
+                        grgl_mysql_controllor.DATABASE_NAME):
                 return grgl_mysql_controllor.DATABASE_FAILED
         self.__mysql_fd.execute(    \
-                "select disabled from user_info where username = '%s'"
-                %username)
+                "select disabled from %s where username = '%s'"
+                %(self.USER_INFO_TABLE_NAME,username))
         data = self.__mysql_fd.fetchone()
         if str(data)[1:-2] == None:
             return grgl_mysql_controllor.AUTH_INCORRECT
         if str(data)[1:-2] == '1':
             return grgl_mysql_controllor.AUTH_FAILED
         self.__mysql_fd.execute(    \
-                "select password from user_info where username = '%s'"
-                %username)
+                "select password from %s where username = '%s'"
+                %(self.USER_INFO_TABLE_NAME,username))
         db_password = self.__mysql_fd.fetchone()
         self.disconnect_from_database()
         if db_password is None:
@@ -73,14 +138,15 @@ class grgl_mysql_controllor:
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
         if not self.is_connected():
-            if not self.connect_to_database('linkc_users'):
+            if not self.connect_to_database(self.DATABASE_NAME):
                 return grgl_mysql_controllor.DATABASE_FAILED
         try:
             self.__mysql_fd.execute(    \
-                "select status,mood from user_info where username = '%s'"
-                %username)
+                "select status,mood from %s where username = '%s'"
+                %(self.USER_INFO_TABLE_NAME,username))
         except mysql.connector.Error as err:
-            print ("Database Error : [%s]",err);
+            gurgle.write_log(gurgle,"Database Error : [%s]"%err,
+                    gurgle.GURGLE_LOG_MODE_ERROR)
             return None
         data = self.__mysql_fd.fetchone()
         if data is None:
@@ -95,39 +161,49 @@ class grgl_mysql_controllor:
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
         if not self.is_connected():
-            if not self.connect_to_database('linkc_users'):
+            if not self.connect_to_database(self.DATABASE_NAME):
                 return grgl_mysql_controllor.DATABASE_FAILED
         self.__mysql_fd.execute(    \
-                "select id from user_info where username = '%s'"
-                %username)
+                "select id from %s where username = '%s'"
+                %(self.USER_INFO_TABLE_NAME,username))
         data = self.__mysql_fd.fetchone()
         if data is None:
             return None
-        print ("id = %s"%data[0])
         self.disconnect_from_database()
     def add_user(self,username = None, password = None):
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
+        data = self.get_user_presence(username)
+        if data != None:
+            gurgle.write_log(gurgle,"Sign up Error [User already exists]",
+                    gurgle.GURGLE_LOG_MODE_ERROR)
+            return grgl_mysql_controllor.DATABASE_FAILED
         if password is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
         if not self.is_connected():
-            if not self.connect_to_database('linkc_users'):
+            if not self.connect_to_database(self.DATABASE_NAME):
                 return grgl_mysql_controllor.DATABASE_FAILED
         try:
             self.__mysql_fd.execute(    \
-                    "insert into user_info (username,password)"
-                    "values('%s','%s')"
-                    %(username,password)
+                    "insert into %s (username,password,join_time,"
+                    "status)"
+                    "values('%s','%s','%s','%s')"
+                    %(self.USER_INFO_TABLE_NAME,username,password,\
+                        time.strftime('%Y-%m-%d',time.localtime(time.time())),
+                        "invisible"
                     )
+                )
             self.__mysql_conn.commit();
         except mysql.Error as err:
-            print("Error %s"%err)
+            gurgle.write_log(gurgle,"Mysql Error [%s]"%err,
+                    gurgle.GURGLE_LOG_MODE_ERROR)
         try:
             self.__mysql_fd.execute(    \
-                    "select id from user_info where username = '%s'"
-                    %username)
+                    "select id from %s where username = '%s'"
+                    %(self.USER_INFO_TABLE_NAME,username))
         except mysql.Error as err:
-            print("Error %s"%err)
+            gurgle.write_log(gurgle,"Mysql Error [%s]"%err,
+                    gurgle.GURGLE_LOG_MODE_ERROR)
         data = self.__mysql_fd.fetchone()
         try:
             self.__mysql_fd.execute(    \
@@ -135,7 +211,8 @@ class grgl_mysql_controllor:
                     %data[0])
             self.__mysql_conn.commit();
         except mysql.Error as err:
-            print("Error %s"%err)
+            gurgle.write_log(gurgle,"Mysql Error [%s]"%err,
+                    gurgle.GURGLE_LOG_MODE_ERROR)
 
 if __name__ == '__main__':
     s = grgl_mysql_controllor()
