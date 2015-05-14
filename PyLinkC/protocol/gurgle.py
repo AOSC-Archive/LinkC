@@ -211,7 +211,7 @@ class gurgle:
                 raise gurgle_network_error(
                         'Connection was unexpectedly closed by peer'
                     )
-            buf = json.loads(json.loads(decode(buf)))
+            buf = json.loads(decode(buf))
             if 'id' not in buf:
                 if request_id == 0:
                     return buf
@@ -298,21 +298,19 @@ class gurgle:
         rosterETag = self.get_roster_etag()
         if not rosterETag:
         # Directly get the whole of roster
-            senddata = json.dumps('(        \
-                    "id"    : "%d",         \
-                    "cmd"   : "get_roster", \
-                )'
-                %request_id)
+            senddata = json.dumps({
+                    "id"    : request_id,
+                    "cmd"   : "get_roster",
+                })
         else:
         # Use ETag
-            senddata = json.dumps('(        \
-                    "id"    : "%d",         \
-                    "cmd"   : "get_roster", \
-                    "params":{              \
-                        "etag"  : "%s"      \
-                    }                       \
-                )'
-                %(request_id,rosterETag))
+            senddata = json.dumps({
+                    "id"    : request_id,
+                    "cmd"   : "get_roster",
+                    "params":{
+                        "etag"  : rosterETag
+                    }
+                })
     def update_roster(self):
         pass
     def do_auth(self,ID, password,protocol = 'grgl'):
@@ -330,19 +328,15 @@ class gurgle:
                 )
         if self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
             request_id = self.create_id()
-            senddata = json.dumps('{    \
-                    "id"    :"%d",      \
-                    "cmd"   :"auth",    \
-                    "from"  :"%s",      \
-                    "params":{          \
-                        "method":"%s",  \
-                        "password":"%s" \
-                    }                   \
-                }'
-                %(request_id,
-                    "%s:%s"%(protocol,ID),
-                    self.get_auth_method(),
-                    password))
+            senddata = json.dumps({
+                    "id"    :request_id,
+                    "cmd"   :"auth",
+                    "from"  :"%s:%s"%(protocol,ID), 
+                    "params":{
+                        "method":self.get_auth_method(),
+                        "password":password
+                    }
+                })
             self.send(encode(senddata))
             recvdata = self.recv(512,request_id)
             if recvdata == None:
@@ -375,14 +369,13 @@ class gurgle:
             if not onlineCheck:
                 return self.__is_authenticated
             request_id = self.create_id()
-            senddata = json.dumps('{            \
-                    "id"    : "%d",             \
-                    "cmd"   : "query",          \
-                    "params": {                 \
-                        "query" : "auth_status" \
-                    }                           \
-                }'
-                %request_id)
+            senddata = json.dumps({
+                    "id"    : request_id,
+                    "cmd"   : "query",
+                    "params": {
+                        "query" : "auth_status"
+                    }
+                })
             if self.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
                 return gurgle.GURGLE_FAILED_TO_SEND
             recvdata = self.recv(1024,request_id)
@@ -404,11 +397,10 @@ class gurgle:
         self.__is_authenticated = Authenticated
     def ping(self):
         request_id = self.create_id()
-        senddata = json.dumps('{    \
-                "id"    : "%d",     \
-                "cmd"   : "ping"   \
-            }'
-            %request_id)
+        senddata = json.dumps({
+                "id"    : request_id,
+                "cmd"   : "ping"
+            })
         preSentTime = datetime.datetime.now().microsecond;
         if self.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
@@ -423,14 +415,13 @@ class gurgle:
         return gurgle.GURGLE_SUCCESS
     def check_auth_method(self):
         request_id = self.create_id()
-        data = json.dumps('{                \
-                "id"    :"%d",              \
-                "cmd"   :"query",           \
-                "params":{                  \
-                    "query":"auth_method"   \
-                }                           \
-            }'
-            %request_id)
+        data = json.dumps({
+                "id"    :request_id,
+                "cmd"   :"query",
+                "params":{
+                    "query":"auth_method"
+                }
+            })
         if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
         recvdata = self.recv(1024,request_id)
@@ -444,11 +435,10 @@ class gurgle:
         return isAuthenticatedMethodSupported
     def check_version(self):
         request_id = self.create_id()
-        data = json.dumps('{    \
-                "id"     :"%d", \
-                "version":"%s"  \
-            }'
-            % (request_id,self.get_version()))
+        data = json.dumps({
+                "id"     : request_id,
+                "version": self.get_version()
+            })
         if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
         recvdata = self.recv(1024,request_id)
@@ -545,13 +535,12 @@ class gurgle:
         cmd = "kill"
         if self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
             cmd = "quit"
-        senddata = json.dumps('{    \
-                "id"    :"%d",      \
-                "cmd"   :"%s",      \
-                "error" :"%s",      \
-                "reason":"%s"       \
-            }'
-            %(request_id,cmd,error,reason))
+        senddata = json.dumps({
+                "id"    : request_id,
+                "cmd"   : cmd,
+                "error" : error,
+                "reason": reason
+            })
         self.send(encode(senddata))
         self.__socket.close()
     def disconnect_from_remote(self,reason = "Unkonwn reason"):
@@ -560,12 +549,11 @@ class gurgle:
                     ,gurgle.GURGLE_LOG_MODE_ERROR)
             return  gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
         elif self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
-            senddata = json.dumps('{    \
-                    "id"    :"%d",      \
-                    "cmd"   :"quit",    \
-                    "reason":"%s"       \
-                }'
-                %(self.create_id(),reason))
+            senddata = json.dumps({
+                    "id"    : self.create_id(),
+                    "cmd"   : "quit",
+                    "reason": reason
+                })
             self.send(encode(senddata))
             recvdata = self.recv(512)
             if recvdata == None:

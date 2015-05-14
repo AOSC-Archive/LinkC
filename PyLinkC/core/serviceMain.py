@@ -43,8 +43,10 @@ def serviceMain(_Socket , _Addr):
             _thread.exit()
         request_id = int(data['id'])
         if 'version' in data:
-            senddata = json.dumps('{"id":"%d", "version":"%s"}'
-                    %(request_id,core.get_version()))
+            senddata = json.dumps({
+                "id":request_id, 
+                "version":core.get_version()
+                })
             if core.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
                 core.disconnect_from_remote()
                 _thread.exit()
@@ -55,15 +57,16 @@ def serviceMain(_Socket , _Addr):
         if 'cmd' in data:                           # 命令
             if data['cmd']  == 'ping':              # ping
                 if 'payload' in data:
-                    senddata = json.dumps('{    \
-                            "id"     :"%d",     \
-                            "cmd"    :"pong",   \
-                            "payload":"%s"      \
-                        }'
-                        %(request_id,data['payload']))
+                    senddata = json.dumps({
+                            "id"     : request_id,
+                            "cmd"    : "pong",
+                            "payload": data['payload']
+                        })
                 else:
-                    senddata = json.dumps('{"id":"%d", "cmd":"pong"}'
-                            %request_id)
+                    senddata = json.dumps({
+                            "id"    : request_id, 
+                            "cmd"   : "pong"
+                        })
             elif data['cmd'] == 'query':              # 请求
                 if not data['params']:
                     core.write_log('Query without params'
@@ -76,21 +79,19 @@ def serviceMain(_Socket , _Addr):
                     _thread.exit()
                 if 'query' in data['params']:
                     if data['params']['query'] == 'auth_method':
-                        senddata = json.dumps('{    \
-                                "id"    : "%d",     \
-                                "params":{          \
-                                    "answer" : "%s" \
-                                }                   \
-                            }'
-                            %(request_id,core.get_auth_method()))
+                        senddata = json.dumps({
+                                "id"    : request_id,
+                                "params":{
+                                    "answer" : core.get_auth_method()
+                                }
+                            })
                     elif data['params']['query'] == 'auth_status':
-                        senddata = json.dumps('{    \
-                                "id"    : "%d",     \
-                                "params": {         \
-                                    "answer" : "%s" \
-                                }                   \
-                            }'
-                            %(request_id,is_authenticated))
+                        senddata = json.dumps({
+                                "id"    : request_id,
+                                "params": {
+                                    "answer" : is_authenticated
+                                }
+                            })
                     else:   #end if of [query]
                         core.emergency_quit(    \
                                 'UnknownQuery',
@@ -196,36 +197,27 @@ def serviceMain(_Socket , _Addr):
                         _thread.exit()
                     result = grgl_mysql.authenticate(username,password)
                     if result == grgl_mysql_controllor.AUTH_SUCCESS:
-                        senddata = json.dumps('{    \
-                                "id"    :"%d",      \
-                                "to"    :"%s",      \
-                                "error" :"%s"       \
-                            }'
-                            %(request_id,
-                                FullSignInID,
-                                'null'))
+                        senddata = json.dumps({
+                                "id"    : request_id,
+                                "to"    : FullSignInID,
+                                "error" : "null"
+                            })
                         is_authenticated = 'Authenticated'
                     elif result == grgl_mysql_controllor.AUTH_INCORRECT:
-                        senddata = json.dumps('{    \
-                                "id"    :"%d",      \
-                                "to"    :"%s",      \
-                                "error" :"%s"       \
-                            }'
-                            %(request_id,
-                                FullSignInID,
-                                'Username or password is incorrect')
-                            )
+                        senddata = json.dumps({
+                                "id"    : request_id,
+                                "to"    : FullSignInID,
+                                "error" :"%s"
+                                    %"Username or password is incorrect"
+                            })
                         is_authenticated = 'Unauthenticated'
                     else:
-                        senddata = json.dumps('{    \
-                                "id"    :"%d",      \
-                                "to"    :"%s",      \
-                                "error" :"%s"       \
-                            }'
-                            %(request_id,
-                            FullSignInID,
-                            'Your account has been disabled or deactivated')
-                        )
+                        senddata = json.dumps({
+                                "id"    : request_id,
+                                "to"    : FullSignInID,
+                                "error" :"%s"
+                               %"Your account has been disabled or deactivated"
+                            })
                         is_authenticated = 'Unauthenticated'
                     if not core.send(encode(senddata)):
                         core.disconnect_from_remote()
@@ -247,7 +239,7 @@ def serviceMain(_Socket , _Addr):
                 else:
                     core.write_log('Client quited without reason',
                             gurgle.GURGLE_LOG_MODE_DEBUG)
-                senddata = json.dumps('{"id":"%d","cmd":"bye"}')
+                senddata = json.dumps({"id":"%d","cmd":"bye"})
                 core.send(encode(senddata))
                 core.disconnect_from_remote()
                 _thread.exit()
