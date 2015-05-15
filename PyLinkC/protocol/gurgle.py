@@ -211,7 +211,8 @@ class gurgle:
                 raise gurgle_network_error(
                         'Connection was unexpectedly closed by peer'
                     )
-            buf = json.loads(decode(buf))
+            buf = buf.decode()
+            buf = json.loads(buf)
             if 'id' not in buf:
                 if request_id == 0:
                     return buf
@@ -223,10 +224,11 @@ class gurgle:
                 if buf['cmd'] == 'kill':
                     error   = "null"
                     reason  = "null"
-                    if 'error' in buf:
-                        error   = buf['error']
-                    if 'reason' in buf:
-                        reason  = buf['reason']
+                    if 'params' in buf:
+                        if 'error' in buf['params']:
+                            error   = str(buf['params']['error'])
+                        if 'reason' in buf['params']:
+                            reason  = str(buf['params']['reason'])
                     self.write_log("Connection was closed [%s, %s]"
                             %(error,reason),
                             gurgle.GURGLE_LOG_MODE_ERROR)
@@ -333,8 +335,8 @@ class gurgle:
                     "cmd"   :"auth",
                     "from"  :"%s:%s"%(protocol,ID), 
                     "params":{
-                        "method":self.get_auth_method(),
-                        "password":password
+                        "method"    :   self.get_auth_method(),
+                        "password"  :   password
                     }
                 })
             self.send(encode(senddata))
@@ -500,6 +502,26 @@ class gurgle:
 #   Basic connection was built
         self.__is_connected = True
 #   Check version
+        request_id = self.create_id()
+        senddata = json.dumps({
+            "id"    : request_id,
+            "cmd"   : "connect",
+            "params": {
+                "protocol"  : "gurgle",
+                "version"   : self.get_version(),
+                "encrypt"   : "disabled"
+            }
+        })
+        self.send(encode(senddata))
+        buf = self.recv(1024,request_id)
+        if buf['reply']['status'] == 'connection failed':
+            self.write_log("Failed to connect, waiting for details",
+                    gurgle.GURGLE_LOG_MODE_ERROR)
+            self.recv(1024)
+        else:
+            self.write_log("Connection established",
+                    gurgle.GURGLE_LOG_MODE_ERROR)
+        return
         if self.check_version() == gurgle.GURGLE_VERSION_DNOT_MATCH:
             self.write_log("Protocol's version do not match!",
                     gurgle.GURGLE_LOG_MODE_ERROR)
@@ -545,31 +567,34 @@ class gurgle:
             })
         self.send(encode(senddata))
         self.__socket.close()
-    def disconnect_from_remote(self,reason = "Unkonwn reason"):
+    def disconnect_from_remote(self,                    \
+                    reason      = "Unkonwn reason",     \
+                    request_id  = 0):
         if not self.is_connected():
             self.write_log('You have not connected to remote!'
                     ,gurgle.GURGLE_LOG_MODE_ERROR)
             return  gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
         elif self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
             senddata = json.dumps({
-                    "id"    : request_id,
-                    "cmd"   : "quit",
-                    "params": {
-                        "reason" : reason
-                    }
-                })
-            self.send(encode(senddata))
+                "id"    : request_id,
+                "cmd"   : "quit",
+                "params": {
+                    "reason"    : reason
+                }
+            })
+            senddata = senddata.encode()
+            self.send(senddata)
             recvdata = self.recv(512)
             if recvdata == None:
                 self.write_log("Connection was closed by peer"
                         ,gurgle.GURGLE_LOG_MODE_ERROR)
                 self.__socket.close()
                 return gurgle.GURGLE_SUCCESS
-            if not 'cmd' in recvdata:
+            if not 'reply' in recvdata:
                 self.write_log('Some errors occupied,Just quit'
                         ,gurgle.GURGLE_LOG_MODE_ERROR)
             else:
-                self.write_log('server replied %s'%recvdata['cmd'])
+                self.write_log('server replied %s'%recvdata['reply'])
         self.__socket.close()
         self.__is_connected = False
         return gurgle.GURGLE_SUCCESS

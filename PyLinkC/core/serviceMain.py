@@ -29,6 +29,7 @@ def serviceMain(_Socket , _Addr):
     core.set_remote_port(addr[1]);
     grgl_mysql = grgl_mysql_controllor()
     is_authenticated = "Unauthenticated"
+    senddata = "something to send"
     while True:
         try:
             data = core.recv(1024)
@@ -78,31 +79,72 @@ def serviceMain(_Socket , _Addr):
                                     "status" : "connection failed"
                                 }
                             })
-                            if core.send(encode(senddata))      \
-                                    != gurgle.GURGLE_SUCCESS:
-                                core.disconnect_from_remote()
-                                _thread.exit()
-                            core.write_log('Query without params'
+                            core.send(encode(senddata))
+                            core.write_log('Protocol %s is not supported'
+                                            %data['params']['protocol']
                                     ,gurgle.GURGLE_LOG_MODE_ERROR)
-                            core.emergency_quit(
-                                    'ProtocolError',
-                                    'Protocol is not supported',
+                            core.emergency_quit(                    \
+                                    'ProtocolError',                \
+                                    'Protocol is not supported'     \
                             )
                             _thread.exit()
                     else:
-                        pass #quit
+                        senddata = json.dumps({
+                            "id"    : request_id,
+                            "reply" : {
+                               "status" : "connection failed"
+                            }
+                        })
+                        core.send(encode(senddata))
+                        core.write_log( \
+                                'Connection does not specify protocol'
+                                ,gurgle.GURGLE_LOG_MODE_ERROR)
+                        core.emergency_quit(                    \
+                                'ProtocolError',                \
+                                'Connection does not specify protocol'\
+                        )
+                        _thread.exit()
                     if 'version' in data['params']:
-                        if str(data['params']['version'] !=core.get_version()):
-                            pass #quit
+                        if str(data['params']['version']) !=core.get_version():
+                            senddata = json.dumps({
+                                "id"    : request_id,
+                                "reply" : {
+                                    "status" : "connection failed"
+                                }
+                            })
+                            core.send(encode(senddata))
+                            core.write_log( \
+                                    "Protocol's version[%s] does not match"
+                                        %str(data['params']['version'])
+                                    ,gurgle.GURGLE_LOG_MODE_ERROR)
+                            core.emergency_quit(                    \
+                                    'ProtocolError',                \
+                                    "Protocol's version[%s] does not match"
+                                        %str(data['params']['version'])
+                            )
+                            _thread.exit()
                     else:
-                        pass #quit
-                    if 'encrypt' in data['params']:
-                        if str(data['params']['encrypt'] == 'enabled'):
-                            pass #quit
-                        else:
-                            pass
-                    else:
-                        pass
+                        senddata = json.dumps({
+                            "id"    : request_id,
+                            "reply" : {
+                                "status" : "connection failed"
+                            }
+                        })
+                        core.send(encode(senddata))
+                        core.write_log( \
+                                'Connection does not specify protocol'
+                                ,gurgle.GURGLE_LOG_MODE_ERROR)
+                        core.emergency_quit(                    \
+                                'ProtocolError',                \
+                                'Connection does not specify protocol'\
+                        )
+                        _thread.exit()
+                    senddata = json.dumps({
+                                "id"    : request_id,
+                                "reply" : {
+                                    "status" : "connection establised"
+                                }
+                            })
             elif data['cmd'] == 'query':              # 请求
                 if not data['params']:
                     core.write_log('Query without params'
@@ -270,13 +312,15 @@ def serviceMain(_Socket , _Addr):
                     )
                 _thread.exit()
             elif data['cmd'] == 'quit':
-                if 'reason' in data:
-                    core.write_log('Client quited because %s'%data['reason'],
-                            gurgle.GURGLE_LOG_MODE_DEBUG)
+                if 'params' in data:
+                    if 'reason' in data['params']:
+                        core.write_log('Client quited because %s'
+                                %str(data['params']['reason']),
+                                gurgle.GURGLE_LOG_MODE_DEBUG)
                 else:
                     core.write_log('Client quited without reason',
                             gurgle.GURGLE_LOG_MODE_DEBUG)
-                senddata = json.dumps({"id":"%d","cmd":"bye"})
+                senddata = json.dumps({"id":"%d","reply":"bye"})
                 core.send(encode(senddata))
                 core.disconnect_from_remote()
                 _thread.exit()
