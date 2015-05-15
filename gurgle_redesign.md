@@ -5,9 +5,12 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ### 请求
 ```
 "id"       : "id",    
-"protocol" : "gurgle",   
-"version"  : "unusable",   
-"encrypt"  : "disabled"   
+"cmd"      : "connect",
+"params"   : {
+  "protocol"  : "gurgle",
+  "version"   : "unusable",
+  "encrypt"   : "disabled"
+}
 ```
 现在协议只支持 "gurgle"   
 现在版本只存在 "unusable"   
@@ -15,13 +18,17 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ### 回应
 ```
 "id"       : "request's id",    
-"protocol" : "server's protocol",     
-"version"  : "server's version",    
-"encrypt"  : "encrypt status"     
+"reply"    : {
+  "status" : "connection established/failed"
+},
+"cmd"      : "kill",
+"params"   : {
+  "error"  : "short description of error",
+  "reason" : "human-readable description of reason"
+}
 ```
-如果协议或者版本不受支持，到后面disconnect部分会有说明   
-一旦这三个字段检查完毕，CS连接正式建立，否则不算建立连接    
-在未建立连接的情况下，发送任何其他字段的请求都会被强制断开物理连接    
+如果链接正常建立，则只存在"reply"字段中有 "status" : "connection established"
+如果链接建立失败，则"reply":{"status":"connection failed"},"cmd":"kill"以及后面字段
 
 ## 检查延迟(ping)
 ### 请求
@@ -33,7 +40,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ### 回应
 ```
 "id"       : "request's id",    
-"cmd"      : "pong"    
+"reply"    : "pong"
 ```
 
 ## 获取认证方式(Get authentication method)
@@ -41,13 +48,15 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"       : "id",    
 "cmd"      : "query",   
-"target"   : "auth_method",
 "params"   : {
+    "target"       : "auth_method",
     "opinion"      : "list_enabled(default)/currently_used",
-	"replay_style" : "text(default)/definitions"
+    "replay_style" : "text(default)/definitions"
   }
 ```
 在params中的为可选参数，留空就意味着使用缺省配置    
+- target  
+  - auth_method    本次请求的为认证方式，故target为auth_method
 - opinion     
   - list_enabled   返回服务端目前全部支持的认证方式   
   - currently_used 返回当前(已经认证后)所使用的认证方式     
@@ -58,8 +67,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ### 回应
 ```
 "id"       : "id",    
-"cmd"      : "push",   
-"target"   : {[
-    "plain_password"
-  ]}    
+"reply"    : {
+  "auth_method"  : ['plain_password']
+}
 ``` 

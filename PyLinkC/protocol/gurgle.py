@@ -419,7 +419,7 @@ class gurgle:
                 "id"    :request_id,
                 "cmd"   :"query",
                 "params":{
-                    "query":"auth_method"
+                    "target" : "auth_method"
                 }
             })
         if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
@@ -427,7 +427,7 @@ class gurgle:
         recvdata = self.recv(1024,request_id)
         if recvdata is None:
             return gurgle.GURGLE_FAILED_TO_RECV
-        self.__auth_method = recvdata['params']['answer']
+        self.__auth_method = recvdata['params']['auth_method'][0]
         isAuthenticatedMethodSupported = False
         for method in self.auth_method_supported:
             if method == self.get_auth_method():
@@ -538,8 +538,10 @@ class gurgle:
         senddata = json.dumps({
                 "id"    : request_id,
                 "cmd"   : cmd,
-                "error" : error,
-                "reason": reason
+                "params": {
+                    "error"   : error,
+                    "reason"  : reason
+                }
             })
         self.send(encode(senddata))
         self.__socket.close()
@@ -550,9 +552,11 @@ class gurgle:
             return  gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
         elif self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
             senddata = json.dumps({
-                    "id"    : self.create_id(),
+                    "id"    : request_id,
                     "cmd"   : "quit",
-                    "reason": reason
+                    "params": {
+                        "reason" : reason
+                    }
                 })
             self.send(encode(senddata))
             recvdata = self.recv(512)

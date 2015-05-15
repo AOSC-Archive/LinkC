@@ -55,7 +55,8 @@ def serviceMain(_Socket , _Addr):
                         ,gurgle.GURGLE_LOG_MODE_ERROR)
             continue                            # 不论如何这个回合都会结束
         if 'cmd' in data:                           # 命令
-            if data['cmd']  == 'ping':              # ping
+            cmd = str(data['cmd'])
+            if cmd  == 'ping':              # ping
                 if 'payload' in data:
                     senddata = json.dumps({
                             "id"     : request_id,
@@ -67,6 +68,41 @@ def serviceMain(_Socket , _Addr):
                             "id"    : request_id, 
                             "cmd"   : "pong"
                         })
+            elif cmd == 'connect':
+                if 'params' in data:
+                    if 'protocol' in data['params']:
+                        if str(data['params']['protocol'])!='gurgle':
+                            senddata = json.dumps({
+                                "id"    : request_id,
+                                "reply" : {
+                                    "status" : "connection failed"
+                                }
+                            })
+                            if core.send(encode(senddata))      \
+                                    != gurgle.GURGLE_SUCCESS:
+                                core.disconnect_from_remote()
+                                _thread.exit()
+                            core.write_log('Query without params'
+                                    ,gurgle.GURGLE_LOG_MODE_ERROR)
+                            core.emergency_quit(
+                                    'ProtocolError',
+                                    'Protocol is not supported',
+                            )
+                            _thread.exit()
+                    else:
+                        pass #quit
+                    if 'version' in data['params']:
+                        if str(data['params']['version'] !=core.get_version()):
+                            pass #quit
+                    else:
+                        pass #quit
+                    if 'encrypt' in data['params']:
+                        if str(data['params']['encrypt'] == 'enabled'):
+                            pass #quit
+                        else:
+                            pass
+                    else:
+                        pass
             elif data['cmd'] == 'query':              # 请求
                 if not data['params']:
                     core.write_log('Query without params'
@@ -77,30 +113,31 @@ def serviceMain(_Socket , _Addr):
                             request_id
                         )
                     _thread.exit()
-                if 'query' in data['params']:
-                    if data['params']['query'] == 'auth_method':
+                if 'target' in data['params']:
+                    target = str(data['params']['target'])
+                    if target == 'auth_method':
                         senddata = json.dumps({
                                 "id"    : request_id,
                                 "params":{
-                                    "answer" : core.get_auth_method()
+                                    "answer" : ["%s"%core.get_auth_method()]
                                 }
                             })
-                    elif data['params']['query'] == 'auth_status':
+                    elif target == 'auth_status':
                         senddata = json.dumps({
                                 "id"    : request_id,
                                 "params": {
-                                    "answer" : is_authenticated
+                                    "auth_status" : is_authenticated
                                 }
                             })
                     else:   #end if of [query]
                         core.emergency_quit(    \
-                                'UnknownQuery',
-                                "Query[%s] isn't supported"
-                                    %data['params']['query'],
+                                'UnknownTarget',
+                                "Target[%s] isn't supported"
+                                    %target,
                                  request_id
                             )
-                        core.write_log("Such query[%s] isn't supported"
-                                %data['params']['query']
+                        core.write_log("Querying target[%s] isn't supported"
+                                %target
                                 ,gurgle.GURGLE_LOG_MODE_ERROR)
                         _thread.exit()
                 else:   #end if of [params]
