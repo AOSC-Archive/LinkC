@@ -192,8 +192,8 @@ class grgl_mysql_controllor:
         try:
             self.__mysql_fd.execute(    \
                     "insert into %s (username,password,join_time,"
-                    "status)"
-                    "values('%s','%s','%s','%s')"
+                    "status,mood,disabled)"
+                    "values('%s','%s','%s','%s','invisible','0')"
                     %(self.USER_INFO_TABLE_NAME,username,password,\
                         time.strftime('%Y-%m-%d',time.localtime(time.time())),
                         "invisible"

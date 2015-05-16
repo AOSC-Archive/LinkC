@@ -66,8 +66,43 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 
 ### 回应
 ```
-"id"       : "id",    
+"id"       : "request's id",    
 "reply"    : {
   "auth_method"  : ['plain_password']
+}
+``` 
+回复值为一个list
+
+## 获取认证状态(Get authentication status)
+### 请求
+```
+"id"       : "id",
+"cmd"      : "query",
+"params"   : {
+  "target" : "auth_status"
+}
+```
+### 回应
+```
+"id"       : "request's id",    
+"reply"    : {
+  "auth_status"  : ['Unauthenticated/Authenticated']
+}
+``` 
+
+## 获取协议版本(Get protocol's version)
+### 请求
+```
+"id"       : "id",
+"cmd"      : "query",
+"params"   : {
+  "target" : "version"
+}
+```
+### 回应
+```
+"id"       : "request's id",    
+"reply"    : {
+  "version"  : "server's version"
 }
 ``` 

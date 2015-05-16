@@ -43,18 +43,6 @@ def serviceMain(_Socket , _Addr):
                 )
             _thread.exit()
         request_id = int(data['id'])
-        if 'version' in data:
-            senddata = json.dumps({
-                "id":request_id, 
-                "version":core.get_version()
-                })
-            if core.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
-                core.disconnect_from_remote()
-                _thread.exit()
-            if(data['version'] != core.get_version()):
-                core.write_log("Protocol's version is not the same!"
-                        ,gurgle.GURGLE_LOG_MODE_ERROR)
-            continue                            # 不论如何这个回合都会结束
         if 'cmd' in data:                           # 命令
             cmd = str(data['cmd'])
             if cmd  == 'ping':              # ping
@@ -161,7 +149,7 @@ def serviceMain(_Socket , _Addr):
                         senddata = json.dumps({
                                 "id"    : request_id,
                                 "params":{
-                                    "answer" : ["%s"%core.get_auth_method()]
+                                    "auth_method":core.get_auth_method()
                                 }
                             })
                     elif target == 'auth_status':
@@ -171,6 +159,13 @@ def serviceMain(_Socket , _Addr):
                                     "auth_status" : is_authenticated
                                 }
                             })
+                    elif target == 'version':
+                        senddata = json.dumps({
+                                "id"    : request_id,
+                                "params": {
+                                    "version" : core.get_version()
+                                }
+                        })
                     else:   #end if of [query]
                         core.emergency_quit(    \
                                 'UnknownTarget',
@@ -311,7 +306,7 @@ def serviceMain(_Socket , _Addr):
                         request_id
                     )
                 _thread.exit()
-            elif data['cmd'] == 'quit':
+            elif cmd == 'quit':
                 if 'params' in data:
                     if 'reason' in data['params']:
                         core.write_log('Client quited because %s'

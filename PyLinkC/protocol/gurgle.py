@@ -105,7 +105,7 @@ class gurgle_params_error(Exception):
     pass
 
 class gurgle:
-    auth_method_supported               = ["plain_password"]
+    auth_method_supported               = ['plain_password']
     GURGLE_LOG_MODE_ERROR               = 1
     GURGLE_LOG_MODE_COMMON              = 2
     GURGLE_LOG_MODE_DEBUG               = 3
@@ -133,7 +133,7 @@ class gurgle:
         self.__runtime_mode     = _mode
         self.__socket           = None
         self.__package_list     = packageList()
-        self.__auth_method      = 'plain_password'
+        self.__auth_method      = ['plain_password']
         self.__terminal_id      = None
         self.__is_authenticated = False
         self.__roster           = None
@@ -148,8 +148,6 @@ class gurgle:
         if self.__runtime_mode == gurgle.GURGLE_GROUP:
             self.write_log ('Gurgle version %s %s'
                     %(self.__gurgleVersion,'initlalized as Group server'))
-        self.write_log ('Use authenticated method [%s]'
-                %self.get_auth_method())
     def __del__(self):
         self.write_log ('Gurgle Deleting....')
         if self.is_connected():
@@ -415,7 +413,7 @@ class gurgle:
         self.write_log("ping......%.2f ms"%((postSentTime - preSentTime)/1000))
         # do something
         return gurgle.GURGLE_SUCCESS
-    def check_auth_method(self):
+    def check_auth_method(self,currentUsedMethod):
         request_id = self.create_id()
         data = json.dumps({
                 "id"    :request_id,
@@ -429,24 +427,37 @@ class gurgle:
         recvdata = self.recv(1024,request_id)
         if recvdata is None:
             return gurgle.GURGLE_FAILED_TO_RECV
-        self.__auth_method = recvdata['params']['auth_method'][0]
+        TempList = None
+        if 'params' in recvdata:
+            if 'auth_method' in recvdata['params']:
+                if list(recvdata['params']['auth_method'])[0] != None:
+                    TempList=list(recvdata['params']['auth_method'])
+        if TempList == None:
+            return False
+        self.auth_method_supported  = TempList
         isAuthenticatedMethodSupported = False
-        for method in self.auth_method_supported:
-            if method == self.get_auth_method():
+        for i in self.auth_method_supported:
+            if i == currentUsedMethod:
                 isAuthenticatedMethodSupported = True
+                break;
         return isAuthenticatedMethodSupported
     def check_version(self):
         request_id = self.create_id()
         data = json.dumps({
                 "id"     : request_id,
-                "version": self.get_version()
+                "cmd"    : "query",
+                "params" : {
+                    "target"  : "version"
+                }
             })
         if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
         recvdata = self.recv(1024,request_id)
         if recvdata is None:
             return gurgle.GURGLE_FAILED_TO_RECV
-        if recvdata['version'] != self.get_version():
+        if 'params' not in recvdata:
+            return gurgle.GURGLE_FAILED
+        if str(recvdata['params']['version']) != self.get_version():
             return gurgle.GURGLE_VERSION_DONOT_MATCH
         return gurgle.GURGLE_SUCCESS
     def get_self_information(self):
@@ -521,7 +532,6 @@ class gurgle:
         else:
             self.write_log("Connection established",
                     gurgle.GURGLE_LOG_MODE_ERROR)
-        return
         if self.check_version() == gurgle.GURGLE_VERSION_DNOT_MATCH:
             self.write_log("Protocol's version do not match!",
                     gurgle.GURGLE_LOG_MODE_ERROR)
@@ -530,7 +540,7 @@ class gurgle:
 #   Ping
         self.ping()
 #   Check Authenticated method
-        if self.check_auth_method() == False:
+        if self.check_auth_method('plain_password') == False:
             self.write_log("Authenticated method is not supported",
                     gurgle.GURGLE_LOG_MODE_ERROR)
             self.disconnect_from_remote(
@@ -542,11 +552,11 @@ class gurgle:
 #   Auth
         try:
             self.do_auth('%s@%s/%s'
-                                    %(user_name,
-                                    self.get_remote_host(),
-                                    self.create_terminal_id()
-                                    ),pass_word
-                            )
+                            %(user_name,
+                            self.get_remote_host(),
+                            self.create_terminal_id()
+                            ),pass_word
+                         )
         except gurgle_auth_error as err:
 #   Failed to authenticate
             raise gurgle_auth_error(err)
