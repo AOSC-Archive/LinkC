@@ -114,7 +114,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 "from"      : gurgle_id, 
 "params": {
   "method"  : "plain_password",
-  "password": password
+  "password": "password"
   }
 }
 ```
