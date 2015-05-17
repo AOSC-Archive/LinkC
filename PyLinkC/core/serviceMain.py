@@ -274,7 +274,7 @@ def serviceMain(_Socket , _Addr):
                         senddata = json.dumps({
                                 "id"    : request_id,
                                 "to"    : FullSignInID,
-                                "error" : "null"
+                                "error" : None
                             })
                         is_authenticated = 'Authenticated'
                     elif result == grgl_mysql_controllor.AUTH_INCORRECT:

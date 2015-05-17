@@ -220,8 +220,8 @@ class gurgle:
                     continue
             if 'cmd' in buf:
                 if buf['cmd'] == 'kill':
-                    error   = "null"
-                    reason  = "null"
+                    error   = None
+                    reason  = None
                     if 'params' in buf:
                         if 'error' in buf['params']:
                             error   = str(buf['params']['error'])
@@ -342,7 +342,7 @@ class gurgle:
             if recvdata == None:
                 return gurgle.GURGLE_FAILED_TO_RECV
             if 'error' in recvdata:
-                if recvdata['error'] == 'null':
+                if recvdata['error'] == None:
                     self.write_log("Auth successfully")
                     self.set_authenticated(True)
                     return gurgle.GURGLE_SUCCESS
@@ -384,10 +384,10 @@ class gurgle:
             if 'params' not in recvdata:
                 self.set_authenticated(False)
                 return False
-            if 'answer' not in recvdata['params']:
+            if 'auth_status' not in recvdata['params']:
                 self.set_authenticated(False)
                 return False
-            if recvdata['params']['answer'] == 'Authenticated':
+            if recvdata['params']['auth_status'] == 'Authenticated':
                 self.set_authenticated(True)
                 return True
             else:

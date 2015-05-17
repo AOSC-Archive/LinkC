@@ -23,8 +23,8 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 },
 "cmd"       : "kill",
 "params"    : {
-  "error"   : "short description of error",
-  "reason"  : "human-readable description of reason"
+  "error"   :   "short description of error",
+  "reason"  :   "human-readable description of reason"
 }
 ```
 如果链接正常建立，则只存在"reply"字段中有 "status" : "connection established"
@@ -84,7 +84,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"        : "request's id",    
 "reply"     : {
-  "auth_status"  : ['Unauthenticated/Authenticated']
+  "auth_status"  : "Unauthenticated/Authenticated"
 }
 ``` 
 
@@ -106,7 +106,6 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ``` 
 
 ## 明文认证(Plain password authentication)
-
 ### 请求:
 ```
 "id"        : id,
@@ -118,10 +117,24 @@ LinkC 协议基于JSON（ 没有更多的说明了）
   }
 }
 ```
-
 ### 回应:
 ```
 "id": id, "to": full_gurgle_id, "error": null
 "id": id, "to": full_gurgle_id, "error": "password", "reason": "Incorrect username or password."
 "id": id, "to": full_gurgle_id, "error": "user_disabled", "reason": "Your account has been disabled or deactivated."
+```
+
+## 推送好友列表(Push roster)
+### 推送
+```
+"id"        : 0,
+"cmd"       : "push",
+"params"    : {
+  "target"  : "roster",
+  "value"   : [
+    ["user1","status","mood"],
+    ["user2","status","mood"],
+    ......
+  ]
+}
 ```
