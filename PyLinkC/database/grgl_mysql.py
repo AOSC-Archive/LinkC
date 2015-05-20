@@ -157,9 +157,9 @@ class grgl_mysql_controllor:
             return None
         (status,mood) = data
         if status   == 'None':
-            status  = 'null'
+            status  = None
         if mood     == 'None':
-            mood    = 'null'
+            mood    = None
         return (status,mood)
     def get_roster(self,username = None):
         if username is None:

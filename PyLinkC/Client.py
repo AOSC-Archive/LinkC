@@ -8,7 +8,22 @@ from codecs import decode, encode
 
 if __name__ == '__main__':
     core = gurgle(gurgle.GURGLE_CLIENT)
-    core.set_remote_host('127.0.0.1')
-    core.set_remote_port(400097)
-    core.connect_to_server('127.0.0.1',40097,'tricks','2341')
-    print (core.get_last_error())
+    try:
+        core.connect_to_server('127.0.0.1',40097)
+    except gurgle_network_error:
+        pass
+    except gurgle_protocol_error:
+        pass
+    #   Auth
+    try:
+        core.plain_password_auth('%s@%s/%s'
+                        %('tricks',
+                        '127.0.0.1',
+                        core.create_terminal_id()
+                        ),'123321123'
+                    )
+    except gurgle_auth_error as err:
+#   Failed to authenticate
+        core.write_log("Auth failed")
+        exit()
+    core.write_log("Auth succeed")

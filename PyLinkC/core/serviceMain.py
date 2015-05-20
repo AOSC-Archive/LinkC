@@ -3,7 +3,7 @@
 
 import sys
 import _thread
-sys.path.append("..")
+sys.path.append("%s//..//"%sys.path[0])
 from protocol.gurgle import *
 from database.grgl_mysql import *
 from codecs import decode, encode
@@ -43,7 +43,7 @@ def serviceMain(_Socket , _Addr):
                 )
             _thread.exit()
         request_id = int(data['id'])
-        if 'cmd' in data:                           # 命令
+        if 'cmd' in data:                           # 
             cmd = str(data['cmd'])
             if cmd  == 'ping':              # ping
                 if 'payload' in data:
@@ -133,7 +133,7 @@ def serviceMain(_Socket , _Addr):
                                     "status" : "connection establised"
                                 }
                             })
-            elif data['cmd'] == 'query':              # 请求
+            elif data['cmd'] == 'query':              # Query
                 if not data['params']:
                     core.write_log('Query without params'
                             ,gurgle.GURGLE_LOG_MODE_ERROR)

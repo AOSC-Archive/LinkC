@@ -313,7 +313,7 @@ class gurgle:
                 })
     def update_roster(self):
         pass
-    def do_auth(self,ID, password,protocol = 'grgl'):
+    def plain_password_auth(self,ID, password,protocol = 'grgl'):
         status = self.is_authenticated()
         if status == None:
             return gurgle.GURGLE_FAILED_TO_RECV
@@ -343,7 +343,6 @@ class gurgle:
                 return gurgle.GURGLE_FAILED_TO_RECV
             if 'error' in recvdata:
                 if recvdata['error'] == None:
-                    self.write_log("Auth successfully")
                     self.set_authenticated(True)
                     return gurgle.GURGLE_SUCCESS
                 else:
@@ -468,7 +467,7 @@ class gurgle:
             return gurgle.GURGLE_FAILED
     def is_connected(self):
         return self.__is_connected
-    def connect_to_server(self,strDomain,nPort,user_name,pass_word,timeout=5):
+    def connect_to_server(self,strDomain,nPort,timeout=5):
         if self.is_connected():                             #
             self.write_log('You have already connected to remote'
                     ,gurgle.GURGLE_LOG_MODE_ERROR)
@@ -481,10 +480,6 @@ class gurgle:
             return gurgle.GURGLE_FAILED
         if self.__runtime_mode == gurgle.GURGLE_SERVER:
             return gurgle.GURGLE_FAILED
-        if not (user_name and pass_word):
-            self.write_log('Username or password is incorrect!',
-                    gurgle.GURGLE_LOG_MODE_ERROR)
-            return gurgle.GURGLE_FAILED_TO_AUTH
 #   Basic connection
         try:
             self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -549,17 +544,7 @@ class gurgle:
             raise gurgle_protocol_error(
                     'Authenticated method is not supported'
                 )
-#   Auth
-        try:
-            self.do_auth('%s@%s/%s'
-                            %(user_name,
-                            self.get_remote_host(),
-                            self.create_terminal_id()
-                            ),pass_word
-                         )
-        except gurgle_auth_error as err:
-#   Failed to authenticate
-            raise gurgle_auth_error(err)
+        return
     def emergency_quit(self,error       =   "UnknownError",     \
                             reason      =   "Unkonwn reason",   \
                             request_id  =   0                   \
@@ -613,10 +598,24 @@ class gurgle:
 if __name__ == '__main__':
     core = gurgle(gurgle.GURGLE_CLIENT)
     try:
-        core.connect_to_server('127.0.0.1',40097,'tricks','123321123')
+        core.connect_to_server('127.0.0.1',40097)
     except gurgle_network_error:
         pass
     except gurgle_protocol_error:
         pass
-    except gurgle_auth_error:
-        pass
+    #   Auth
+    try:
+        core.plain_password_auth('%s@%s/%s'
+                        %('tricks',
+                        '127.0.0.1',
+                        core.create_terminal_id()
+                        ),'123321123'
+                    )
+    except gurgle_auth_error as err:
+#   Failed to authenticate
+        core.write_log("Auth failed")
+        exit()
+    core.write_log("Auth succeed")
+            
+
+
