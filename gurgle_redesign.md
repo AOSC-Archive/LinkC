@@ -124,6 +124,29 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 "id": id, "to": full_gurgle_id, "error": "user_disabled", "reason": "Your account has been disabled or deactivated."
 ```
 
+## 更新自己状态更新(Publishing self presence update)
+### 推送:
+```
+"id"          : id,
+"cmd"         : "push",
+"params"      : {
+  "target"    : "presence",
+  "last_name" : "new last_name"/None,
+  "first_name": "new first_name"/None,
+  "status"    : "Avaliable/Away/Dnd/Invisible"/None,
+  "mood"      : "Your new mood"/None
+}
+```
+
+### 回应:
+```
+"id"        : "request's id",    
+"reply"     : {
+  "error"   : "PermissionDenied"/OtherErrors/null,
+  "reason"  : "Unauthenticated"/null
+}
+```
+
 ## 推送好友列表(Push roster)
 ### 推送
 ```

@@ -113,7 +113,7 @@ class grgl_mysql_controllor:
                 self.__mysql_conn.close()
             self.__is_connected = False
         return grgl_mysql_controllor.DATABASE_SUCCESS
-    def authenticate(self,username,password):
+    def plain_password_authenticate(self,username,password):
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
         if not self.is_connected():

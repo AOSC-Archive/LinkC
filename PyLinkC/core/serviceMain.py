@@ -269,7 +269,8 @@ def serviceMain(_Socket , _Addr):
                                 request_id
                             )
                         _thread.exit()
-                    result = grgl_mysql.authenticate(username,password)
+                    result = grgl_mysql.plain_password_authenticate(
+                        username,password)
                     if result == grgl_mysql_controllor.AUTH_SUCCESS:
                         senddata = json.dumps({
                                 "id"    : request_id,
