@@ -19,12 +19,12 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"        : "request's id",    
 "reply"     : {
-  "status"  : "connection established/failed"
+  "status"    : "connection established/failed"
 },
 "cmd"       : "kill",
 "params"    : {
-  "error"   :   "short description of error",
-  "reason"  :   "human-readable description of reason"
+  "error"     :   "short description of error",
+  "reason"    :   "human-readable description of reason"
 }
 ```
 如果链接正常建立，则只存在"reply"字段中有 "status" : "connection established"
@@ -77,7 +77,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 "id"        : "id",
 "cmd"       : "query",
 "params"    : {
-  "target"  : "auth_status"
+  "target"    : "auth_status"
 }
 ```
 ### 回应
@@ -94,14 +94,14 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 "id"        : "id",
 "cmd"       : "query",
 "params"    : {
-  "target"  : "version"
+  "target"    : "version"
 }
 ```
 ### 回应
 ```
 "id"        : "request's id",    
 "reply"     : {
-  "version" : "server's version"
+  "version"   : "server's version"
 }
 ``` 
 
@@ -112,8 +112,8 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 "cmd"       : "auth", 
 "from"      : gurgle_id, 
 "params": {
-  "method"  : "plain_password",
-  "password": "password"
+  "method"    : "plain_password",
+  "password"  : "password"
   }
 }
 ```
@@ -130,11 +130,11 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 "id"          : id,
 "cmd"         : "push",
 "params"      : {
-  "target"    : "presence",
-  "last_name" : "new last_name"/None,
-  "first_name": "new first_name"/None,
-  "status"    : "Avaliable/Away/Dnd/Invisible"/None,
-  "mood"      : "Your new mood"/None
+  "target"      : "presence",
+  "last_name"   : "new last_name"/None,
+  "first_name"  : "new first_name"/None,
+  "status"      : "Avaliable/Away/Dnd/Invisible"/None,
+  "mood"        : "Your new mood"/None
 }
 ```
 
@@ -142,10 +142,43 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"        : "request's id",    
 "reply"     : {
-  "error"   : "PermissionDenied"/OtherErrors/null,
-  "reason"  : "Unauthenticated"/null
+  "error"     : "PermissionDenied"/OtherErrors/null,
+  "reason"    : "Unauthenticated"/null
 }
 ```
+
+## 请求自己状态(Get self presence)
+### 请求:
+```
+"id"        : "id",
+"cmd"       : "query",
+"params"    : {
+  "target"    : "presence"
+}
+```
+### 回应
+```
+"id"        : "request's id",    
+"reply"     : {
+  "target"      : "presence",
+  "last_name"   : "last_name"/None,
+  "first_name"  : "first_name"/None,
+  "status"      : "Avaliable/Away/Dnd/Invisible",
+  "mood"        : "Your new mood"/None
+}
+``` 
+None则意味着你想将这个字段置空    
+如果不想更改某个字段，可以选择提交原来的状态   
+或者不提交这个字段也是可以的
+比如：  
+```
+  "id"        : "request's id",        
+  "reply"     : {    
+    "target"      : "presence",        
+    "last_name"   : "last_name"/None,     
+  }    
+```
+注释：仅修改你的名
 
 ## 推送好友列表(Push roster)
 ### 推送
@@ -153,11 +186,24 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 "id"        : 0,
 "cmd"       : "push",
 "params"    : {
-  "target"  : "roster",
-  "value"   : [
+  "target"    : "roster",
+  "count"     : 0,1,2,3.......
+  "value"     : [
     ["user1","status","mood"],
     ["user2","status","mood"],
     ......
   ]
+}
+```
+
+## 输出错误(Print errors)
+若客户端发来错误格式的报文，予以错误回复
+### 回复
+```
+"id"        : "request's id",
+"reply"     : {
+  "error"     : "SyntaxError",
+  "reason"    : details
+  "help"      : "A string to tell you the right syntax"
 }
 ```

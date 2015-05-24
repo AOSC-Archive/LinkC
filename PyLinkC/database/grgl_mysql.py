@@ -222,10 +222,35 @@ class grgl_mysql_controllor:
             gurgle.write_log(gurgle,"Mysql Error %s"%err,
                     gurgle.GURGLE_LOG_MODE_ERROR,self.__log_level)
             raise grgl_mysql_controllor_error(err)
-
+    def update_user_presence(self,username,update_dict):
+        if not self.is_connected():
+            if not self.connect_to_database(self.DATABASE_NAME):
+                return grgl_mysql_controllor.DATABASE_FAILED
+        update_dict = dict(update_dict)
+        update_string = ""
+        for i in  update_dict.keys():
+            update_string += i
+            update_string += "="
+            update_string += '"%s"'%str(update_dict['%s'%i])
+            update_string += ","
+        update_string = update_string[:-1]
+        try:
+            self.__mysql_fd.execute(    \
+                    "update %s set %s where username = '%s'"
+                    %(self.USER_INFO_TABLE_NAME,update_string,username))
+            self.__mysql_conn.commit();
+        except mysql.Error as err:
+            gurgle.write_log(gurgle,"Mysql Error %s"%err,
+                    gurgle.GURGLE_LOG_MODE_ERROR,self.__log_level)
+            raise grgl_mysql_controllor_error(err)
 if __name__ == '__main__':
     try:
         s = grgl_mysql_controllor()
     except grgl_mysql_controllor_error:
         sys.exit(0)
-    s.add_user('tricks','123321123')
+    d = {"first_name":"Zhang","last_name":"SternW","status":"invisible","mood":"so bad"}
+    try:
+        s.update_user_presence(d)
+    except grgl_mysql_controllor_error as e:
+        print ("Error %s"%e)
+    #s.add_user('tricks','123321123')

@@ -125,6 +125,7 @@ class gurgle:
     GURGLE_FAILED_TO_SEND               = 18
     GURGLE_CONNECTION_CLOSED            = 19
     GURGLE_VERSION_DNOT_MATCH           = 20
+    GURGLE_STATUS_SUPPORTED             = ['Avaliable','Away','Dnd','Invisible']
     def __init__(self,_mode):
         self.__gurgleVersion    = 'Unusable'
         self.__remoteHost       = None
@@ -189,6 +190,7 @@ class gurgle:
     def recv(self,buf_size = 512, request_id = 0, timeout = 5, max_try = 2):
         if self.is_connected() == False:
             return None
+        buf = ""
         data = self.__package_list.get_data(request_id)
         if data is not None:
             return data
@@ -545,6 +547,53 @@ class gurgle:
                     'Authenticated method is not supported'
                 )
         return
+    def publish_self_presence_update(self,last_name = None,first_name = None, status = None,mood = None):
+        if(last_name == first_name == status == mood == None):
+            self.write_log('Empty params')
+            return True
+        if last_name    != None:
+            last_name   = str(last_name)
+        if first_name   != None:
+            first_name  = str(first_name)
+        if status       != None:
+            status      = str(status)
+            flag        = False
+            for i in gurgle.GURGLE_STATUS_SUPPORTED:
+                if status == i:
+                    flag  = True
+                    break
+            if flag == False:
+                self.write_log('Your status has bad syntax')
+                return False
+        if mood         != None:
+            mood        = str(mood)
+        push_id = self.create_id()
+        senddata = json.dumps({
+                "id"        : push_id,
+                "cmd"       : "push",
+                "params"    : {
+                    "target": "presence",
+                    "last_name" : last_name,
+                    "first_name": first_name,
+                    "status"    : status,
+                    "mood"      : mood
+                }
+            })
+        self.send(encode(senddata))
+        recvdata = self.recv(512,push_id)
+        if 'reply' not in recvdata:
+            self.write_log( \
+                'Recved a bad reply in push presence',
+                gurgle.GURGLE_LOG_MODE_ERROR)
+            return False
+        if recvdata['reply']['error'] != None:
+            self.write_log(\
+                'Error push presence [%s,%s]'
+                    %(recvdata['reply']['error'],recvdata['reply']['reason']),
+                gurgle.GURGLE_LOG_MODE_ERROR
+                )
+            return False
+        return True
     def emergency_quit(self,error       =   "UnknownError",     \
                             reason      =   "Unkonwn reason",   \
                             request_id  =   0                   \
@@ -562,6 +611,32 @@ class gurgle:
             })
         self.send(encode(senddata))
         self.__socket.close()
+    def reply_error(self,request_id,error,reason,help = None,with_help = False):
+        error = str(error)
+        reason =  str(reason)
+        if with_help == False:
+            help = None
+        senddata = json.dumps({
+                "id"    : request_id,
+                "reply" : {
+                    "error" : error,
+                    "reason": reason,
+                    "help"  : help   
+                }
+            })
+        if self.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
+            return gurgle.GURGLE_FAILED_TO_SEND
+        return gurgle.GURGLE_SUCCESS
+    def reply_ok(self,request_id):
+        senddata = json.dumps({
+                "id"    : request_id,
+                "reply" : {
+                    "error" : None
+                }
+            })
+        if self.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
+            return gurgle.GURGLE_FAILED_TO_SEND
+        return gurgle.GURGLE_SUCCESS
     def disconnect_from_remote(self,                    \
                     reason      = "Unkonwn reason",     \
                     request_id  = 0):
@@ -570,6 +645,8 @@ class gurgle:
                     ,gurgle.GURGLE_LOG_MODE_ERROR)
             return  gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
         elif self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
+            if request_id == 0:
+                request_id = self.create_id()
             senddata = json.dumps({
                 "id"    : request_id,
                 "cmd"   : "quit",
@@ -579,7 +656,7 @@ class gurgle:
             })
             senddata = senddata.encode()
             self.send(senddata)
-            recvdata = self.recv(512)
+            recvdata = self.recv(512,request_id)
             if recvdata == None:
                 self.write_log("Connection was closed by peer"
                         ,gurgle.GURGLE_LOG_MODE_ERROR)
@@ -616,6 +693,7 @@ if __name__ == '__main__':
         core.write_log("Auth failed")
         exit()
     core.write_log("Auth succeed")
+    core.publish_self_presence_update(last_name = "SternW",first_name="Zhang",status = "Avaliable")
             
 
 

@@ -27,9 +27,12 @@ def serviceMain(_Socket , _Addr):
     core.set_socket(_Socket)
     core.set_remote_host(addr[0])
     core.set_remote_port(addr[1]);
-    grgl_mysql = grgl_mysql_controllor()
-    is_authenticated = "Unauthenticated"
-    senddata = "something to send"
+    grgl_mysql          = grgl_mysql_controllor()
+    is_authenticated    = "Unauthenticated"
+    senddata            = "something to send"
+    target              = ""
+    username            = None
+    request_id          = 0
     while True:
         try:
             data = core.recv(1024)
@@ -37,10 +40,7 @@ def serviceMain(_Socket , _Addr):
             _thread.exit()
         if not 'id' in data:
             core.write_log("Data without ID",gurgle.GURGLE_LOG_MODE_ERROR)
-            core.emergency_quit(    \
-                    'SyntaxError',
-                    'This package has no ID!'
-                )
+            core.emergency_quit('SyntaxError','This package has no ID!')
             _thread.exit()
         request_id = int(data['id'])
         if 'cmd' in data:                           # 
@@ -133,7 +133,7 @@ def serviceMain(_Socket , _Addr):
                                     "status" : "connection establised"
                                 }
                             })
-            elif data['cmd'] == 'query':              # Query
+            elif cmd == 'query':              # Query
                 if not data['params']:
                     core.write_log('Query without params'
                             ,gurgle.GURGLE_LOG_MODE_ERROR)
@@ -188,7 +188,7 @@ def serviceMain(_Socket , _Addr):
                             request_id
                         )
                     _thread.exit()
-            elif data['cmd'] == 'auth':
+            elif cmd == 'auth':
                 if not 'from' in data:
                     core.write_log("Auth without from",
                             gurgle.GURGLE_LOG_MODE_ERROR)
@@ -307,6 +307,59 @@ def serviceMain(_Socket , _Addr):
                         request_id
                     )
                 _thread.exit()
+            elif cmd == 'push':
+                if is_authenticated   == "Unauthenticated":
+                    core.reply_error(   \
+                        request_id,
+                        "PermissionDenied",
+                        "Unauthenticated")
+                    continue
+                if 'params' not in data:
+                    core.reply_error(   \
+                        request_id,
+                        "SyntaxError",
+                        "Push without params")
+                    continue;
+                if 'target' not in data['params']:
+                    core.reply_error(   \
+                        request_id,
+                        "SyntaxError",
+                        "Please specify the target")
+                    continue;
+                target = str(data['params']['target'])
+                if target == 'presence':
+                    update_dict = {}
+                    if 'last_name' in data['params']:
+                        update_dict['last_name'] =str(data['params']['last_name'])
+                    if 'first_name' in data['params']:
+                        update_dict['first_name']=str(data['params']['first_name'])
+                    if 'status' in data['params']:
+                        if data['params']['status'] != None:
+                            flag = False
+                            for i in core.GURGLE_STATUS_SUPPORTED:
+                                if data['params']['status'] == i:
+                                    flag = True
+                                    break
+                            if flag == True:        # if found
+                                update_dict['status'] = i
+                    if 'mood' in data['params']:
+                        update_dict['mood'] = str(data['params']['mood'])
+                    if update_dict == None:
+                        core.reply_error(   \
+                            request_id,
+                            "SyntaxError",
+                            "Please specify what you want to modify")
+                        continue;
+                    try:
+                        grgl_mysql.update_user_presence(username,update_dict)
+                    except grgl_mysql_controllor_error as e:
+                        core.reply_error(   \
+                            request_id,
+                            "UnknownError",
+                            "Unkonwn"
+                        )
+                        continue
+                    core.reply_ok(request_id)
             elif cmd == 'quit':
                 if 'params' in data:
                     if 'reason' in data['params']:
@@ -316,7 +369,7 @@ def serviceMain(_Socket , _Addr):
                 else:
                     core.write_log('Client quited without reason',
                             gurgle.GURGLE_LOG_MODE_DEBUG)
-                senddata = json.dumps({"id":"%d","reply":"bye"})
+                senddata = json.dumps({"id":"%d"%request_id,"reply":"bye"})
                 core.send(encode(senddata))
                 core.disconnect_from_remote()
                 _thread.exit()
