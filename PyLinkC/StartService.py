@@ -4,7 +4,7 @@
 import socket
 import time
 import codecs
-import _thread
+import threading
 
 from protocol.gurgle import *
 from core.serviceMain import *
@@ -18,4 +18,6 @@ if __name__ == '__main__':
     sevSocket.listen(5)
     while True:
         clientSocket,addr = sevSocket.accept()
-        _thread.start_new_thread(serviceMain,(clientSocket,addr))
+        newThread = serviceThread()
+        newThread.setup(clientSocket,addr)
+        newThread.start()

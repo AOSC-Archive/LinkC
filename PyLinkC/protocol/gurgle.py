@@ -156,6 +156,7 @@ class gurgle:
         self.__roster           = None
         self.__roster_etag      = None
         self.__log_level        = 3
+        self.__send_mutex       = threading.Lock()
         self.__recv_mutex       = threading.Lock()
         self.__recv_door_1      = door_lock()
         self.__recv_door_2      = door_lock()
@@ -309,11 +310,14 @@ class gurgle:
             raise gurgle_network_error(
                     'Connection has not been established'
                 )
+        self.__send_mutex.acquire()
         try:
             self.__socket.send(buf)
         except socket.error as e:
             self.write_log(e,gurgle.GURGLE_LOG_MODE_ERROR)
+            self.__send_mutex.release()
             raise gurgle_network_error(e)
+        self.__send_mutex.release()
         return gurgle.GURGLE_SUCCESS
     def set_remote_host(self,strHost):
         self.__remoteHost = strHost
