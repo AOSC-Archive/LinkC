@@ -23,7 +23,6 @@ class packageList:
     def __init__(self):
         self.size = 0
         self.root = packageNode()
-        self.mutex =  threading.Lock()
         self.root = None
         return
     def __init__(self):
@@ -39,58 +38,48 @@ class packageList:
             tempNode = None
         curNode = None
     def insert(self,newData,packageID):
-        if self.mutex.acquire():
-            newNode = packageNode(newData)
-            newNode.packageID = packageID
-            if self.root is None:
-                self.root = newNode
-                self.size += 1
-                self.mutex.release()
-                return
-            tempNode = self.root
-            while tempNode.nextNode is not None:
-                tempNode = tempNode.nextNode
-            tempNode.nextNode = newNode
+        newNode = packageNode(newData)
+        newNode.packageID = packageID
+        if self.root is None:
+            self.root = newNode
             self.size += 1
-            self.mutex.release()
+            return
+        tempNode = self.root
+        while tempNode.nextNode is not None:
+            tempNode = tempNode.nextNode
+        tempNode.nextNode = newNode
+        self.size += 1
     def get_data(self,packageID):
-        self.mutex =  threading.Lock()
-        if self.mutex.acquire():
-            if self.size == 0:
-                self.mutex.release()
-                return None
-            else:
-                tempNode = self.root
-                for i in range(0,self.size):
-                    if tempNode.packageID == packageID:
-                        self.mutex.release()
-                        return tempNode.data
-                    else:
-                        tempNode = tempNode.nextNode
-                self.mutex.release()
-                return None
-    def remove(self,packageID):
-        if self.mutex.acquire():
-            if self.root is None:
-                self.mutex.release()
-                return
-            if self.root.packageID == packageID:
-                tempNode = self.root.nextNode
-                self.root = None
-                self.size -= 1
-                self.root = tempNode
-                self.mutex.release()
-                return
-            curNode = self.root
-            while curNode.nextNode is not None:
-                if curNode.nextNode.packageID == packageID:
-                    tempNode = curNode.nextNode
-                    curNode.nextNode = curNode.nextNode.nextNode
-                    tempNode = None  #remove the node,but curNode stays still
-                    self.size -= 1
+        if self.size == 0:
+            return None
+        else:
+            tempNode = self.root
+            for i in range(0,self.size):
+                if tempNode.packageID == packageID:
+                    return tempNode.data
                 else:
-                    curNode = curNode.nextNode
-        self.mutex.release()
+                    tempNode = tempNode.nextNode
+            return None
+    def remove(self,packageID):
+        if self.root is None:
+            return False
+        if self.root.packageID == packageID:
+            tempNode = self.root.nextNode
+            self.root = None
+            self.size -= 1
+            self.root = tempNode
+            return True
+        curNode = self.root
+        while curNode.nextNode is not None:
+            if curNode.nextNode.packageID == packageID:
+                tempNode = curNode.nextNode
+                curNode.nextNode = curNode.nextNode.nextNode
+                tempNode = None  #remove the node,but curNode stays still
+                self.size -= 1
+                return True
+            else:
+                curNode = curNode.nextNode
+        return False
     def get_root(self):
         return self.root
     def get_size(self):
@@ -100,6 +89,24 @@ class packageList:
         while tempNode is not None:
             print (tempNode.data)
             tempNode = tempNode.nextNode
+
+class door_lock():
+    def __init__(self):
+        self.__lock     = threading.Lock()
+    def door_open(self):
+        return self.__lock.release()
+    def door_close(self):
+        return self.__lock.acquire()
+    def door_rush_into(self):
+        if self.__lock.acquire():
+            self.__lock.release()
+            return True
+        else:
+            return False
+    def door_step_into(self):
+        self.__lock.acquire()
+    def door_step_out(self):
+        self.__lock.release()
 
 class gurgle_protocol_error(Exception):
     pass
@@ -150,6 +157,10 @@ class gurgle:
         self.__roster_etag      = None
         self.__log_level        = 3
         self.__recv_mutex       = threading.Lock()
+        self.__recv_door_1      = door_lock()
+        self.__recv_door_2      = door_lock()
+        self.__recv_roster      = 0
+        self.__recv_door_2.door_close()
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
             self.write_log ('Gurgle version %s %s'
                     %(self.__gurgleVersion,'initlalized as Client'))
@@ -197,27 +208,52 @@ class gurgle:
         elif mode == gurgle.GURGLE_LOG_MODE_DEBUG:
             sys.stdout.write ("[%s] : %s\n"
                     %(time.asctime(time.localtime()),log))
+    def __recv_lock_release(self):
+        self.__recv_mutex.release()
+        self.__recv_door_1.door_close()
+        self.__recv_door_2.door_open()
+        while self.__recv_roster:
+            self.__recv_door_2.door_step_into()
+        self.__recv_door_2.door_close()
+        self.__recv_door_1.door_open()
     def recv(self,buf_size = 512, request_id = 0, timeout = 5, max_try = 2):
         if self.is_connected() == False:
             return None
-        buf = ""
+        buf = None
+        id = 0;
+        while(1):
+            self.__recv_door_1.door_rush_into()
+            if self.__recv_mutex.acquire(blocking=False):
+                break
+            self.__recv_roaster += 1
+            self.__recv_door_2.door_step_into()
+            data = self.__package_list.get_data(request_id)
+            self.__recv_roaster -= 1
+            self.__recv_door_2.door_step_out()
+            if data is not None:
+                return data
+            ## status :: door_1 opened, door_2 closed, recv_mutex locked
+        if not self.is_connected():
+            self.__recv_lock_release()
+            raise gurgle_network_error("Connection has not been established!")
         data = self.__package_list.get_data(request_id)
         if data is not None:
+            self.__recv_lock_release()
             return data
-        current_try = 0
         self.__socket.settimeout(timeout)
-        while current_try < max_try:
+        while True:
             try:
                 buf = self.__socket.recv(buf_size)
             except socket.timeout:
-                current_try += 1
                 continue
             except socket.error as e:
                 self.write_log(e,gurgle.GURGLE_LOG_MODE_ERROR)
+                self.__recv_lock_release()
                 raise gurgle_network_error(e)
             if not len(buf):
                 self.write_log('Connection was closed by peer')
                 self.__is_connected = False
+                self.__recv_lock_release()
                 raise gurgle_network_error(
                         'Connection was unexpectedly closed by peer'
                     )
@@ -225,11 +261,10 @@ class gurgle:
             buf = json.loads(buf)
             if 'id' not in buf:
                 if request_id == 0:
+                    self.__recv_lock_release()
                     return buf
-                else:
-                    self.__package_list.insert(buf,0)
-                    current_try += 1
-                    continue
+            else:
+                id = int(buf['id'])
             if 'cmd' in buf:
                 if buf['cmd'] == 'kill':
                     error   = None
@@ -243,18 +278,29 @@ class gurgle:
                             %(error,reason),
                             gurgle.GURGLE_LOG_MODE_ERROR)
                     self.__is_connected = False
+                    self.__recv_lock_release()
                     raise gurgle_network_error(
                             'Connection was closed by peer'
                         )
             if request_id == 0:
+                self.__recv_lock_release()
                 return buf
-            if int(buf['id']) == request_id:
+            if id == request_id:
+                self.__recv_lock_release()
                 return buf
             else:
-                self.__package_list.insert(buf,buf['id'])
-                current_try += 1
+                self.__package_list.insert(buf,id)
+                self.__recv_door_1.door_close()
+                self.__recv_door_2.door_open()
+                while self.__recv_roster > 0:
+                    self.__recv_door_2.door_step_into()
+                self.__recv_door_2.door_close()
+                self.__recv_door_1.door_open()
+                while self.__package_list.remove(0):
+                    pass    # remove the packages whitch id = 0 or have no id
                 continue
         self.write_log("Failed to receive",gurgle.GURGLE_LOG_MODE_ERROR)
+        self.__recv_lock_release()
         raise gurgle_network_error(
                 'Failed to recvice'
             )
