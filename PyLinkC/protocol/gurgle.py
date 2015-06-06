@@ -4,6 +4,7 @@
 import socket
 import json
 import _thread
+import threading        # for mutex
 import random
 import sys
 from codecs import decode, encode
@@ -19,16 +20,12 @@ class packageNode:
         self.data = nodeData
 
 class packageList:
-    def __init__(self,newRoot):
+    def __init__(self):
         self.size = 0
         self.root = packageNode()
-        if newRoot is None:
-            self.root = None
-            return
-        else:
-            self.root = newRoot
-            self.size += 1
-            return
+        self.mutex =  threading.Lock()
+        self.root = None
+        return
     def __init__(self):
         self.root = None
         self.size = 0
@@ -42,46 +39,58 @@ class packageList:
             tempNode = None
         curNode = None
     def insert(self,newData,packageID):
-        newNode = packageNode(newData)
-        newNode.packageID = packageID
-        if self.root is None:
-            self.root = newNode
-            self.size += 1
-            return
-        tempNode = self.root
-        while tempNode.nextNode is not None:
-            tempNode = tempNode.nextNode
-        tempNode.nextNode = newNode
-        self.size += 1
-    def get_data(self,packageID):
-        if self.size == 0:
-            return None
-        else:
+        if self.mutex.acquire():
+            newNode = packageNode(newData)
+            newNode.packageID = packageID
+            if self.root is None:
+                self.root = newNode
+                self.size += 1
+                self.mutex.release()
+                return
             tempNode = self.root
-            for i in range(0,self.size):
-                if tempNode.packageID == packageID:
-                    return tempNode.data
-                else:
-                    tempNode = tempNode.nextNode
-            return None
-    def remove(self,packageID):
-        if self.root is None:
-            return
-        if self.root.packageID == packageID:
-            tempNode = self.root.nextNode
-            self.root = None
-            self.size -= 1
-            self.root = tempNode
-            return
-        curNode = self.root
-        while curNode.nextNode is not None:
-            if curNode.nextNode.packageID == packageID:
-                tempNode = curNode.nextNode
-                curNode.nextNode = curNode.nextNode.nextNode
-                tempNode = None  #remove the node,but curNode stays still
-                self.size -= 1
+            while tempNode.nextNode is not None:
+                tempNode = tempNode.nextNode
+            tempNode.nextNode = newNode
+            self.size += 1
+            self.mutex.release()
+    def get_data(self,packageID):
+        self.mutex =  threading.Lock()
+        if self.mutex.acquire():
+            if self.size == 0:
+                self.mutex.release()
+                return None
             else:
-                curNode = curNode.nextNode
+                tempNode = self.root
+                for i in range(0,self.size):
+                    if tempNode.packageID == packageID:
+                        self.mutex.release()
+                        return tempNode.data
+                    else:
+                        tempNode = tempNode.nextNode
+                self.mutex.release()
+                return None
+    def remove(self,packageID):
+        if self.mutex.acquire():
+            if self.root is None:
+                self.mutex.release()
+                return
+            if self.root.packageID == packageID:
+                tempNode = self.root.nextNode
+                self.root = None
+                self.size -= 1
+                self.root = tempNode
+                self.mutex.release()
+                return
+            curNode = self.root
+            while curNode.nextNode is not None:
+                if curNode.nextNode.packageID == packageID:
+                    tempNode = curNode.nextNode
+                    curNode.nextNode = curNode.nextNode.nextNode
+                    tempNode = None  #remove the node,but curNode stays still
+                    self.size -= 1
+                else:
+                    curNode = curNode.nextNode
+        self.mutex.release()
     def get_root(self):
         return self.root
     def get_size(self):
@@ -140,6 +149,7 @@ class gurgle:
         self.__roster           = None
         self.__roster_etag      = None
         self.__log_level        = 3
+        self.__recv_mutex       = threading.Lock()
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
             self.write_log ('Gurgle version %s %s'
                     %(self.__gurgleVersion,'initlalized as Client'))

@@ -207,3 +207,53 @@ None则意味着你想将这个字段置空
   "help"      : "A string to tell you the right syntax"
 }
 ```
+
+## 加入组/添加好友(Friend/group request)
+### 请求:
+```
+"id"        : 0,
+"cmd"       : "forward",
+"to"        : "A's address",
+"params"    : {
+  "cmd"       : "request",
+  "params"    : {
+    "addition"  : "....."
+  }
+}
+```
+Id为0表示不需要即时回复
+
+### 转发:
+```
+"id"        : new id,
+"from"      : "original address",
+"cmd"       : "request",
+"params"    : {
+  "addition"  : "....."
+}
+```
+
+### 回复:
+```
+"id"        : 0,
+"cmd"       : "forward",
+"to"        : "original address",
+"params"    : {
+  "reply"     : {
+    "status"  : "accepted/refused",
+    "reason"  : "reason",
+    "error"   : null
+  }
+}
+```
+
+### 转发:
+```
+"id"        : 0,
+"from"      : "A's address"
+"reply"     : {
+  "status"    : "accepted/refused",
+  "reason"    : "reason",
+  "error"     : null
+}
+```
