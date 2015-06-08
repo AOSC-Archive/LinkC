@@ -15,20 +15,18 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 现在协议只支持 "gurgle"   
 现在版本只存在 "unusable"   
 现在加密只支持 "disabled"   
-### 回应
+### 回应 (未修改进程序)
 ```
-"id"        : "request's id",    
+"id"        : "request's id",
+"cmd"       : "kill",    
 "reply"     : {
-  "status"    : "connection established/failed"
-},
-"cmd"       : "kill",
-"params"    : {
-  "error"     :   "short description of error",
+  "status"    : "connection established/failed",
+  "error"      :   "short description of error",
   "reason"    :   "human-readable description of reason"
-}
+},
 ```
 如果链接正常建立，则只存在"reply"字段中有 "status" : "connection established"
-如果链接建立失败，则"reply":{"status":"connection failed"},"cmd":"kill"以及后面字段
+如果链接建立失败，则"reply":{"status":"connection failed","error":"","reason":""},"cmd":"kill"
 
 ## 检查延迟(ping)
 ### 请求
@@ -36,7 +34,6 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 "id"        : "id",    
 "cmd"       : "ping"    
 ```
-目前设计不允许增添负载(payload)检测上下行网速
 ### 回应
 ```
 "id"        : "request's id",    
