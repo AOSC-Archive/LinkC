@@ -23,19 +23,24 @@ usernameAllowed = [ 'a','b','c','d','e','f','g','h','i','j','k','l','m',
 
 protocolSupported=[ 'grgl'  ]
 class serviceThread(threading.Thread):
-    def __init__(self):
+    def setup(self,_Socket, _Addr):
         self.core               = gurgle(gurgle.GURGLE_SERVER)
         self.grgl_mysql         = grgl_mysql_controllor()
-        self.is_authenticated   = "Unauthenticated"
-        self.senddata           = "something to send"
-        self.target             = ""
-        self.username           = None
-        threading.Thread.__init__(self)
-    def setup(self,_Socket, _Addr):
         self.addr               = _Addr
         self.core.set_socket(_Socket)
         self.core.set_remote_host(self.addr[0])
         self.core.set_remote_port(self.addr[1]);
+        self.is_authenticated   = "Unauthenticated"
+        self.senddata           = "something to send"
+        self.setName("TemporaryConnection")
+    def find_and_send(self,threadName,data):
+        for i in threading.enumerate():
+            tName = i.getName()
+            if tName == "MainThread":
+                continue
+            if tName == threadName: # Asynchronously reference functions
+                i.core.send(data)
+                return
     def run(self):
         request_id         = 0
         while True:
@@ -48,7 +53,7 @@ class serviceThread(threading.Thread):
                 self.core.emergency_quit('SyntaxError','This package has no ID!')
                 _thread.exit()
             request_id = int(data['id'])
-            if 'cmd' in data:                           # 
+            if 'cmd' in data:
                 cmd = str(data['cmd'])
                 if cmd  == 'ping':              # ping
                     if 'payload' in data:
@@ -197,34 +202,22 @@ class serviceThread(threading.Thread):
                     if not 'from' in data:
                         self.core.write_log("Auth without from",
                                 gurgle.GURGLE_LOG_MODE_ERROR)
-                        self.core.emergency_quit(    \
-                                'SyntaxError',
-                                'Auth without the from field',
-                                request_id
-                            )
-                        _thread.exit()
+                        self.core.reply_error(request_id,'SyntaxError','No from field')
+                        continue
                     FullSignInID    = data['from']
                     if FullSignInID.find(':') == -1:
-                        self.core.emergency_quit(
-                                'SyntaxError',
-                                'ID syntax error',
-                                request_id
-                            )
-                        _thread.exit()
+                        self.core.reply_error(request_id,'SyntaxError','ID syntax error')
+                        continue
                     (protocol,ID)   = FullSignInID.split(':',1)
                     isProtocolSupported = False
                     if protocol == 'grgl':
-                        if ID.find('@') == -1:
-                            self.core.emergency_quit(    \
-                                    'SyntaxError',
-                                    'ID syntax error',
-                                    request_id
-                                )
-                            _thread.exit()
-                        (username,suffix) = ID.split('@',1)
-                        ch = 'a'
-                        t  = 'a'
-                        isFound = False
+                        tmp_data = self.core.analyse_full_id(FullSignInID)
+                        if str(tmp_data) == 'SyntaxError':
+                            self.core.reply_error(request_id,'SyntaxError','ID syntax error')
+                            continue
+                        (protocol,username,domain,terminal) = tmp_data
+                        if terminal == None:
+                            terminal = self.core.create_terminal_id()
                         for ch in username:
                             isFound = False
                             for a in usernameAllowed:
@@ -232,50 +225,31 @@ class serviceThread(threading.Thread):
                                     isFound = True
                                     break
                             if isFound == False:
-                                self.core.emergency_quit(    \
-                                        'SyntaxError',
-                                        'ID syntax error',
-                                        request_id
-                                    )
-                                _thread.exit()
-                        if suffix.find('/') == -1:
-                            self.core.emergency_quit(    \
-                                    'SyntaxError',
-                                    'ID syntax error',
-                                    request_id
-                                )
-                            _thread.exit()
-                        (domain,terminal) = suffix.split('/',1)
+                                self.core.reply_error(request_id,'SyntaxError','ID syntax error')
+                                continue
                         if 'params' not in data:
-                            self.core.write_log("Auth without params",
-                                    gurgle.GURGLE_LOG_MODE_ERROR)
-                            self.core.emergency_quit(    \
-                                    'SyntaxError',
-                                    'Auth without the params field',
-                                    request_id
-                                )
-                            _thread.exit()
+                            self.core.reply_error(request_id,'SyntaxError','Auth without the params field')
+                            continue
                         if 'method' not in data['params']:
                             method = self.core.get_auth_method()
                         if 'password' not in data['params']:
-                            self.core.write_log("Auth without password"
-                                    ,gurgle.GURGLE_LOG_MODE_ERROR)
-                            self.core.emergency_quit(    \
-                                    'SyntaxError',
-                                    'Auth without the password field',
-                                    request_id
-                                )
-                            _thread.exit()
+                            self.core.reply_error(request_id,'SyntaxError','No password')
+                            continue
                         password = data['params']['password']
-                        if (password == None) or (username == None):
-                            self.core.emergency_quit(    \
-                                    'SyntaxError',
-                                    'ID syntax error',
-                                    request_id
-                                )
-                            _thread.exit()
-                        result = self.grgl_mysql.plain_password_authenticate(
-                            username,password)
+                        if password == None:
+                            self.core.reply_error(request_id,'SyntaxError','No password')
+                            continue
+                        for ch in password:
+                            isFound = False
+                            for a in passwordAllowed:
+                                if a == ch:
+                                    isFound = True
+                                    break
+                            if isFound == False:
+                                self.core.reply_error(request_id,'SyntaxError','Username or password is incorrect')
+                                continue
+                        result = self.grgl_mysql.plain_password_authenticate(username,password)
+                        FullSignInID = self.core.make_up_full_id(username,domain,terminal)
                         if result == grgl_mysql_controllor.AUTH_SUCCESS:
                             senddata = json.dumps({
                                     "id"    : request_id,
@@ -283,7 +257,8 @@ class serviceThread(threading.Thread):
                                     "error" : None
                                 })
                             self.is_authenticated = 'Authenticated'
-                        elif result == self.grgl_mysql_controllor.AUTH_INCORRECT:
+                            self.setName(FullSignInID)
+                        elif result == grgl_mysql_controllor.AUTH_INCORRECT:
                             senddata = json.dumps({
                                     "id"    : request_id,
                                     "to"    : FullSignInID,
@@ -299,19 +274,16 @@ class serviceThread(threading.Thread):
                                    %"Your account has been disabled or deactivated"
                                 })
                             self.is_authenticated = 'Unauthenticated'
-                        if not self.core.send(encode(senddata)):
-                            self.core.disconnect_from_remote()
-                            _thread.exit()
-                        continue
-                    self.core.write_log("Protocol[%s] is not supported yet"
-                            %protocol,gurgle.GURGLE_LOG_MODE_ERROR)
-                    self.core.emergency_quit(    \
-                            "ProtocolUnSupported",
-                            "Protocol[%s] is not supported yet"
-                                %protocol,
-                            request_id
-                        )
-                    _thread.exit()
+                    else:
+                        self.core.write_log("Protocol[%s] is not supported yet"
+                                %protocol,gurgle.GURGLE_LOG_MODE_ERROR)
+                        self.core.emergency_quit(    \
+                                "ProtocolUnSupported",
+                                "Protocol[%s] is not supported yet"
+                                    %protocol,
+                                request_id
+                            )
+                        _thread.exit()
                 elif cmd == 'push':
                     if self.is_authenticated   == "Unauthenticated":
                         self.core.reply_error(   \
@@ -365,6 +337,8 @@ class serviceThread(threading.Thread):
                             )
                             continue
                         self.core.reply_ok(request_id)
+                elif cmd == 'forward':  # forward messages
+                    pass
                 elif cmd == 'quit':
                     if 'params' in data:
                         if 'reason' in data['params']:
@@ -402,6 +376,6 @@ if __name__ == '__main__':
     sevSocket.listen(5)
     while True:
         clientSocket,addr = sevSocket.accept()
-        newThread = serviceThread()
+        newThread = serviceThread(None,None,None,(),{})
         newThread.setup(clientSocket,addr)
         newThread.start()

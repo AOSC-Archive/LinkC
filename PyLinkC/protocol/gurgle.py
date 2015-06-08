@@ -93,6 +93,8 @@ class packageList:
 class door_lock():
     def __init__(self):
         self.__lock     = threading.Lock()
+    def __del__(self):
+        del self.__lock
     def door_open(self):
         return self.__lock.release()
     def door_close(self):
@@ -175,6 +177,10 @@ class gurgle:
         self.write_log ('Gurgle Deleting....')
         if self.is_connected():
             self.disconnect_from_remote("Porgram was terminated")
+        del self.__recv_door_1
+        del self.__recv_door_2
+        del self.__recv_mutex
+        del self.__send_mutex
         del self.__package_list
     def get_version(self):
         return self.__gurgleVersion;
@@ -193,7 +199,7 @@ class gurgle:
             return self.__terminal_id
     def write_log(self,log,mode = None,l_level = None):
         if mode == None:
-            mode = gurgle.GURGLE_LOG_MODE_COMMON
+            mode = self.GURGLE_LOG_MODE_COMMON
         if l_level != None:
             level = int(l_level)
         else:
@@ -233,16 +239,18 @@ class gurgle:
             self.__recv_door_2.door_step_out()
             if data is not None:
                 return data
-            ## status :: door_1 opened, door_2 closed, recv_mutex locked
+            ## status :: door_1 closed, door_2 opened, recv_mutex locked
         if not self.is_connected():
             self.__recv_lock_release()
             raise gurgle_network_error("Connection has not been established!")
-        data = self.__package_list.get_data(request_id)
-        if data is not None:
-            self.__recv_lock_release()
-            return data
         self.__socket.settimeout(timeout)
+        return_data = None
         while True:
+            data = self.__package_list.get_data(request_id)
+            if data is not None:
+                self.__recv_lock_release()
+                return data
+            buf = None
             try:
                 buf = self.__socket.recv(buf_size)
             except socket.timeout:
@@ -258,53 +266,68 @@ class gurgle:
                 raise gurgle_network_error(
                         'Connection was unexpectedly closed by peer'
                     )
-            buf = buf.decode()
-            buf = json.loads(buf)
-            if 'id' not in buf:
+            buf     = buf.decode()
+            start   = 0
+            location= 0
+            count   = 0
+            zBuf    = []
+            return_buf = None
+            for ch in buf:
+                if ch == "{":
+                    if count == 0:
+                        start = location
+                    count += 1
+                if ch == "}":
+                    count -= 1
+                    if count == 0:
+                        zBuf.append(buf[start:location+1])
+                location += 1
+            for buf in zBuf:
+                try:
+                    buf = json.loads(buf)
+                except ValueError as e:
+                    self.write_log(e,gurgle.GURGLE_LOG_MODE_ERROR)
+                    self.write_log("Error package = [%s]"%buf)
+                    continue
+                if 'id' not in buf:
+                    if request_id == 0:
+                        return_buf = buf
+                        continue
+                else:
+                    id = int(buf['id'])
+                if 'cmd' in buf:
+                    if buf['cmd'] == 'kill':
+                        error   = None
+                        reason  = None
+                        if 'params' in buf:
+                            if 'error' in buf['params']:
+                                error   = str(buf['params']['error'])
+                            if 'reason' in buf['params']:
+                                reason  = str(buf['params']['reason'])
+                        self.write_log("Connection was closed [%s, %s]"
+                                %(error,reason),
+                                gurgle.GURGLE_LOG_MODE_ERROR)
+                        self.__is_connected = False
+                        self.__recv_lock_release()
+                        raise gurgle_network_error(
+                                'Connection was closed by peer'
+                            )
                 if request_id == 0:
-                    self.__recv_lock_release()
-                    return buf
-            else:
-                id = int(buf['id'])
-            if 'cmd' in buf:
-                if buf['cmd'] == 'kill':
-                    error   = None
-                    reason  = None
-                    if 'params' in buf:
-                        if 'error' in buf['params']:
-                            error   = str(buf['params']['error'])
-                        if 'reason' in buf['params']:
-                            reason  = str(buf['params']['reason'])
-                    self.write_log("Connection was closed [%s, %s]"
-                            %(error,reason),
-                            gurgle.GURGLE_LOG_MODE_ERROR)
-                    self.__is_connected = False
-                    self.__recv_lock_release()
-                    raise gurgle_network_error(
-                            'Connection was closed by peer'
-                        )
-            if request_id == 0:
+                    if return_buf != None:
+                        self.__package_list.insert(buf,id)
+                        continue
+                    return_buf = buf
+                    continue
+                if id == request_id:
+                    if return_buf != None:
+                        self.write_log("WHAT HAPPEDN?")
+                    return_buf = buf
+                    continue
+                else:
+                    self.__package_list.insert(buf,id)
+            if return_buf != None:
                 self.__recv_lock_release()
-                return buf
-            if id == request_id:
-                self.__recv_lock_release()
-                return buf
-            else:
-                self.__package_list.insert(buf,id)
-                self.__recv_door_1.door_close()
-                self.__recv_door_2.door_open()
-                while self.__recv_roster > 0:
-                    self.__recv_door_2.door_step_into()
-                self.__recv_door_2.door_close()
-                self.__recv_door_1.door_open()
-                while self.__package_list.remove(0):
-                    pass    # remove the packages whitch id = 0 or have no id
-                continue
-        self.write_log("Failed to receive",gurgle.GURGLE_LOG_MODE_ERROR)
-        self.__recv_lock_release()
-        raise gurgle_network_error(
-                'Failed to recvice'
-            )
+                return return_buf
     def send(self,buf):
         if self.is_connected() == False:
             raise gurgle_network_error(
@@ -339,6 +362,26 @@ class gurgle:
         self.__log_level = int(level)
     def get_log_level(self):
         return self.__log_level
+    def analyse_full_id(self,FullSignInID):
+        (protocol,ID)   = FullSignInID.split(':',1)
+        if ID.find("@") == -1:
+            return 'SyntaxError'
+        (username,suffix) = ID.split("@",1)
+        if (username == None) or (suffix == None):
+            return 'SyntaxError'
+        if suffix.find("/") == -1:
+            return (protocol,username,suffix,None)
+        else:
+            (domain,terminal) = suffix.split("/",1)
+            if domain == None:
+                return 'SyntaxError'
+            return (protocol,username,domain,terminal)
+    def make_up_full_id(self,username,domain,terminal = None):
+        if (username == None) or (domain == None):
+            return 'SyntaxError'
+        if terminal == None:
+            terminal = self.create_terminal_id()
+        return "grgl:%s@%s/%s"%(username,domain,terminal)
     def is_remote_addr_set(self):
         if not self.__remoteHost:
             self.write_log('Remote addr is not set!'
@@ -352,7 +395,7 @@ class gurgle:
     def request_roster(self):
 # check whether authenticated
         if not self.is_authenticated(onlineCheck = False):
-            if not self.is_authenticated(onlineCheck = False):
+            if not self.is_authenticated(onlineCheck = True):
                 self.write_log("You have not been authenticated!");
                 return gurgle.GURGLE_FAILED;
         senddata = None
@@ -376,9 +419,10 @@ class gurgle:
     def update_roster(self):
         pass
     def plain_password_auth(self,ID, password,protocol = 'grgl'):
-        status = self.is_authenticated()
-        if status == None:
-            return gurgle.GURGLE_FAILED_TO_RECV
+        try:
+            status = self.is_authenticated()
+        except gurgle_network_error as e:
+            raise gurgle_network_error(e)
         if status == True:
             self.write_log("You have already been authenticated")
             return gurgle.GURGLE_SUCCESS
@@ -437,11 +481,14 @@ class gurgle:
                         "query" : "auth_status"
                     }
                 })
-            if self.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
-                return gurgle.GURGLE_FAILED_TO_SEND
-            recvdata = self.recv(1024,request_id)
-            if recvdata is None:
-                return gurgle.GURGLE_FAILED_TO_RECV
+            try:
+                self.send(encode(senddata))
+            except gurgle_network_error as e:
+                raise gurgle_network_error(e)
+            try:
+                recvdata = self.recv(1024,request_id)
+            except gurgle_network_error as e:
+                raise gurgle_network_error(e)
             if 'params' not in recvdata:
                 self.set_authenticated(False)
                 return False
@@ -523,10 +570,6 @@ class gurgle:
         return gurgle.GURGLE_SUCCESS
     def get_self_information(self):
         pass
-    def publish_presence(self,status = 'avalible', mood = 'null'):
-        if not self.authenticated():
-            self.write_log("Can't publish presence without been authenticated")
-            return gurgle.GURGLE_FAILED
     def is_connected(self):
         return self.__is_connected
     def connect_to_server(self,strDomain,nPort,timeout=5):
@@ -728,6 +771,7 @@ class gurgle:
             else:
                 self.write_log('server replied %s'%recvdata['reply'])
         self.__socket.close()
+        del self.__socket
         self.__is_connected = False
         return gurgle.GURGLE_SUCCESS
 
@@ -751,6 +795,11 @@ if __name__ == '__main__':
     except gurgle_auth_error as err:
 #   Failed to authenticate
         core.write_log("Auth failed")
+        del core
+        exit()
+    except gurgle_network_error as e:
+        core.write_log("Network error:%s"%e)
+        del core
         exit()
     core.write_log("Auth succeed")
     core.publish_self_presence_update(last_name = "SternW",first_name="Zhang",status = "Avaliable")

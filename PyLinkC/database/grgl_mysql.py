@@ -2,7 +2,7 @@
 #!encoding='utf-8'
 import mysql.connector as mysql
 import sys
-sys.path.append("..")
+sys.path.append("%s//..//"%sys.path[0])
 from protocol.gurgle import *
 
 class grgl_mysql_controllor_error(Exception):
@@ -133,7 +133,7 @@ class grgl_mysql_controllor:
                 %(self.USER_INFO_TABLE_NAME,username))
         db_password = self.__mysql_fd.fetchone()
         self.disconnect_from_database()
-        if db_password is None:
+        if db_password[0] is None:
             return grgl_mysql_controllor.AUTH_INCORRECT
         if db_password[0] != password:
             return grgl_mysql_controllor.AUTH_INCORRECT
