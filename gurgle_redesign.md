@@ -63,7 +63,8 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"        : "request's id",    
 "reply"     : {
-  "auth_method"   : ['plain_password']
+  "auth_method"   : ['plain_password']，
+  "error"         : null
 }
 ``` 
 回复值为一个list
@@ -74,14 +75,16 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 "id"        : "id",
 "cmd"       : "query",
 "params"    : {
-  "target"    : "auth_status"
+  "target"    : "auth_status",
+  "error"     : null
 }
 ```
 ### 回应
 ```
 "id"        : "request's id",    
 "reply"     : {
-  "auth_status"  : "Unauthenticated/Authenticated"
+  "auth_status"   : "Unauthenticated/Authenticated",
+  "error"         ： null
 }
 ``` 
 
@@ -98,7 +101,8 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"        : "request's id",    
 "reply"     : {
-  "version"   : "server's version"
+  "version"   : "server's version",
+  "error"     : null
 }
 ``` 
 
@@ -114,12 +118,18 @@ LinkC 协议基于JSON（ 没有更多的说明了）
   }
 }
 ```
-### 回应:
+### 回应: [未实现/在程序中修改]
 ```
-"id": id, "to": full_gurgle_id, "error": null
-"id": id, "to": full_gurgle_id, "error": "password", "reason": "Incorrect username or password."
-"id": id, "to": full_gurgle_id, "error": "user_disabled", "reason": "Your account has been disabled or deactivated."
+"id"  : id, 
+"to"  : full_gurgle_id, 
+"reply" : {
+  "error"   : null,
+  "reason"  : null
+}
 ```
+to字段严格指明你现在登陆的ID，严格遵守ID的格式。
+如果在之前没有指明terminal字段，这里也会为你分配一个
+如果登陆失败.to部分也会指明为你之前发送的from字段的数据
 
 ## 更新自己状态更新(Publishing self presence update)
 ### 推送:
@@ -162,6 +172,8 @@ LinkC 协议基于JSON（ 没有更多的说明了）
   "first_name"  : "first_name"/None,
   "status"      : "Avaliable/Away/Dnd/Invisible",
   "mood"        : "Your new mood"/None
+  "error"       : null,
+  "reason"      : null
 }
 ``` 
 None则意味着你想将这个字段置空    
