@@ -711,10 +711,33 @@ class gurgle:
                 )
             return False
         return True
-    def emergency_quit(self,error       =   "UnknownError",     \
-                            reason      =   "Unkonwn reason",   \
-                            request_id  =   0                   \
-                            ):
+    def forward_message(self,to,params):
+        if to == None or params == None:
+            return gurgle.GURGLE_FAILED
+        senddata = json.dumps({
+            "id"    : 0,
+            "cmd"   : "forward",
+            "params"    : params
+        })
+        try:
+            self.send(encode(senddata))
+        except gurgle_network_error as e:
+            raise gurgle_network_error(e)
+        return gurgle.GURGLE_SUCCESS
+    def add_friend_request(self,to,addition = None):
+        if to == None:
+            return gurgle.GURGLE_FAILED
+        params = None
+        if additions != None:
+            params = {"cmd":"request","params":{"addition":addition}}
+        else:
+            params = {"cmd":"request"}
+        try:
+            self.forward_message(to,params)
+        except gurgle_network_error as e:
+            raise gurgle_network_error(e)
+        return gurgle.GURGLE_SUCCESS
+    def emergency_quit(self,error="UnknownError",reason="Unkonwn reason",request_id=0):
         cmd = "kill"
         if self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
             cmd = "quit"

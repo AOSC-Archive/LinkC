@@ -282,22 +282,13 @@ class serviceThread(threading.Thread):
                         _thread.exit()
                 elif cmd == 'push':
                     if self.is_authenticated   == "Unauthenticated":
-                        self.core.reply_error(   \
-                            request_id,
-                            "PermissionDenied",
-                            "Unauthenticated")
+                        self.core.reply_error(request_id, "PermissionDenied","Unauthenticated")
                         continue
                     if 'params' not in data:
-                        self.core.reply_error(   \
-                            request_id,
-                            "SyntaxError",
-                            "Push without params")
+                        self.core.reply_error(request_id,"SyntaxError","Push without params")
                         continue;
                     if 'target' not in data['params']:
-                        self.core.reply_error(   \
-                            request_id,
-                            "SyntaxError",
-                            "Please specify the target")
+                        self.core.reply_error(request_id,"SyntaxError","Please specify the target")
                         continue;
                     target = str(data['params']['target'])
                     if target == 'presence':
@@ -318,23 +309,16 @@ class serviceThread(threading.Thread):
                         if 'mood' in data['params']:
                             update_dict['mood'] = str(data['params']['mood'])
                         if update_dict == None:
-                            self.core.reply_error(   \
-                                request_id,
-                                "SyntaxError",
-                                "Please specify what you want to modify")
+                            self.core.reply_error(request_id,"SyntaxError","Please specify what you want to modify")
                             continue;
                         try:
                             self.grgl_mysql.update_user_presence(username,update_dict)
                         except grgl_mysql_controllor_error as e:
-                            self.core.reply_error(   \
-                                request_id,
-                                "UnknownError",
-                                "Unkonwn"
-                            )
+                            self.core.reply_error(request_id,"UnknownError","Unkonwn")
                             continue
                         self.core.reply_ok(request_id)
                 elif cmd == 'forward':  # forward messages
-                    pass
+                    self.find_and_send(recvdata['to'],recvdata['params'])
                 elif cmd == 'quit':
                     if 'params' in data:
                         if 'reason' in data['params']:

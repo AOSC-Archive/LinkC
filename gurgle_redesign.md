@@ -245,6 +245,7 @@ None则意味着你想将这个字段置空
 "cmd"       : "forward",
 "to"        : "A's address",
 "params"    : {
+  "id"        : request id
   "cmd"       : "request",
   "params"    : {
     "addition"  : "....."
