@@ -254,26 +254,20 @@ class serviceThread(threading.Thread):
                             senddata = json.dumps({
                                     "id"    : request_id,
                                     "to"    : FullSignInID,
-                                    "error" : None
+                                    "reply" : {
+                                        "error" : None
+                                    }
                                 })
                             self.is_authenticated = 'Authenticated'
                             self.setName(FullSignInID)
                         elif result == grgl_mysql_controllor.AUTH_INCORRECT:
-                            senddata = json.dumps({
-                                    "id"    : request_id,
-                                    "to"    : FullSignInID,
-                                    "error" :"%s"
-                                        %"Username or password is incorrect"
-                                })
                             self.is_authenticated = 'Unauthenticated'
+                            self.core.reply_error(request_id,'AuthFailed','Username or password is incorrect')
+                            continue
                         else:
-                            senddata = json.dumps({
-                                    "id"    : request_id,
-                                    "to"    : FullSignInID,
-                                    "error" :"%s"
-                                   %"Your account has been disabled or deactivated"
-                                })
+                            self.core.reply_error(request_id,'AuthFailed','Your account has been disabled or deactivated')
                             self.is_authenticated = 'Unauthenticated'
+                            continue
                     else:
                         self.core.write_log("Protocol[%s] is not supported yet"
                                 %protocol,gurgle.GURGLE_LOG_MODE_ERROR)
@@ -283,6 +277,8 @@ class serviceThread(threading.Thread):
                                     %protocol,
                                 request_id
                             )
+                        self.core.reply_error(request_id,'ProtocolUnSupported',"Protocol[%s] is not supported yet"%protocol)
+                        self.core.emergency_quit(None,None,0)
                         _thread.exit()
                 elif cmd == 'push':
                     if self.is_authenticated   == "Unauthenticated":

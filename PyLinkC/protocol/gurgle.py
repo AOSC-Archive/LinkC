@@ -164,6 +164,7 @@ class gurgle:
         self.__recv_door_2      = door_lock()
         self.__recv_roster      = 0
         self.__recv_door_2.door_close()
+        self.__gurgleId         = None
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
             self.write_log ('Gurgle version %s %s'
                     %(self.__gurgleVersion,'initlalized as Client'))
@@ -262,6 +263,7 @@ class gurgle:
             if not len(buf):
                 self.write_log('Connection was closed by peer')
                 self.__is_connected = False
+                self.__is_authenticated = False
                 self.__recv_lock_release()
                 raise gurgle_network_error(
                         'Connection was unexpectedly closed by peer'
@@ -308,6 +310,7 @@ class gurgle:
                                 %(error,reason),
                                 gurgle.GURGLE_LOG_MODE_ERROR)
                         self.__is_connected = False
+                        self.__is_authenticated = False
                         self.__recv_lock_release()
                         raise gurgle_network_error(
                                 'Connection was closed by peer'
@@ -362,6 +365,10 @@ class gurgle:
         self.__log_level = int(level)
     def get_log_level(self):
         return self.__log_level
+    def get_self_gurgle_id(self):
+        if self.__is_authenticated:
+            return self.__gurgleId
+        return None
     def analyse_full_id(self,FullSignInID):
         (protocol,ID)   = FullSignInID.split(':',1)
         if ID.find("@") == -1:
@@ -427,11 +434,8 @@ class gurgle:
             self.write_log("You have already been authenticated")
             return gurgle.GURGLE_SUCCESS
         if not (ID and password):
-            self.write_log('Username or password is empty!'
-                    ,gurgle.GURGLE_LOG_MODE_ERROR)
-            raise gurgle_auth_error(
-                    'Username or password is empty'
-                )
+            self.write_log('Username or password is empty!',gurgle.GURGLE_LOG_MODE_ERROR)
+            raise gurgle_auth_error('Username or password is empty')
         if self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
             request_id = self.create_id()
             senddata = json.dumps({
@@ -447,26 +451,36 @@ class gurgle:
             recvdata = self.recv(512,request_id)
             if recvdata == None:
                 return gurgle.GURGLE_FAILED_TO_RECV
-            if 'error' in recvdata:
-                if recvdata['error'] == None:
+            if 'reply' not in recvdata:
+                self.write_log("I just want to sign in but do not reply me ?")
+                self.__is_authenticated = False
+                return gurgle.GURGLE_FAILED
+            if 'error' in recvdata['reply']:
+                if 'to' not in recvdata:
+                    self.write_log("I Have no ID?")
+                    self.__is_authenticated = False
+                    raise gurgle_auth_error('Authenticate Error [No id returned]')
+                if recvdata['reply']['error'] == None:
                     self.set_authenticated(True)
+                    self.__gurgleId = recvdata['to']
+                    self.__is_authenticated = True
                     return gurgle.GURGLE_SUCCESS
                 else:
-                    self.write_log(
-                            "Authenticate Error [%s]"%recvdata['error']
-                        )
-                    raise gurgle_auth_error(
-                            'Authenticate Error [%s]'%recvdata['error']
-                        )
+                    self.write_log("Authenticate Error [%s]"%recvdata['error'])
+                    raise gurgle_auth_error('Authenticate Error [%s]'%recvdata['error'])
             else:
-                self.write_log(data)
+                if 'to' not in recvdata:
+                    self.write_log("I Have no ID?")
+                    self.__is_authenticated = False
+                    raise gurgle_auth_error('Authenticate Error [No id returned]')
+                self.set_authenticated(True)
+                self.__gurgleId = recvdata['to']
+                self.__is_authenticated = True
+                return gurgle.GURGLE_SUCCESS
         else:
-            self.write_log("    \
-                    Server to server authentication is not supported",
-                    gurgle.GURGLE_LOG_MODE_ERROR)
-            raise gurgle_auth_error(
-                    "Server to server authentication is not supported"
-                )
+            self.write_log("Server to server authentication is not supported", gurgle.GURGLE_LOG_MODE_ERROR)
+            self.__is_authenticated = False
+            raise gurgle_auth_error("Server to server authentication is not supported")
     def is_authenticated(self,onlineCheck = False):
         if self.get_runtime_mode() != gurgle.GURGLE_CLIENT:
             return self.__is_authenticated
@@ -704,14 +718,29 @@ class gurgle:
         cmd = "kill"
         if self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
             cmd = "quit"
-        senddata = json.dumps({
+        if error == None:
+            if reason == None:
+                senddata = json.dumps({
+                "id"    : request_id,
+                "cmd"   : cmd
+            })
+            else:
+                senddata = json.dumps({
                 "id"    : request_id,
                 "cmd"   : cmd,
                 "params": {
-                    "error"   : error,
-                    "reason"  : reason
+                    "error"   : error
                 }
             })
+        else:
+            senddata = json.dumps({
+                    "id"    : request_id,
+                    "cmd"   : cmd,
+                    "params": {
+                        "error"   : error,
+                        "reason"  : reason
+                    }
+                })
         self.send(encode(senddata))
         self.__socket.close()
     def reply_error(self,request_id,error,reason,help = None,with_help = False):
@@ -773,6 +802,7 @@ class gurgle:
         self.__socket.close()
         del self.__socket
         self.__is_connected = False
+        self.__is_authenticated = False
         return gurgle.GURGLE_SUCCESS
 
 

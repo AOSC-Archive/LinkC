@@ -19,14 +19,23 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"        : "request's id",
 "cmd"       : "kill",    
+"params"    : {
+  "error"     : "short description of error"/null,
+  "reason"    : "human-readable description of reason"/null,
+}
 "reply"     : {
   "status"    : "connection established/failed",
-  "error"      :   "short description of error",
-  "reason"    :   "human-readable description of reason"
+  "error"     : "short description of error",
+  "reason"    : "human-readable description of reason",
+  "help"      : "help text or null"
 },
 ```
 如果链接正常建立，则只存在"reply"字段中有 "status" : "connection established"
 如果链接建立失败，则"reply":{"status":"connection failed","error":"","reason":""},"cmd":"kill"
+其中,"cmd" : "kill"和"reply"字段是分立的，即"kill"只告诉你要断开连接的事实，而reply仅是connect命令的返回
+也就是说"reply"是由于"connect"命令执行而带来的回执
+如果要寻求"kill"所带有的参数，请参照"params"字段
+当然在这里，kill是不可能带参数的所以祝君放心，毕竟发两个同样的错误回执真是太差劲了
 
 ## 检查延迟(ping)
 ### 请求
@@ -88,6 +97,18 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 }
 ``` 
 
+## 强制关闭连接(Force client disconnect)
+### 命令:
+```
+"id"        : "request id or 0",
+"cmd"       : "kill",
+"params"    : {
+  "error"     : "error"/null,
+  "reason"    : "reason/null"
+}
+```
+服务端发送完报文后就会关闭连接
+
 ## 获取协议版本(Get protocol's version)
 ### 请求
 ```
@@ -118,7 +139,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
   }
 }
 ```
-### 回应: [未实现/在程序中修改]
+### 回应:
 ```
 "id"  : id, 
 "to"  : full_gurgle_id, 
@@ -129,7 +150,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 to字段严格指明你现在登陆的ID，严格遵守ID的格式。
 如果在之前没有指明terminal字段，这里也会为你分配一个
-如果登陆失败.to部分也会指明为你之前发送的from字段的数据
+如果登陆失败，to字段将省略，或者设置为null(目前是省略掉了的，并且reason字段也是省略了的)
 
 ## 更新自己状态更新(Publishing self presence update)
 ### 推送:
