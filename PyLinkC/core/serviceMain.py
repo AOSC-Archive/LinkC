@@ -199,6 +199,25 @@ class serviceThread(threading.Thread):
                                         "version" : self.core.get_version()
                                     }
                             })
+                        elif target == 'presence':
+                            if self.is_authenticated == False:
+                                self.core.reply_error(request_id,"PermissionDenied","Unauthenticated")
+                                continue
+                            try:
+                                (first_name,last_name,status,mood) = self.grgl_mysql.get_user_presence(self.username)
+                            except grgl_mysql_controllor_error as err:
+                                self.core.reply_error(request_id,'DatabaseError',err)
+                                continue
+                            senddata = json.dumps({
+                                'id'    : request_id,
+                                'reply' : {
+                                    'first_name': first_name,
+                                    'last_name' : last_name,
+                                    'status'    : status,
+                                    'mood'      : mood,
+                                    'error'     : None
+                                }    
+                            })
                         else:   #end if of [query]
                             self.core.emergency_quit(    \
                                     'UnknownTarget',
@@ -323,20 +342,20 @@ class serviceThread(threading.Thread):
                             if data['params']['status'] != None:
                                 flag = False
                                 for i in self.core.GURGLE_STATUS_SUPPORTED:
-                                    if data['params']['status'] == i:
+                                    if data['params']['status'].lower() == i:
                                         flag = True
                                         break
                                 if flag == True:        # if found
                                     update_dict['status'] = i
                         if 'mood' in data['params']:
-                            update_dict['mood'] = str(data['params']['mood'])
+                            update_dict['mood'] = str(data['params']['mood']).lower()
                         if update_dict == None:
                             self.core.reply_error(request_id,"SyntaxError","Please specify what you want to modify")
                             continue;
                         try:
                             self.grgl_mysql.update_user_presence(self.username,update_dict)
-                        except grgl_mysql_controllor_error as e:
-                            self.core.reply_error(request_id,"UnknownError","Unkonwn")
+                        except grgl_mysql_controllor_error as err:
+                            self.core.reply_error(request_id,"UnknownError",err)
                             continue
                         self.core.reply_ok(request_id)
                         continue

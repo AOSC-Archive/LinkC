@@ -142,11 +142,13 @@ class grgl_mysql_controllor:
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
         if not self.is_connected():
-            if not self.connect_to_database(self.DATABASE_NAME):
-                return grgl_mysql_controllor.DATABASE_FAILED
+            try:
+                self.connect_to_database(self.DATABASE_NAME)
+            except grgl_mysql_controllor_error as err:
+                raise grgl_mysql_controllor_error(err)
         try:
             self.__mysql_fd.execute(    \
-                "select status,mood from %s where username = '%s'"
+                "select first_name,last_name,status,mood from %s where username = '%s'"
                 %(self.USER_INFO_TABLE_NAME,username))
         except mysql.connector.Error as err:
             gurgle.write_log(gurgle,"Database Error : %s"%err,
@@ -155,12 +157,16 @@ class grgl_mysql_controllor:
         data = self.__mysql_fd.fetchone()
         if data is None:
             return None
-        (status,mood) = data
+        (first_name,last_name,status,mood) = data
+        if first_name == 'None':
+            first_name = None
+        if last_name == 'None':
+            last_name = None
         if status   == 'None':
             status  = None
         if mood     == 'None':
             mood    = None
-        return (status,mood)
+        return (first_name,last_name,status,mood)
     def get_roster(self,username = None):
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
@@ -231,7 +237,7 @@ class grgl_mysql_controllor:
         for i in  update_dict.keys():
             update_string += i
             update_string += "="
-            update_string += '"%s"'%str(update_dict['%s'%i])
+            update_string += '"%s"'%str(update_dict[i])
             update_string += ","
         update_string = update_string[:-1]
         try:

@@ -143,7 +143,7 @@ class gurgle:
     GURGLE_FAILED_TO_SEND               = 18
     GURGLE_CONNECTION_CLOSED            = 19
     GURGLE_VERSION_DNOT_MATCH           = 20
-    GURGLE_STATUS_SUPPORTED             = ['Avaliable','Away','Dnd','Invisible']
+    GURGLE_STATUS_SUPPORTED             = ['avaliable','away','dnd','invisible']
     def __init__(self,_mode):
         self.__gurgleVersion    = 'Unusable'
         self.__remoteHost       = None

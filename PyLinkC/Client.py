@@ -38,5 +38,53 @@ if __name__ == '__main__':
         del core
         exit()
     core.write_log("Auth succeed")
+    command = ""
+    while True:
+        flag = True
+        request_id = core.create_id()
+        command = input("> ")
+        if command == '':
+            continue
+        if not command.find(' '):
+            senddata = {
+                'id'    : request_id,
+                'cmd'   : command
+            }
+            senddata = json.dumps(senddata)
+            core.send(encode(senddata))
+            ask = input("Waiting for reply?(yes) ").lower()
+            if ask == '' or ask == 'yes':
+                buf = core.recv()
+                print ("%s"%buf)
+            continue
+        (command,params) = command.split(' ',1)
+        if command == None:
+            continue
+        params = params.split(' ')
+        senddata = {
+            'id'    : request_id,
+            'cmd'   : command,
+            'params'    : {}
+        }
+        for i in params:
+            tVar=str(i).split("=",1)
+            if tVar == None or tVar[0] == None:
+                print ("SyntaxError in %s"%i)
+                flag = False
+                break
+            (field,value) = tVar
+            if field == None or value == None:
+                print ("SyntaxError in %s"%i)
+                flag = False
+                break
+            senddata['params'][field] = value
+        if flag == False:
+            continue
+        senddata = json.dumps(senddata)
+        core.send(encode(senddata))
+        ask = input("Waiting for reply?(yes) ").lower()
+        if ask == '' or ask == 'yes':
+            buf = core.recv(request_id = request_id)
+            print ("%s"%buf)
     core.publish_self_presence_update(last_name = "SternW",first_name="Zhang",status = "Avaliable")
             

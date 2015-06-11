@@ -165,6 +165,19 @@ to字段严格指明你现在登陆的ID，严格遵守ID的格式。
   "mood"        : "Your new mood"/None
 }
 ```
+None则意味着你想将这个字段置空    
+如果不想更改某个字段，可以选择提交原来的状态   
+或者不提交这个字段也是可以的
+比如：  
+```
+  "id"        : "id",
+  "cmd"       : "push",        
+  "params"     : {    
+    "target"      : "presence",        
+    "last_name"   : "last_name"/None,     
+  }    
+```
+注释：仅修改你的名
 
 ### 回应:
 ```
@@ -188,27 +201,14 @@ to字段严格指明你现在登陆的ID，严格遵守ID的格式。
 ```
 "id"        : "request's id",    
 "reply"     : {
-  "target"      : "presence",
   "last_name"   : "last_name"/None,
   "first_name"  : "first_name"/None,
   "status"      : "Avaliable/Away/Dnd/Invisible",
-  "mood"        : "Your new mood"/None
+  "mood"        : "Your mood"/None
   "error"       : null,
   "reason"      : null
 }
 ``` 
-None则意味着你想将这个字段置空    
-如果不想更改某个字段，可以选择提交原来的状态   
-或者不提交这个字段也是可以的
-比如：  
-```
-  "id"        : "request's id",        
-  "reply"     : {    
-    "target"      : "presence",        
-    "last_name"   : "last_name"/None,     
-  }    
-```
-注释：仅修改你的名
 
 ## 推送好友列表(Push roster)
 ### 推送
