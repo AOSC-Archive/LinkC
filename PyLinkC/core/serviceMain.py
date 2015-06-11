@@ -22,6 +22,8 @@ usernameAllowed = [ 'a','b','c','d','e','f','g','h','i','j','k','l','m',
                     '+','-','_','1','2','3','4','5','6','7','8','9','0']
 
 protocolSupported=[ 'grgl'  ]
+global_ip = '127.0.0.1'
+global_domain = 'localhost'
 class serviceThread(threading.Thread):
     def setup(self,_Socket, _Addr):
         self.core               = gurgle(gurgle.GURGLE_SERVER)
@@ -33,14 +35,35 @@ class serviceThread(threading.Thread):
         self.is_authenticated   = "Unauthenticated"
         self.senddata           = "something to send"
         self.setName("TemporaryConnection")
-    def find_and_send(self,threadName,data):
-        for i in threading.enumerate():
-            tName = i.getName()
-            if tName == "MainThread":
-                continue
-            if tName == threadName: # Asynchronously reference functions
-                i.core.send(data)
-                return
+        self.username = None
+        self.terminal = None
+        self.FullSignInID = None
+    def get_user_id(self):
+        pass
+    def grgl_forward_message(self,name,domain,terminal = None):
+        if domain == None:
+            domain = global_domain
+        if domain == global_domain or domain == global_ip:
+            if terminal == None:
+                for i in threading.enumerate():
+                    tName = i.getName()
+                    if tName == "MainThread":
+                        continue
+                    else:
+                        if i.username == name:
+                            i.core.send(data)
+                            return
+            else:
+                for i in threading.enumerate():
+                    tName = i.getName()
+                    if tName == "MainThread":
+                        continue
+                    elif tName == "TemporaryConnection":
+                        continue
+                    else:
+                        if i.username == name and i.terminal == terminal:
+                            i.core.send(data)
+                            return
     def run(self):
         request_id         = 0
         while True:
@@ -204,28 +227,27 @@ class serviceThread(threading.Thread):
                                 gurgle.GURGLE_LOG_MODE_ERROR)
                         self.core.reply_error(request_id,'SyntaxError','No from field')
                         continue
-                    FullSignInID    = data['from']
-                    if FullSignInID.find(':') == -1:
-                        self.core.reply_error(request_id,'SyntaxError','ID syntax error')
+                    self.FullSignInID    = data['from']
+                    if self.FullSignInID.find(':') == -1:
+                        self.core.reply_error(request_id,'SyntaxError',"No ':' found in ID")
                         continue
-                    (protocol,ID)   = FullSignInID.split(':',1)
-                    isProtocolSupported = False
+                    (protocol,ID)   = self.FullSignInID.split(':',1)
                     if protocol == 'grgl':
-                        tmp_data = self.core.analyse_full_id(FullSignInID)
+                        tmp_data = self.core.analyse_full_id(self.FullSignInID)
                         if str(tmp_data) == 'SyntaxError':
-                            self.core.reply_error(request_id,'SyntaxError','ID syntax error')
+                            self.core.reply_error(request_id,'SyntaxError','ID cannot be analysed')
                             continue
-                        (protocol,username,domain,terminal) = tmp_data
-                        if terminal == None:
-                            terminal = self.core.create_terminal_id()
-                        for ch in username:
+                        (protocol,self.username,domain,self.terminal) = tmp_data
+                        if self.terminal == None:
+                            self.terminal = self.core.create_terminal_id()
+                        for ch in self.username:
                             isFound = False
                             for a in usernameAllowed:
                                 if a == ch:
                                     isFound = True
                                     break
                             if isFound == False:
-                                self.core.reply_error(request_id,'SyntaxError','ID syntax error')
+                                self.core.reply_error(request_id,'SyntaxError','Unallowed character founded')
                                 continue
                         if 'params' not in data:
                             self.core.reply_error(request_id,'SyntaxError','Auth without the params field')
@@ -248,18 +270,18 @@ class serviceThread(threading.Thread):
                             if isFound == False:
                                 self.core.reply_error(request_id,'SyntaxError','Username or password is incorrect')
                                 continue
-                        result = self.grgl_mysql.plain_password_authenticate(username,password)
-                        FullSignInID = self.core.make_up_full_id(username,domain,terminal)
+                        result = self.grgl_mysql.plain_password_authenticate(self.username,password)
+                        self.FullSignInID = self.core.make_up_full_id(self.username,domain,self.terminal)
                         if result == grgl_mysql_controllor.AUTH_SUCCESS:
                             senddata = json.dumps({
                                     "id"    : request_id,
-                                    "to"    : FullSignInID,
+                                    "to"    : self.FullSignInID,
                                     "reply" : {
                                         "error" : None
                                     }
                                 })
                             self.is_authenticated = 'Authenticated'
-                            self.setName(FullSignInID)
+                            self.setName(self.FullSignInID)
                         elif result == grgl_mysql_controllor.AUTH_INCORRECT:
                             self.is_authenticated = 'Unauthenticated'
                             self.core.reply_error(request_id,'AuthFailed','Username or password is incorrect')
@@ -312,13 +334,23 @@ class serviceThread(threading.Thread):
                             self.core.reply_error(request_id,"SyntaxError","Please specify what you want to modify")
                             continue;
                         try:
-                            self.grgl_mysql.update_user_presence(username,update_dict)
+                            self.grgl_mysql.update_user_presence(self.username,update_dict)
                         except grgl_mysql_controllor_error as e:
                             self.core.reply_error(request_id,"UnknownError","Unkonwn")
                             continue
                         self.core.reply_ok(request_id)
+                        continue
                 elif cmd == 'forward':  # forward messages
-                    self.find_and_send(recvdata['to'],recvdata['params'])
+                    if 'to' not in data:
+                        self.core.reply_error(request_id,"SyntaxError","Forwarding without to field")
+                    tmpData = self.core.analyse_full_id(data['to'])
+                    if str(tmpData) == "SyntaxError":
+                        self.core.reply_error(request_id,"SyntaxError","Address cannnot be analysed")
+                    if tmpData[0] == 'grgl':
+                        self.grgl_forward_message(tmpData[1],tmpData[2],tmpData[3])
+                    else:
+                        self.core.reply_error(request_id,"ProtocolUnSupported","Protocol[%s] is not supported yet"%tmpData[0])
+                    continue
                 elif cmd == 'quit':
                     if 'params' in data:
                         if 'reason' in data['params']:

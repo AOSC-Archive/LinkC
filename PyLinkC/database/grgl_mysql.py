@@ -133,7 +133,7 @@ class grgl_mysql_controllor:
                 %(self.USER_INFO_TABLE_NAME,username))
         db_password = self.__mysql_fd.fetchone()
         self.disconnect_from_database()
-        if db_password[0] is None:
+        if db_password == None:
             return grgl_mysql_controllor.AUTH_INCORRECT
         if db_password[0] != password:
             return grgl_mysql_controllor.AUTH_INCORRECT

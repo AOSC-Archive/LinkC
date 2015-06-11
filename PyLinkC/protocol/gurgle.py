@@ -372,9 +372,11 @@ class gurgle:
     def analyse_full_id(self,FullSignInID):
         (protocol,ID)   = FullSignInID.split(':',1)
         if ID.find("@") == -1:
+            self.write_log("@ not found")
             return 'SyntaxError'
         (username,suffix) = ID.split("@",1)
         if (username == None) or (suffix == None):
+            self.write_log("Username or suffix is None [%s]"%ID)
             return 'SyntaxError'
         if suffix.find("/") == -1:
             return (protocol,username,suffix,None)
@@ -441,30 +443,32 @@ class gurgle:
             senddata = json.dumps({
                     "id"    :request_id,
                     "cmd"   :"auth",
-                    "from"  :"%s:%s"%(protocol,ID), 
+                    "from"  :ID,
                     "params":{
                         "method"    :   self.get_auth_method(),
                         "password"  :   password
                     }
                 })
             self.send(encode(senddata))
-            recvdata = self.recv(512,request_id)
-            if recvdata == None:
-                return gurgle.GURGLE_FAILED_TO_RECV
+            try:
+                recvdata = self.recv(512,request_id)
+            except gurgle_network_error as e:
+                raise gurgle_network_error(e)
             if 'reply' not in recvdata:
                 self.write_log("I just want to sign in but do not reply me ?")
                 self.__is_authenticated = False
                 return gurgle.GURGLE_FAILED
             if 'error' in recvdata['reply']:
-                if 'to' not in recvdata:
-                    self.write_log("I Have no ID?")
-                    self.__is_authenticated = False
-                    raise gurgle_auth_error('Authenticate Error [No id returned]')
                 if recvdata['reply']['error'] == None:
                     self.set_authenticated(True)
                     self.__gurgleId = recvdata['to']
                     self.__is_authenticated = True
                     return gurgle.GURGLE_SUCCESS
+                elif 'to' not in recvdata:
+                    self.write_log("NO Id returned")
+                    self.write_log(recvdata)
+                    self.__is_authenticated = False
+                    raise gurgle_auth_error('Authenticate Error [No id returned]')
                 else:
                     self.write_log("Authenticate Error [%s]"%recvdata['error'])
                     raise gurgle_auth_error('Authenticate Error [%s]'%recvdata['error'])
@@ -839,7 +843,7 @@ if __name__ == '__main__':
         pass
     #   Auth
     try:
-        core.plain_password_auth('%s@%s/%s'
+        core.plain_password_auth('grgl:%s@%s/%s'
                         %('tricks',
                         '127.0.0.1',
                         core.create_terminal_id()
