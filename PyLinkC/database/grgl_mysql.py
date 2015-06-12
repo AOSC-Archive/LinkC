@@ -41,7 +41,7 @@ class grgl_mysql_controllor:
         self.__is_connected     = True
         try:
             self.__mysql_fd.execute(    \
-                    "create database if not exists %s"%self.DATABASE_NAME
+                    "CREATE DATABASE IF NOT EXISTS %s"%self.DATABASE_NAME
                 )
         except mysql.Error as err:
             gurgle.write_log(gurgle,"MySQL create database Error %s"%err,
@@ -121,7 +121,7 @@ class grgl_mysql_controllor:
                         grgl_mysql_controllor.DATABASE_NAME):
                 return grgl_mysql_controllor.DATABASE_FAILED
         self.__mysql_fd.execute(    \
-                "select disabled from %s where username = '%s'"
+                "SELECT disabled FROM %s WHERE username = '%s'"
                 %(self.USER_INFO_TABLE_NAME,username))
         data = self.__mysql_fd.fetchone()
         if str(data)[1:-2] == None:
@@ -129,7 +129,7 @@ class grgl_mysql_controllor:
         if str(data)[1:-2] == '1':
             return grgl_mysql_controllor.AUTH_FAILED
         self.__mysql_fd.execute(    \
-                "select password from %s where username = '%s'"
+                "SELECT password FROM %s WHERE username = '%s'"
                 %(self.USER_INFO_TABLE_NAME,username))
         db_password = self.__mysql_fd.fetchone()
         self.disconnect_from_database()
@@ -138,48 +138,82 @@ class grgl_mysql_controllor:
         if db_password[0] != password:
             return grgl_mysql_controllor.AUTH_INCORRECT
         return grgl_mysql_controllor.AUTH_SUCCESS
-    def get_user_presence(self,username = None):
+    def get_user_presence(self,username = None,userid=0,disconnect=True):
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
         if not self.is_connected():
             try:
                 self.connect_to_database(self.DATABASE_NAME)
             except grgl_mysql_controllor_error as err:
+                self.disconnect_from_database()
                 raise grgl_mysql_controllor_error(err)
         try:
-            self.__mysql_fd.execute(    \
-                "select first_name,last_name,status,mood from %s where username = '%s'"
-                %(self.USER_INFO_TABLE_NAME,username))
+            if username != None:
+                self.__mysql_fd.execute(    \
+                    "SELECT last_name,first_name,status,mood FROM %s WHERE username = '%s'"
+                    %(self.USER_INFO_TABLE_NAME,username))
+            elif userid != 0:
+                self.__mysql_fd.execute(    \
+                    "SELECT last_name,first_name,status,mood FROM %s WHERE id = %d"
+                    %(self.USER_INFO_TABLE_NAME,userid))
+            else:
+                return None
         except mysql.connector.Error as err:
             gurgle.write_log(gurgle,"Database Error : %s"%err,
                     gurgle.GURGLE_LOG_MODE_ERROR,self.__log_level)
+            self.disconnect_from_database()
             raise grgl_mysql_controllor_error(err)
         data = self.__mysql_fd.fetchone()
+        if disconnect == True:
+            self.disconnect_from_database()
         if data is None:
             return None
-        (first_name,last_name,status,mood) = data
-        if first_name == 'None':
-            first_name = None
-        if last_name == 'None':
-            last_name = None
-        if status   == 'None':
-            status  = None
-        if mood     == 'None':
-            mood    = None
-        return (first_name,last_name,status,mood)
-    def get_roster(self,username = None):
+        (last_name,first_name_name,status,mood) = data
+        return (last_name,first_name,status,mood)
+    def get_roster(self,username = None,limit=-1):
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
         if not self.is_connected():
             if not self.connect_to_database(self.DATABASE_NAME):
                 return grgl_mysql_controllor.DATABASE_FAILED
-        self.__mysql_fd.execute(    \
-                "select id from %s where username = '%s'"
-                %(self.USER_INFO_TABLE_NAME,username))
+        try:
+            self.__mysql_fd.execute("SELECT id FROM %s WHERE username = '%s'"%(self.USER_INFO_TABLE_NAME,username))
+        except grgl_mysql_controllor_error as err:
+            raise grgl_mysql_controllor_error(err)
         data = self.__mysql_fd.fetchone()
-        if data is None:
+        if data == None:
             return None
+        user_id = int(data[0])
+        try:
+            if limit == -1:
+                self.__mysql_fd.execute("SELECT * FROM id_%d"%user_id)
+            else:
+                self.__mysql_fd.execute("SELECT * FROM id_%d LIMIT %d"%(user_id,limit))
+        except mysql.Error as err:
+            raise grgl_mysql_controllor_error(err)
+        count = 0
+        t_dict = {}
+        r_list = []
+        k = 0
+        while True:
+            tmpVar = self.__mysql_fd.fetchone()
+            if tmpVar == None:
+                break
+            count += 1
+            t_dict[tmpVar[0]] = tmpVar[1]
+        for i in t_dict.keys():
+            try:
+                tmpVar = self.get_user_presence(None,i,False)
+            except:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error("Cannot fetch user(id=%d)'s presence"%i)
+            if tmpVar == None:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error("Cannot fetch user(id=%d)'s presence"%i)
+            r_list[k] = list(t_dict[i]) + list(tmpVar)
+            k+=1
         self.disconnect_from_database()
+        return r_list
     def add_user(self,username = None, password = None):
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
@@ -197,9 +231,9 @@ class grgl_mysql_controllor:
                 return grgl_mysql_controllor.DATABASE_FAILED
         try:
             self.__mysql_fd.execute(    \
-                    "insert into %s (username,password,join_time,"
+                    "INSERT INTO %s (username,password,join_time,"
                     "status,mood,disabled)"
-                    "values('%s','%s','%s','%s','invisible','0')"
+                    "VALUES('%s','%s','%s','%s','invisible','0')"
                     %(self.USER_INFO_TABLE_NAME,username,password,\
                         time.strftime('%Y-%m-%d',time.localtime(time.time())),
                         "invisible"
@@ -212,7 +246,7 @@ class grgl_mysql_controllor:
             raise grgl_mysql_controllor_error(err)
         try:
             self.__mysql_fd.execute(    \
-                    "select id from %s where username = '%s'"
+                    "SELECT id FROM %s WHERE username = '%s'"
                     %(self.USER_INFO_TABLE_NAME,username))
         except mysql.Error as err:
             gurgle.write_log(gurgle,"Mysql Error %s"%err,
@@ -221,7 +255,7 @@ class grgl_mysql_controllor:
         data = self.__mysql_fd.fetchone()
         try:
             self.__mysql_fd.execute(    \
-                    "create table id_%d (friend_id int, nickname char(32))"
+                    "CREATE TABLE id_%d (friend_id int, nickname char(32))"
                     %data[0])
             self.__mysql_conn.commit();
         except mysql.Error as err:
@@ -242,7 +276,7 @@ class grgl_mysql_controllor:
         update_string = update_string[:-1]
         try:
             self.__mysql_fd.execute(    \
-                    "update %s set %s where username = '%s'"
+                    "UPDATE %s SET %s WHERE username = '%s'"
                     %(self.USER_INFO_TABLE_NAME,update_string,username))
             self.__mysql_conn.commit();
         except mysql.Error as err:
@@ -254,9 +288,4 @@ if __name__ == '__main__':
         s = grgl_mysql_controllor()
     except grgl_mysql_controllor_error:
         sys.exit(0)
-    d = {"first_name":"Zhang","last_name":"SternW","status":"invisible","mood":"so bad"}
-    try:
-        s.update_user_presence(d)
-    except grgl_mysql_controllor_error as e:
-        print ("Error %s"%e)
-    #s.add_user('tricks','123321123')
+    s.add_user('test','123321123')

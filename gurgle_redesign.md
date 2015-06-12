@@ -107,6 +107,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
   "reason"    : "reason/null"
 }
 ```
+这是只能由服务端发送
 服务端发送完报文后就会关闭连接
 
 ## 获取协议版本(Get protocol's version)
@@ -209,6 +210,18 @@ None则意味着你想将这个字段置空
   "reason"      : null
 }
 ``` 
+## 请求好友列表(Query roster)
+### 请求:
+```
+"id"        : id,
+"cmd"       : "query",
+"params"    : {
+  "target"    : "roster",
+  "limit"     : 100
+}
+```
+target是必选参数，limit是可选参数
+limit字段指定最大返回好友item的个数，如果不指定这个参数，默认limit为0，也就是无上限
 
 ## 推送好友列表(Push roster)
 ### 推送
@@ -219,8 +232,8 @@ None则意味着你想将这个字段置空
   "target"    : "roster",
   "count"     : 0,1,2,3.......
   "value"     : [
-    ["user1","status","mood"],
-    ["user2","status","mood"],
+    ["nickname","last_name","first_name","status","mood"],
+    ["nickname","last_name","first_name","status","mood"],
     ......
   ]
 }

@@ -204,20 +204,36 @@ class serviceThread(threading.Thread):
                                 self.core.reply_error(request_id,"PermissionDenied","Unauthenticated")
                                 continue
                             try:
-                                (first_name,last_name,status,mood) = self.grgl_mysql.get_user_presence(self.username)
+                                (last_name,first_name,status,mood) = self.grgl_mysql.get_user_presence(self.username)
                             except grgl_mysql_controllor_error as err:
                                 self.core.reply_error(request_id,'DatabaseError',err)
                                 continue
                             senddata = json.dumps({
                                 'id'    : request_id,
                                 'reply' : {
-                                    'first_name': first_name,
                                     'last_name' : last_name,
+                                    'first_name': first_name,
                                     'status'    : status,
                                     'mood'      : mood,
                                     'error'     : None
                                 }    
                             })
+                        elif target == 'roster':
+                            if self.is_authenticated == False:
+                                self.core.reply_error(request_id,"PermissionDenied","Unauthenticated")
+                                continue
+                            try:
+                                tmpVar = self.grgl_mysql.get_roster(self.username)
+                            except grgl_mysql_controllor_error as err:
+                                self.core.reply_error(request_id,"DatabaseError",err)
+                                continue
+                            senddata = json.dumps({
+                                'id'    : request_id,
+                                'reply' : {
+                                    'count' : len(tmpVar),
+                                    'value' : tmpVar
+                                }
+                             })
                         else:   #end if of [query]
                             self.core.emergency_quit(    \
                                     'UnknownTarget',
