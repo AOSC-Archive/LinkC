@@ -17,7 +17,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 现在加密只支持 "disabled"   
 ### 回应 (未修改进程序)
 ```
-"id"        : "request's id",
+"id"        : "message's id",
 "cmd"       : "kill",    
 "params"    : {
   "error"     : "short description of error"/null,
@@ -45,7 +45,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 ### 回应
 ```
-"id"        : "request's id",    
+"id"        : "message's id",    
 "reply"     : "pong"
 ```
 
@@ -70,7 +70,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 
 ### 回应
 ```
-"id"        : "request's id",    
+"id"        : "message's id",    
 "reply"     : {
   "auth_method"   : ['plain_password']，
   "error"         : null
@@ -90,7 +90,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 ### 回应
 ```
-"id"        : "request's id",    
+"id"        : "message's id",    
 "reply"     : {
   "auth_status"   : "Unauthenticated/Authenticated",
   "error"         ： null
@@ -121,7 +121,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 ### 回应
 ```
-"id"        : "request's id",    
+"id"        : "message's id",    
 "reply"     : {
   "version"   : "server's version",
   "error"     : null
@@ -182,7 +182,7 @@ None则意味着你想将这个字段置空
 
 ### 回应:
 ```
-"id"        : "request's id",    
+"id"        : "message's id",    
 "reply"     : {
   "error"     : "PermissionDenied"/OtherErrors/null,
   "reason"    : "Unauthenticated"/null
@@ -200,7 +200,7 @@ None则意味着你想将这个字段置空
 ```
 ### 回应
 ```
-"id"        : "request's id",    
+"id"        : "message's id",    
 "reply"     : {
   "last_name"   : "last_name"/None,
   "first_name"  : "first_name"/None,
@@ -243,7 +243,7 @@ limit字段指定最大返回好友item的个数，如果不指定这个参数�
 若客户端发来错误格式的报文，予以错误回复
 ### 回复
 ```
-"id"        : "request's id",
+"id"        : "message's id",
 "reply"     : {
   "error"     : "SyntaxError",
   "reason"    : details
@@ -254,11 +254,9 @@ limit字段指定最大返回好友item的个数，如果不指定这个参数�
 ## 加入组/添加好友(Friend/group request)
 ### 请求:
 ```
-"id"        : 0,
-"cmd"       : "forward",
-"to"        : "A's address",
+"id"        : request_id,
+"cmd"       : "request"
 "params"    : {
-  "id"        : request id
   "cmd"       : "request",
   "params"    : {
     "addition"  : "....."
@@ -299,5 +297,45 @@ Id为0表示不需要即时回复
   "status"    : "accepted/refused",
   "reason"    : "reason",
   "error"     : null
+}
+```
+
+## 订阅相关
+### 请求订阅某人/某群组:
+```
+"id"        : id_A,
+"cmd"       : "subscribe",
+"params"    : {
+  "to"        : "gurgle id",
+  "addition"  : "something to say"
+}
+```
+### 某人/某群组收到的为:
+```
+"id"        : id_B,
+"cmd"       : "push",
+"params" : {
+  "target"    : "subscribed_request",
+  "from"      : "gurgle id",
+  "addition"  : "something to say"
+}
+```
+### 某人/某群组回复为:
+```
+"id"        : id_B,
+"cmd"       : "subscribe_reply",
+"params"      : {
+  "status"    : "accepted/refused/ignored",
+  "to"        : "gurgle id",
+  "addition"  : "something to say" [拒绝和允许都可以发送附加信息给别人]
+}
+```
+### 请求者收到的回复为
+```
+"id"        : id_A,
+"cmd"       : "reply",
+"params"    : {
+  "status"    : "accepted/refused",
+  "addition"  : "something to say"/null
 }
 ```

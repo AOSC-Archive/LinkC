@@ -41,13 +41,23 @@ if __name__ == '__main__':
     command = ""
     while True:
         flag = True
-        request_id = core.create_id()
+        message_id = core.create_id()
         command = input("> ")
         if command == '':
             continue
+        elif command == 'recv':
+            data = core.recv(message_id = 0)
+            print ("%s"%data)
+            if input("reply?(y/n): ").lower() != 'y':
+                continue
+            else:
+                message_id = data['id'] 
+                command = input("> ")
+                if command == '':
+                    continue
         if not command.find(' '):
             senddata = {
-                'id'    : request_id,
+                'id'    : message_id,
                 'cmd'   : command
             }
             senddata = json.dumps(senddata)
@@ -62,7 +72,7 @@ if __name__ == '__main__':
             continue
         params = params.split(' ')
         senddata = {
-            'id'    : request_id,
+            'id'    : message_id,
             'cmd'   : command,
             'params'    : {}
         }
@@ -84,7 +94,7 @@ if __name__ == '__main__':
         core.send(encode(senddata))
         ask = input("Waiting for reply?(yes) ").lower()
         if ask == '' or ask == 'yes':
-            buf = core.recv(request_id = request_id)
+            buf = core.recv(message_id = message_id)
             print ("%s"%buf)
     core.publish_self_presence_update(last_name = "SternW",first_name="Zhang",status = "Avaliable")
             

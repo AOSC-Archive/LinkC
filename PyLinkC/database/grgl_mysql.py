@@ -70,8 +70,8 @@ class grgl_mysql_controllor:
                     "   last_name char(16),"
                     "   first_name char(16),"
                     "   join_time date not null,"
-                    "   status char(128),"
-                    "   mood char(16) not null,"
+                    "   status char(16) not null,"
+                    "   mood char(255),"
                     "   disabled bool not null"
                     ")"%self.USER_INFO_TABLE_NAME
                 )
@@ -178,17 +178,17 @@ class grgl_mysql_controllor:
                 return grgl_mysql_controllor.DATABASE_FAILED
         try:
             self.__mysql_fd.execute("SELECT id FROM %s WHERE username = '%s'"%(self.USER_INFO_TABLE_NAME,username))
-        except grgl_mysql_controllor_error as err:
+        except mysql.Error as err:
             raise grgl_mysql_controllor_error(err)
         data = self.__mysql_fd.fetchone()
         if data == None:
             return None
         user_id = int(data[0])
         try:
-            if limit == -1:
-                self.__mysql_fd.execute("SELECT * FROM id_%d"%user_id)
+            if limit >= 1:
+                self.__mysql_fd.execute("SELECT * FROM subscribed_list_%d LIMIT %d"%(user_id,limit))
             else:
-                self.__mysql_fd.execute("SELECT * FROM id_%d LIMIT %d"%(user_id,limit))
+                self.__mysql_fd.execute("SELECT * FROM subscribe_list_%d"%user_id)
         except mysql.Error as err:
             raise grgl_mysql_controllor_error(err)
         count = 0
@@ -204,7 +204,7 @@ class grgl_mysql_controllor:
         for i in t_dict.keys():
             try:
                 tmpVar = self.get_user_presence(None,i,False)
-            except:
+            except mysql.Error as err:
                 self.disconnect_from_database()
                 raise grgl_mysql_controllor_error("Cannot fetch user(id=%d)'s presence"%i)
             if tmpVar == None:
@@ -233,7 +233,7 @@ class grgl_mysql_controllor:
             self.__mysql_fd.execute(    \
                     "INSERT INTO %s (username,password,join_time,"
                     "status,mood,disabled)"
-                    "VALUES('%s','%s','%s','%s','invisible','0')"
+                    "VALUES('%s','%s','%s','%s',NULL,0)"
                     %(self.USER_INFO_TABLE_NAME,username,password,\
                         time.strftime('%Y-%m-%d',time.localtime(time.time())),
                         "invisible"
@@ -255,7 +255,16 @@ class grgl_mysql_controllor:
         data = self.__mysql_fd.fetchone()
         try:
             self.__mysql_fd.execute(    \
-                    "CREATE TABLE id_%d (friend_id int, nickname char(32))"
+                    "CREATE TABLE subscribe_list_%d (friend_id INT, nickname CHAR(32))"
+                    %data[0])
+            self.__mysql_conn.commit();
+        except mysql.Error as err:
+            gurgle.write_log(gurgle,"Mysql Error %s"%err,
+                    gurgle.GURGLE_LOG_MODE_ERROR,self.__log_level)
+            raise grgl_mysql_controllor_error(err)
+        try:
+            self.__mysql_fd.execute(    \
+                    "CREATE TABLE offline_message_list_%d (type char(16),time DATETIME, message TEXT)"
                     %data[0])
             self.__mysql_conn.commit();
         except mysql.Error as err:
@@ -267,13 +276,15 @@ class grgl_mysql_controllor:
             if not self.connect_to_database(self.DATABASE_NAME):
                 return grgl_mysql_controllor.DATABASE_FAILED
         update_dict = dict(update_dict)
+        if update_dict == {}:
+            return False
         update_string = ""
         for i in  update_dict.keys():
             update_string += i
             update_string += "="
             update_string += '"%s"'%str(update_dict[i])
             update_string += ","
-        update_string = update_string[:-1]
+        update_string = str(update_string)[:-1]
         try:
             self.__mysql_fd.execute(    \
                     "UPDATE %s SET %s WHERE username = '%s'"
@@ -283,9 +294,45 @@ class grgl_mysql_controllor:
             gurgle.write_log(gurgle,"Mysql Error %s"%err,
                     gurgle.GURGLE_LOG_MODE_ERROR,self.__log_level)
             raise grgl_mysql_controllor_error(err)
+    def insert_offline_message(self,data,type='message',username = None,userid = 0):
+        if data == None:
+            return False
+        if username == None and userid == 0:
+            return False
+        if not self.is_connected():
+            if not self.connect_to_database(self.DATABASE_NAME):
+                return grgl_mysql_controllor.DATABASE_FAILED
+        if username != None:
+            try:
+                self.__mysql_fd.execute(    \
+                        "SELECT id FROM %s WHERE username = '%s'"
+                        %(self.USER_INFO_TABLE_NAME,username))
+            except mysql.Error as err:
+                gurgle.write_log(gurgle,"Mysql Error %s"%err,
+                        gurgle.GURGLE_LOG_MODE_ERROR,self.__log_level)
+                raise grgl_mysql_controllor_error(err)
+            userid = self.__mysql_fd.fetchone()
+            if userid == None:
+                return False
+        try:
+            self.__mysql_fd.execute(    \
+                "INSERT INTO offline_message_list_%d (type,time,message) "
+                "VALUES('%s','%s')"
+                %(int(userid[0]),type,time.strftime('%Y-%m-%d %X',time.localtime(time.time())),data))
+            self.__mysql_conn.commit();
+        except mysql.Error as err:
+            gurgle.write_log(gurgle,"MySQL Error %s"%err,
+                             gurgle.GURGLE_LOG_MODE_ERROR)
+            raise grgl_mysql_controllor_error(err)
+        return True
 if __name__ == '__main__':
     try:
         s = grgl_mysql_controllor()
     except grgl_mysql_controllor_error:
         sys.exit(0)
-    s.add_user('test','123321123')
+    while True:
+        username = input("Username: ")
+        password = input("Password: ")
+        s.add_user(username,password)
+        if input("Continue?(y/n)").lower() != 'y':
+            break

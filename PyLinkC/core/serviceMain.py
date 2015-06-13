@@ -40,19 +40,25 @@ class serviceThread(threading.Thread):
         self.FullSignInID = None
     def get_user_id(self):
         pass
-    def grgl_forward_message(self,name,domain,terminal = None):
+    def grgl_forward_message(self,name,data,domain=None,terminal = None):
         if domain == None:
             domain = global_domain
+        found = False
         if domain == global_domain or domain == global_ip:
             if terminal == None:
                 for i in threading.enumerate():
                     tName = i.getName()
                     if tName == "MainThread":
                         continue
+                    elif tName == "TemporaryConnection":
+                        continue
                     else:
                         if i.username == name:
-                            i.core.send(data)
-                            return
+                            try:
+                                i.core.send(data)
+                            except gurgle_network_error as err:
+                                raise gurgle_network_error(err)
+                            return True
             else:
                 for i in threading.enumerate():
                     tName = i.getName()
@@ -63,9 +69,10 @@ class serviceThread(threading.Thread):
                     else:
                         if i.username == name and i.terminal == terminal:
                             i.core.send(data)
-                            return
+                            return True
+            return False
     def run(self):
-        request_id         = 0
+        message_id         = 0
         while True:
             try:
                 data = self.core.recv(1024)
@@ -75,19 +82,19 @@ class serviceThread(threading.Thread):
                 self.core.write_log("Data without ID",gurgle.GURGLE_LOG_MODE_ERROR)
                 self.core.emergency_quit('SyntaxError','This package has no ID!')
                 _thread.exit()
-            request_id = int(data['id'])
+            message_id = int(data['id'])
             if 'cmd' in data:
                 cmd = str(data['cmd'])
                 if cmd  == 'ping':              # ping
                     if 'payload' in data:
                         senddata = json.dumps({
-                                "id"     : request_id,
+                                "id"     : message_id,
                                 "cmd"    : "pong",
                                 "payload": data['payload']
                             })
                     else:
                         senddata = json.dumps({
-                                "id"    : request_id, 
+                                "id"    : message_id, 
                                 "cmd"   : "pong"
                             })
                 elif cmd == 'connect':
@@ -95,7 +102,7 @@ class serviceThread(threading.Thread):
                         if 'protocol' in data['params']:
                             if str(data['params']['protocol'])!='gurgle':
                                 senddata = json.dumps({
-                                    "id"    : request_id,
+                                    "id"    : message_id,
                                     "reply" : {
                                         "status" : "connection failed"
                                     }
@@ -111,7 +118,7 @@ class serviceThread(threading.Thread):
                                 _thread.exit()
                         else:
                             senddata = json.dumps({
-                                "id"    : request_id,
+                                "id"    : message_id,
                                 "reply" : {
                                    "status" : "connection failed"
                                 }
@@ -128,7 +135,7 @@ class serviceThread(threading.Thread):
                         if 'version' in data['params']:
                             if str(data['params']['version']) !=self.core.get_version():
                                 senddata = json.dumps({
-                                    "id"    : request_id,
+                                    "id"    : message_id,
                                     "reply" : {
                                         "status" : "connection failed"
                                     }
@@ -146,7 +153,7 @@ class serviceThread(threading.Thread):
                                 _thread.exit()
                         else:
                             senddata = json.dumps({
-                                "id"    : request_id,
+                                "id"    : message_id,
                                 "reply" : {
                                     "status" : "connection failed"
                                 }
@@ -161,7 +168,7 @@ class serviceThread(threading.Thread):
                             )
                             _thread.exit()
                         senddata = json.dumps({
-                                    "id"    : request_id,
+                                    "id"    : message_id,
                                     "reply" : {
                                         "status" : "connection establised"
                                     }
@@ -173,43 +180,43 @@ class serviceThread(threading.Thread):
                         self.core.emergency_quit(
                                 'SyntaxError',
                                 'Query without params',
-                                request_id
+                                message_id
                             )
                         _thread.exit()
                     if 'target' in data['params']:
                         target = str(data['params']['target'])
                         if target == 'auth_method':
                             senddata = json.dumps({
-                                    "id"    : request_id,
+                                    "id"    : message_id,
                                     "params":{
                                         "auth_method":self.core.get_auth_method()
                                     }
                                 })
                         elif target == 'auth_status':
                             senddata = json.dumps({
-                                    "id"    : request_id,
+                                    "id"    : message_id,
                                     "params": {
                                         "auth_status" : self.is_authenticated
                                     }
                                 })
                         elif target == 'version':
                             senddata = json.dumps({
-                                    "id"    : request_id,
+                                    "id"    : message_id,
                                     "params": {
                                         "version" : self.core.get_version()
                                     }
                             })
                         elif target == 'presence':
                             if self.is_authenticated == False:
-                                self.core.reply_error(request_id,"PermissionDenied","Unauthenticated")
+                                self.core.reply_error(message_id,"PermissionDenied","Unauthenticated")
                                 continue
                             try:
                                 (last_name,first_name,status,mood) = self.grgl_mysql.get_user_presence(self.username)
                             except grgl_mysql_controllor_error as err:
-                                self.core.reply_error(request_id,'DatabaseError',err)
+                                self.core.reply_error(message_id,'DatabaseError',err)
                                 continue
                             senddata = json.dumps({
-                                'id'    : request_id,
+                                'id'    : message_id,
                                 'reply' : {
                                     'last_name' : last_name,
                                     'first_name': first_name,
@@ -220,15 +227,17 @@ class serviceThread(threading.Thread):
                             })
                         elif target == 'roster':
                             if self.is_authenticated == False:
-                                self.core.reply_error(request_id,"PermissionDenied","Unauthenticated")
+                                self.core.reply_error(message_id,"PermissionDenied","Unauthenticated")
                                 continue
+                            if 'limit' in data['params']:
+                                limit = int(data['params']['limit'])
                             try:
-                                tmpVar = self.grgl_mysql.get_roster(self.username)
+                                tmpVar = self.grgl_mysql.get_roster(self.username,limit)
                             except grgl_mysql_controllor_error as err:
-                                self.core.reply_error(request_id,"DatabaseError",err)
+                                self.core.reply_error(message_id,"DatabaseError",err)
                                 continue
                             senddata = json.dumps({
-                                'id'    : request_id,
+                                'id'    : message_id,
                                 'reply' : {
                                     'count' : len(tmpVar),
                                     'value' : tmpVar
@@ -239,7 +248,7 @@ class serviceThread(threading.Thread):
                                     'UnknownTarget',
                                     "Target[%s] isn't supported"
                                         %target,
-                                     request_id
+                                     message_id
                                 )
                             self.core.write_log("Querying target[%s] isn't supported"
                                     %target
@@ -253,24 +262,24 @@ class serviceThread(threading.Thread):
                                 'UnknownParams',
                                 "Params[%s] isn't supported"
                                     %data['params'],
-                                request_id
+                                message_id
                             )
                         _thread.exit()
                 elif cmd == 'auth':
                     if not 'from' in data:
                         self.core.write_log("Auth without from",
                                 gurgle.GURGLE_LOG_MODE_ERROR)
-                        self.core.reply_error(request_id,'SyntaxError','No from field')
+                        self.core.reply_error(message_id,'SyntaxError','No from field')
                         continue
                     self.FullSignInID    = data['from']
                     if self.FullSignInID.find(':') == -1:
-                        self.core.reply_error(request_id,'SyntaxError',"No ':' found in ID")
+                        self.core.reply_error(message_id,'SyntaxError',"No ':' found in ID")
                         continue
                     (protocol,ID)   = self.FullSignInID.split(':',1)
                     if protocol == 'grgl':
                         tmp_data = self.core.analyse_full_id(self.FullSignInID)
                         if str(tmp_data) == 'SyntaxError':
-                            self.core.reply_error(request_id,'SyntaxError','ID cannot be analysed')
+                            self.core.reply_error(message_id,'SyntaxError','ID cannot be analysed')
                             continue
                         (protocol,self.username,domain,self.terminal) = tmp_data
                         if self.terminal == None:
@@ -282,19 +291,19 @@ class serviceThread(threading.Thread):
                                     isFound = True
                                     break
                             if isFound == False:
-                                self.core.reply_error(request_id,'SyntaxError','Unallowed character founded')
+                                self.core.reply_error(message_id,'SyntaxError','Unallowed character founded')
                                 continue
                         if 'params' not in data:
-                            self.core.reply_error(request_id,'SyntaxError','Auth without the params field')
+                            self.core.reply_error(message_id,'SyntaxError','Auth without the params field')
                             continue
                         if 'method' not in data['params']:
                             method = self.core.get_auth_method()
                         if 'password' not in data['params']:
-                            self.core.reply_error(request_id,'SyntaxError','No password')
+                            self.core.reply_error(message_id,'SyntaxError','No password')
                             continue
                         password = data['params']['password']
                         if password == None:
-                            self.core.reply_error(request_id,'SyntaxError','No password')
+                            self.core.reply_error(message_id,'SyntaxError','No password')
                             continue
                         for ch in password:
                             isFound = False
@@ -303,13 +312,13 @@ class serviceThread(threading.Thread):
                                     isFound = True
                                     break
                             if isFound == False:
-                                self.core.reply_error(request_id,'SyntaxError','Username or password is incorrect')
+                                self.core.reply_error(message_id,'SyntaxError','Username or password is incorrect')
                                 continue
                         result = self.grgl_mysql.plain_password_authenticate(self.username,password)
                         self.FullSignInID = self.core.make_up_full_id(self.username,domain,self.terminal)
                         if result == grgl_mysql_controllor.AUTH_SUCCESS:
                             senddata = json.dumps({
-                                    "id"    : request_id,
+                                    "id"    : message_id,
                                     "to"    : self.FullSignInID,
                                     "reply" : {
                                         "error" : None
@@ -319,10 +328,10 @@ class serviceThread(threading.Thread):
                             self.setName(self.FullSignInID)
                         elif result == grgl_mysql_controllor.AUTH_INCORRECT:
                             self.is_authenticated = 'Unauthenticated'
-                            self.core.reply_error(request_id,'AuthFailed','Username or password is incorrect')
+                            self.core.reply_error(message_id,'AuthFailed','Username or password is incorrect')
                             continue
                         else:
-                            self.core.reply_error(request_id,'AuthFailed','Your account has been disabled or deactivated')
+                            self.core.reply_error(message_id,'AuthFailed','Your account has been disabled or deactivated')
                             self.is_authenticated = 'Unauthenticated'
                             continue
                     else:
@@ -332,20 +341,20 @@ class serviceThread(threading.Thread):
                                 "ProtocolUnSupported",
                                 "Protocol[%s] is not supported yet"
                                     %protocol,
-                                request_id
+                                message_id
                             )
-                        self.core.reply_error(request_id,'ProtocolUnSupported',"Protocol[%s] is not supported yet"%protocol)
+                        self.core.reply_error(message_id,'ProtocolUnSupported',"Protocol[%s] is not supported yet"%protocol)
                         self.core.emergency_quit(None,None,0)
                         _thread.exit()
                 elif cmd == 'push':
                     if self.is_authenticated   == "Unauthenticated":
-                        self.core.reply_error(request_id, "PermissionDenied","Unauthenticated")
+                        self.core.reply_error(message_id, "PermissionDenied","Unauthenticated")
                         continue
                     if 'params' not in data:
-                        self.core.reply_error(request_id,"SyntaxError","Push without params")
+                        self.core.reply_error(message_id,"SyntaxError","Push without params")
                         continue;
                     if 'target' not in data['params']:
-                        self.core.reply_error(request_id,"SyntaxError","Please specify the target")
+                        self.core.reply_error(message_id,"SyntaxError","Please specify the target")
                         continue;
                     target = str(data['params']['target'])
                     if target == 'presence':
@@ -365,26 +374,66 @@ class serviceThread(threading.Thread):
                                     update_dict['status'] = i
                         if 'mood' in data['params']:
                             update_dict['mood'] = str(data['params']['mood']).lower()
-                        if update_dict == None:
-                            self.core.reply_error(request_id,"SyntaxError","Please specify what you want to modify")
+                        if update_dict == {}:
+                            self.core.reply_error(message_id,"SyntaxError","Please specify what you want to modify")
                             continue;
                         try:
                             self.grgl_mysql.update_user_presence(self.username,update_dict)
                         except grgl_mysql_controllor_error as err:
-                            self.core.reply_error(request_id,"UnknownError",err)
+                            self.core.reply_error(message_id,"UnknownError",err)
                             continue
-                        self.core.reply_ok(request_id)
+                        self.core.reply_ok(message_id)
                         continue
                 elif cmd == 'forward':  # forward messages
                     if 'to' not in data:
-                        self.core.reply_error(request_id,"SyntaxError","Forwarding without to field")
+                        self.core.reply_error(message_id,"SyntaxError","Forwarding without to field")
                     tmpData = self.core.analyse_full_id(data['to'])
                     if str(tmpData) == "SyntaxError":
-                        self.core.reply_error(request_id,"SyntaxError","Address cannnot be analysed")
+                        self.core.reply_error(message_id,"SyntaxError","Address cannnot be analysed")
                     if tmpData[0] == 'grgl':
                         self.grgl_forward_message(tmpData[1],tmpData[2],tmpData[3])
                     else:
-                        self.core.reply_error(request_id,"ProtocolUnSupported","Protocol[%s] is not supported yet"%tmpData[0])
+                        self.core.reply_error(message_id,"ProtocolUnSupported","Protocol[%s] is not supported yet"%tmpData[0])
+                    continue
+                elif cmd == 'subscribe':
+                    if 'params' not in data:
+                        self.core.reply_error(message_id,"SyntaxError","No params")
+                        continue
+                    if 'to' not in data['params']:
+                        self.core.reply_error(message_id,"SyntaxError","Tell me who you want to subscribe(use 'to' field)")
+                        continue
+                    tmpVar = self.core.analyse_full_id(data['params']['to'])
+                    if tmpVar == 'SyntaxError':
+                        self.core.reply_error(message_id,"BadID","Bad Id syntax")
+                        continue
+                    if 'addition' not in data['params']:
+                        addition = None
+                    else:
+                        addition = data['params']
+                    senddata = json.dumps({
+                        "id"    : self.core.create_id(),
+                        "cmd"   : "push",
+                        "params": {
+                            "target"    : "subscribe_request",
+                            "from"      : self.FullSignInID,
+                            "addition"  : addition
+                        }
+                    })
+                    try:
+                        status = self.grgl_mysql.insert_offline_message(senddata,'request',tmpVar[1])
+                    except grgl_mysql_controllor_error as err:
+                        self.core.reply_error(message_id,"DatabaseError",err)
+                        continue
+                    if status == False:
+                        self.core.reply_error(message_id,"ForwardError","Unable to forward to such user")
+                        continue
+                    try:
+                        self.grgl_forward_message(tmpVar[1],encode(senddata))
+                    except gurgle_network_error as err:
+                        self.core.emergency_quit()
+                        self.core.write_log("NetworkError : %s"%err,
+                            gurgle.GURGLE_LOG_MODE_ERROR)
+                        _thread.exit()
                     continue
                 elif cmd == 'quit':
                     if 'params' in data:
@@ -395,7 +444,7 @@ class serviceThread(threading.Thread):
                     else:
                         self.core.write_log('Client quited without reason',
                                 gurgle.GURGLE_LOG_MODE_DEBUG)
-                    senddata = json.dumps({"id":"%d"%request_id,"reply":"bye"})
+                    senddata = json.dumps({"id":"%d"%message_id,"reply":"bye"})
                     self.core.send(encode(senddata))
                     self.core.disconnect_from_remote()
                     _thread.exit()
@@ -405,7 +454,7 @@ class serviceThread(threading.Thread):
                     self.core.emergency_quit(    \
                             'UnknownCmd',
                             "Cmd[%s] isn't supported"%data['cmd'],
-                            request_id
+                            message_id
                         )
                     _thread.exit()
             if self.core.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:

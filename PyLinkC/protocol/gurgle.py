@@ -224,7 +224,7 @@ class gurgle:
             self.__recv_door_2.door_step_into()
         self.__recv_door_2.door_close()
         self.__recv_door_1.door_open()
-    def recv(self,buf_size = 512, request_id = 0, timeout = 5, max_try = 2):
+    def recv(self,buf_size = 512, message_id = 0, timeout = 5, max_try = 2):
         if self.is_connected() == False:
             return None
         buf = None
@@ -235,7 +235,7 @@ class gurgle:
                 break
             self.__recv_roaster += 1
             self.__recv_door_2.door_step_into()
-            data = self.__package_list.get_data(request_id)
+            data = self.__package_list.get_data(message_id)
             self.__recv_roaster -= 1
             self.__recv_door_2.door_step_out()
             if data is not None:
@@ -247,7 +247,7 @@ class gurgle:
         self.__socket.settimeout(timeout)
         return_data = None
         while True:
-            data = self.__package_list.get_data(request_id)
+            data = self.__package_list.get_data(message_id)
             if data is not None:
                 self.__recv_lock_release()
                 return data
@@ -292,7 +292,7 @@ class gurgle:
                     self.write_log("Error package = [%s]"%buf)
                     continue
                 if 'id' not in buf:
-                    if request_id == 0:
+                    if message_id == 0:
                         return_buf = buf
                         continue
                 else:
@@ -315,13 +315,13 @@ class gurgle:
                         raise gurgle_network_error(
                                 'Connection was closed by peer'
                             )
-                if request_id == 0:
+                if message_id == 0:
                     if return_buf != None:
                         self.__package_list.insert(buf,id)
                         continue
                     return_buf = buf
                     continue
-                if id == request_id:
+                if id == message_id:
                     if return_buf != None:
                         self.write_log("WHAT HAPPEDN?")
                     return_buf = buf
@@ -389,7 +389,7 @@ class gurgle:
         if (username == None) or (domain == None):
             return 'SyntaxError'
         if terminal == None:
-            terminal = self.create_terminal_id()
+            return "grgl:%s@%s"%(username,domain)
         return "grgl:%s@%s/%s"%(username,domain,terminal)
     def is_remote_addr_set(self):
         if not self.__remoteHost:
@@ -408,18 +408,18 @@ class gurgle:
                 self.write_log("You have not been authenticated!");
                 return gurgle.GURGLE_FAILED;
         senddata = None
-        request_id = self.create_id()
+        message_id = self.create_id()
         rosterETag = self.get_roster_etag()
         if not rosterETag:
         # Directly get the whole of roster
             senddata = json.dumps({
-                    "id"    : request_id,
+                    "id"    : message_id,
                     "cmd"   : "get_roster",
                 })
         else:
         # Use ETag
             senddata = json.dumps({
-                    "id"    : request_id,
+                    "id"    : message_id,
                     "cmd"   : "get_roster",
                     "params":{
                         "etag"  : rosterETag
@@ -439,9 +439,9 @@ class gurgle:
             self.write_log('Username or password is empty!',gurgle.GURGLE_LOG_MODE_ERROR)
             raise gurgle_auth_error('Username or password is empty')
         if self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
-            request_id = self.create_id()
+            message_id = self.create_id()
             senddata = json.dumps({
-                    "id"    :request_id,
+                    "id"    :message_id,
                     "cmd"   :"auth",
                     "from"  :ID,
                     "params":{
@@ -451,7 +451,7 @@ class gurgle:
                 })
             self.send(encode(senddata))
             try:
-                recvdata = self.recv(512,request_id)
+                recvdata = self.recv(512,message_id)
             except gurgle_network_error as e:
                 raise gurgle_network_error(e)
             if 'reply' not in recvdata:
@@ -491,9 +491,9 @@ class gurgle:
         else:
             if not onlineCheck:
                 return self.__is_authenticated
-            request_id = self.create_id()
+            message_id = self.create_id()
             senddata = json.dumps({
-                    "id"    : request_id,
+                    "id"    : message_id,
                     "cmd"   : "query",
                     "params": {
                         "query" : "auth_status"
@@ -504,7 +504,7 @@ class gurgle:
             except gurgle_network_error as e:
                 raise gurgle_network_error(e)
             try:
-                recvdata = self.recv(1024,request_id)
+                recvdata = self.recv(1024,message_id)
             except gurgle_network_error as e:
                 raise gurgle_network_error(e)
             if 'params' not in recvdata:
@@ -522,15 +522,15 @@ class gurgle:
     def set_authenticated(self,Authenticated):
         self.__is_authenticated = Authenticated
     def ping(self):
-        request_id = self.create_id()
+        message_id = self.create_id()
         senddata = json.dumps({
-                "id"    : request_id,
+                "id"    : message_id,
                 "cmd"   : "ping"
             })
         preSentTime = datetime.datetime.now().microsecond;
         if self.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
-        recvdata = self.recv(1024,request_id)
+        recvdata = self.recv(1024,message_id)
         if recvdata is None:
             return gurgle.GURGLE_FAILED_TO_RECV
         if 'cmd' not in recvdata:
@@ -540,9 +540,9 @@ class gurgle:
         # do something
         return gurgle.GURGLE_SUCCESS
     def check_auth_method(self,currentUsedMethod):
-        request_id = self.create_id()
+        message_id = self.create_id()
         data = json.dumps({
-                "id"    :request_id,
+                "id"    :message_id,
                 "cmd"   :"query",
                 "params":{
                     "target" : "auth_method"
@@ -550,7 +550,7 @@ class gurgle:
             })
         if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
-        recvdata = self.recv(1024,request_id)
+        recvdata = self.recv(1024,message_id)
         if recvdata is None:
             return gurgle.GURGLE_FAILED_TO_RECV
         TempList = None
@@ -568,9 +568,9 @@ class gurgle:
                 break;
         return isAuthenticatedMethodSupported
     def check_version(self):
-        request_id = self.create_id()
+        message_id = self.create_id()
         data = json.dumps({
-                "id"     : request_id,
+                "id"     : message_id,
                 "cmd"    : "query",
                 "params" : {
                     "target"  : "version"
@@ -578,7 +578,7 @@ class gurgle:
             })
         if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
-        recvdata = self.recv(1024,request_id)
+        recvdata = self.recv(1024,message_id)
         if recvdata is None:
             return gurgle.GURGLE_FAILED_TO_RECV
         if 'params' not in recvdata:
@@ -631,9 +631,9 @@ class gurgle:
 #   Basic connection was built
         self.__is_connected = True
 #   Check version
-        request_id = self.create_id()
+        message_id = self.create_id()
         senddata = json.dumps({
-            "id"    : request_id,
+            "id"    : message_id,
             "cmd"   : "connect",
             "params": {
                 "protocol"  : "gurgle",
@@ -642,7 +642,7 @@ class gurgle:
             }
         })
         self.send(encode(senddata))
-        buf = self.recv(1024,request_id)
+        buf = self.recv(1024,message_id)
         if buf['reply']['status'] == 'connection failed':
             self.write_log("Failed to connect, waiting for details",
                     gurgle.GURGLE_LOG_MODE_ERROR)
@@ -741,19 +741,19 @@ class gurgle:
         except gurgle_network_error as e:
             raise gurgle_network_error(e)
         return gurgle.GURGLE_SUCCESS
-    def emergency_quit(self,error="UnknownError",reason="Unkonwn reason",request_id=0):
+    def emergency_quit(self,error="UnknownError",reason="Unkonwn reason",message_id=0):
         cmd = "kill"
         if self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
             cmd = "quit"
         if error == None:
             if reason == None:
                 senddata = json.dumps({
-                "id"    : request_id,
+                "id"    : message_id,
                 "cmd"   : cmd
             })
             else:
                 senddata = json.dumps({
-                "id"    : request_id,
+                "id"    : message_id,
                 "cmd"   : cmd,
                 "params": {
                     "error"   : error
@@ -761,22 +761,25 @@ class gurgle:
             })
         else:
             senddata = json.dumps({
-                    "id"    : request_id,
+                    "id"    : message_id,
                     "cmd"   : cmd,
                     "params": {
                         "error"   : error,
                         "reason"  : reason
                     }
                 })
-        self.send(encode(senddata))
+        try:
+            self.send(encode(senddata))
+        except gurgle_network_error as err:
+            pass
         self.__socket.close()
-    def reply_error(self,request_id,error,reason,help = None,with_help = False):
+    def reply_error(self,message_id,error,reason,help = None,with_help = False):
         error = str(error)
         reason =  str(reason)
         if with_help == False:
             help = None
         senddata = json.dumps({
-                "id"    : request_id,
+                "id"    : message_id,
                 "reply" : {
                     "error" : error,
                     "reason": reason,
@@ -786,9 +789,9 @@ class gurgle:
         if self.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
         return gurgle.GURGLE_SUCCESS
-    def reply_ok(self,request_id):
+    def reply_ok(self,message_id):
         senddata = json.dumps({
-                "id"    : request_id,
+                "id"    : message_id,
                 "reply" : {
                     "error" : None
                 }
@@ -798,16 +801,16 @@ class gurgle:
         return gurgle.GURGLE_SUCCESS
     def disconnect_from_remote(self,                    \
                     reason      = "Unkonwn reason",     \
-                    request_id  = 0):
+                    message_id  = 0):
         if not self.is_connected():
             self.write_log('You have not connected to remote!'
                     ,gurgle.GURGLE_LOG_MODE_ERROR)
             return  gurgle.GURGLE_FAILED_TO_CONNECT_TO_REMOTE
         elif self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
-            if request_id == 0:
-                request_id = self.create_id()
+            if message_id == 0:
+                message_id = self.create_id()
             senddata = json.dumps({
-                "id"    : request_id,
+                "id"    : message_id,
                 "cmd"   : "quit",
                 "params": {
                     "reason"    : reason
@@ -815,7 +818,7 @@ class gurgle:
             })
             senddata = senddata.encode()
             self.send(senddata)
-            recvdata = self.recv(512,request_id)
+            recvdata = self.recv(512,message_id)
             if recvdata == None:
                 self.write_log("Connection was closed by peer"
                         ,gurgle.GURGLE_LOG_MODE_ERROR)
