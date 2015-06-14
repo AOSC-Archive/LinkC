@@ -38,6 +38,10 @@ class serviceThread(threading.Thread):
         self.username = None
         self.terminal = None
         self.FullSignInID = None
+        self.userid = 0
+    def __del__(self):
+        del self.core
+        del self.grgl_mysql
     def get_user_id(self):
         pass
     def grgl_forward_message(self,name,data,domain=None,terminal = None):
@@ -317,6 +321,11 @@ class serviceThread(threading.Thread):
                         result = self.grgl_mysql.plain_password_authenticate(self.username,password)
                         self.FullSignInID = self.core.make_up_full_id(self.username,domain,self.terminal)
                         if result == grgl_mysql_controllor.AUTH_SUCCESS:
+                            try:
+                                self.userid = self.grgl_mysql.get_user_id(self.username)
+                            except grgl_mysql_controllor_error as err:
+                                self.core.reply_error(message_id,"DatabaseError","Cannot get your ID")
+                                continue
                             senddata = json.dumps({
                                     "id"    : message_id,
                                     "to"    : self.FullSignInID,
@@ -326,6 +335,13 @@ class serviceThread(threading.Thread):
                                 })
                             self.is_authenticated = 'Authenticated'
                             self.setName(self.FullSignInID)
+                            try:
+                                self.core.send(encode(senddata))
+                            except gurgle_network_error as err:
+                                self.core.write_log(err,gurgle.GURGLE_LOG_MODE_ERROR)
+                                self.core.emergency_quit()
+                                del self.core
+                                _thread.exit()
                         elif result == grgl_mysql_controllor.AUTH_INCORRECT:
                             self.is_authenticated = 'Unauthenticated'
                             self.core.reply_error(message_id,'AuthFailed','Username or password is incorrect')
@@ -385,6 +401,9 @@ class serviceThread(threading.Thread):
                         self.core.reply_ok(message_id)
                         continue
                 elif cmd == 'forward':  # forward messages
+                    if self.is_authenticated   == "Unauthenticated":
+                        self.core.reply_error(message_id, "PermissionDenied","Unauthenticated")
+                        continue
                     if 'to' not in data:
                         self.core.reply_error(message_id,"SyntaxError","Forwarding without to field")
                     tmpData = self.core.analyse_full_id(data['to'])
@@ -396,6 +415,9 @@ class serviceThread(threading.Thread):
                         self.core.reply_error(message_id,"ProtocolUnSupported","Protocol[%s] is not supported yet"%tmpData[0])
                     continue
                 elif cmd == 'subscribe':
+                    if self.is_authenticated   == "Unauthenticated":
+                        self.core.reply_error(message_id, "PermissionDenied","Unauthenticated")
+                        continue
                     if 'params' not in data:
                         self.core.reply_error(message_id,"SyntaxError","No params")
                         continue
@@ -411,16 +433,16 @@ class serviceThread(threading.Thread):
                     else:
                         addition = data['params']
                     senddata = json.dumps({
-                        "id"    : self.core.create_id(),
+                        "id"    : message_id,
                         "cmd"   : "push",
                         "params": {
-                            "target"    : "subscribe_request",
-                            "from"      : self.FullSignInID,
+                            "target"    : "subscribed_request",
+                            "from"      : self.core.make_up_full_id(self.username,global_domain),
                             "addition"  : addition
                         }
                     })
                     try:
-                        status = self.grgl_mysql.insert_offline_message(senddata,'request',tmpVar[1])
+                        status = self.grgl_mysql.insert_offline_message(senddata,message_id,'request',tmpVar[1])
                     except grgl_mysql_controllor_error as err:
                         self.core.reply_error(message_id,"DatabaseError",err)
                         continue
@@ -434,6 +456,89 @@ class serviceThread(threading.Thread):
                         self.core.write_log("NetworkError : %s"%err,
                             gurgle.GURGLE_LOG_MODE_ERROR)
                         _thread.exit()
+                    continue
+                elif cmd == 'subscribed_reply':
+                    if self.is_authenticated   == "Unauthenticated":
+                        self.core.reply_error(message_id, "PermissionDenied","Unauthenticated")
+                        continue
+                    if 'params' not in data:
+                        self.core.reply_error(message_id,"SyntaxError","No params")
+                        continue
+                    if 'status' not in data['params']:
+                        self.core.reply_error(message_id,"SyntaxError","No status in params")
+                        continue
+                    if 'addition' in data['params']:
+                        addition = data['params']['addition']
+                    else:
+                        addition = None
+                    if 'to' in data['params']:
+                        to_id = data['params']['to']
+                    else:
+                        addition = None
+                    try:
+                        tmpVar = self.grgl_mysql.get_offline_message(None,self.userid,None,data['id'],True)
+                    except grgl_mysql_controllor_error as err:
+                        self.core.reply_error(message_id,"DatabaseError",err)
+                        continue
+                    if tmpVar == None:
+                        self.core.reply_error(message_id,"NoSuchUser","There's no such user")
+                        continue
+                    (tmpId,tmpData) = tmpVar
+                    tmpData = tmpData[0]
+                    tmpId   = tmpId[0]
+                    if tmpData['cmd'] != 'push':
+                        self.core.reply_error(message_id,"UnknowError","UnkonwError in subscribed_reply[1]")
+                        continue
+                    if tmpData['params']['target'] != "subscribed_request":
+                        self.core.reply_error(message_id,"UnknowError","UnkonwError in subscribed_reply[2]")
+                        continue
+                    if 'from' not in tmpData['params']:
+                        self.core.reply_error(message_id,"UnknowError","UnkonwError in subscribed_reply[3]")
+                        continue
+                    if  tmpData['params']['from'] == None:
+                        self.core.reply_error(message_id,"UnknowError","UnkonwError in subscribed_reply[4]")
+                        continue
+                    if self.core.is_id_match(tmpData['params']['from'],to_id,global_domain,global_ip) == False:
+                        self.core.reply_error(message_id,"UnknowError","UnkonwError in subscribed_reply[5]")
+                        continue
+                    if data['params']['status'].lower() == 'accepted':
+                        senddata = json.dumps({
+                            "id"    : message_id,
+                            "cmd"   : "reply",
+                            "params":{
+                                "status"    : "accepted",
+                                "addition"  : addition
+                            }
+                        })
+                    elif data['params']['status'] == 'ignore':
+                        continue
+                    else:
+                        senddata = json.dumps({
+                            "id"    : message_id,
+                            "cmd"   : "reply",
+                            "params":{
+                                "status"    : "refused",
+                                "addition"  : addition
+                            }
+                        })
+                    to_name = self.core.analyse_full_id(to_id)[1]
+                    try:
+                        status = self.grgl_forward_message(to_name,encode(senddata))
+                    except gurgle_network_error as err:
+                        self.core.reply_error(tmpId,'ForwardError',err)
+                    if status == False:
+                        try:
+                            self.grgl_mysql.insert_offline_message(senddata,tmpId,'message',to_name)
+                        except grgl_mysql_controllor_error as err:
+                            self.core.reply_error(message_id,'DatabaseError','Cannot insert offline meesage')
+                            continue
+                    if data['params']['status'].lower() == 'accepted':
+                        try:
+                            self.grgl_mysql.accept_subscribed_request(self.username,to_name)
+                        except grgl_mysql_controllor_error as err:
+                            self.core.reply_error(message_id,'DatabaseError','Cannot insert offline meesage')
+                            continue
+                    self.core.reply_ok(message_id)
                     continue
                 elif cmd == 'quit':
                     if 'params' in data:

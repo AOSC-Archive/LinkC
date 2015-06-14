@@ -113,20 +113,26 @@ class grgl_mysql_controllor:
                 self.__mysql_conn.close()
             self.__is_connected = False
         return grgl_mysql_controllor.DATABASE_SUCCESS
-    def plain_password_authenticate(self,username,password):
+    def plain_password_authenticate(self,username,password,disconnect=True):
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
         if not self.is_connected():
-            if not self.connect_to_database(
-                        grgl_mysql_controllor.DATABASE_NAME):
-                return grgl_mysql_controllor.DATABASE_FAILED
+            try:
+                self.connect_to_database(self.DATABASE_NAME)
+            except grgl_mysql_controllor_error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
         self.__mysql_fd.execute(    \
                 "SELECT disabled FROM %s WHERE username = '%s'"
                 %(self.USER_INFO_TABLE_NAME,username))
         data = self.__mysql_fd.fetchone()
         if str(data)[1:-2] == None:
+            if disconnect:
+                self.disconnect_from_database()
             return grgl_mysql_controllor.AUTH_INCORRECT
         if str(data)[1:-2] == '1':
+            if disconnect:
+                self.disconnect_from_database()
             return grgl_mysql_controllor.AUTH_FAILED
         self.__mysql_fd.execute(    \
                 "SELECT password FROM %s WHERE username = '%s'"
@@ -137,6 +143,8 @@ class grgl_mysql_controllor:
             return grgl_mysql_controllor.AUTH_INCORRECT
         if db_password[0] != password:
             return grgl_mysql_controllor.AUTH_INCORRECT
+        if disconnect:
+            self.disconnect_from_database()
         return grgl_mysql_controllor.AUTH_SUCCESS
     def get_user_presence(self,username = None,userid=0,disconnect=True):
         if username is None:
@@ -158,7 +166,7 @@ class grgl_mysql_controllor:
                     %(self.USER_INFO_TABLE_NAME,userid))
             else:
                 return None
-        except mysql.connector.Error as err:
+        except mysql.Error as err:
             gurgle.write_log(gurgle,"Database Error : %s"%err,
                     gurgle.GURGLE_LOG_MODE_ERROR,self.__log_level)
             self.disconnect_from_database()
@@ -169,19 +177,26 @@ class grgl_mysql_controllor:
         if data is None:
             return None
         (last_name,first_name_name,status,mood) = data
+        if disconnect:
+            self.disconnect_from_database()
         return (last_name,first_name,status,mood)
-    def get_roster(self,username = None,limit=-1):
+    def get_roster(self,username = None,limit=-1,disconnect=True):
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
         if not self.is_connected():
-            if not self.connect_to_database(self.DATABASE_NAME):
-                return grgl_mysql_controllor.DATABASE_FAILED
+            try:
+                self.connect_to_database(self.DATABASE_NAME)
+            except grgl_mysql_controllor_error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
         try:
             self.__mysql_fd.execute("SELECT id FROM %s WHERE username = '%s'"%(self.USER_INFO_TABLE_NAME,username))
         except mysql.Error as err:
             raise grgl_mysql_controllor_error(err)
         data = self.__mysql_fd.fetchone()
         if data == None:
+            if disconnect:
+                self.disconnect_from_database()
             return None
         user_id = int(data[0])
         try:
@@ -213,8 +228,10 @@ class grgl_mysql_controllor:
             r_list[k] = list(t_dict[i]) + list(tmpVar)
             k+=1
         self.disconnect_from_database()
+        if disconnect:
+            self.disconnect_from_database()
         return r_list
-    def add_user(self,username = None, password = None):
+    def add_user(self,username = None, password = None,disconnect=True):
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
         data = self.get_user_presence(username)
@@ -227,8 +244,11 @@ class grgl_mysql_controllor:
         if password is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
         if not self.is_connected():
-            if not self.connect_to_database(self.DATABASE_NAME):
-                return grgl_mysql_controllor.DATABASE_FAILED
+            try:
+                self.connect_to_database(self.DATABASE_NAME)
+            except grgl_mysql_controllor_error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
         try:
             self.__mysql_fd.execute(    \
                     "INSERT INTO %s (username,password,join_time,"
@@ -255,7 +275,7 @@ class grgl_mysql_controllor:
         data = self.__mysql_fd.fetchone()
         try:
             self.__mysql_fd.execute(    \
-                    "CREATE TABLE subscribe_list_%d (friend_id INT, nickname CHAR(32))"
+                    "CREATE TABLE subscribed_list_%d (friend_id INT, nickname CHAR(32))"
                     %data[0])
             self.__mysql_conn.commit();
         except mysql.Error as err:
@@ -264,17 +284,23 @@ class grgl_mysql_controllor:
             raise grgl_mysql_controllor_error(err)
         try:
             self.__mysql_fd.execute(    \
-                    "CREATE TABLE offline_message_list_%d (type char(16),time DATETIME, message TEXT)"
+                    "CREATE TABLE offline_message_list_%d (message_id INT,type char(16),time DATETIME, message TEXT)"
                     %data[0])
             self.__mysql_conn.commit();
         except mysql.Error as err:
             gurgle.write_log(gurgle,"Mysql Error %s"%err,
                     gurgle.GURGLE_LOG_MODE_ERROR,self.__log_level)
             raise grgl_mysql_controllor_error(err)
-    def update_user_presence(self,username,update_dict):
+        if disconnect:
+            self.disconnect_from_database()
+        return True
+    def update_user_presence(self,username,update_dict,disconnect=True):
         if not self.is_connected():
-            if not self.connect_to_database(self.DATABASE_NAME):
-                return grgl_mysql_controllor.DATABASE_FAILED
+            try:
+                self.connect_to_database(self.DATABASE_NAME)
+            except grgl_mysql_controllor_error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
         update_dict = dict(update_dict)
         if update_dict == {}:
             return False
@@ -294,14 +320,17 @@ class grgl_mysql_controllor:
             gurgle.write_log(gurgle,"Mysql Error %s"%err,
                     gurgle.GURGLE_LOG_MODE_ERROR,self.__log_level)
             raise grgl_mysql_controllor_error(err)
-    def insert_offline_message(self,data,type='message',username = None,userid = 0):
+    def insert_offline_message(self,data,message_id=0,type='message',username = None,userid = 0,disconnect=True):
         if data == None:
             return False
         if username == None and userid == 0:
             return False
         if not self.is_connected():
-            if not self.connect_to_database(self.DATABASE_NAME):
-                return grgl_mysql_controllor.DATABASE_FAILED
+            try:
+                self.connect_to_database(self.DATABASE_NAME)
+            except grgl_mysql_controllor_error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
         if username != None:
             try:
                 self.__mysql_fd.execute(    \
@@ -313,17 +342,152 @@ class grgl_mysql_controllor:
                 raise grgl_mysql_controllor_error(err)
             userid = self.__mysql_fd.fetchone()
             if userid == None:
+                if disconnect:
+                    self.disconnect_from_database()
                 return False
         try:
             self.__mysql_fd.execute(    \
-                "INSERT INTO offline_message_list_%d (type,time,message) "
-                "VALUES('%s','%s')"
-                %(int(userid[0]),type,time.strftime('%Y-%m-%d %X',time.localtime(time.time())),data))
+                "INSERT INTO offline_message_list_%d (message_id,type,time,message) "
+                "VALUES(%d,'%s','%s','%s')"
+                %(userid[0],message_id,type,time.strftime('%Y-%m-%d %X',time.localtime(time.time())),data))
             self.__mysql_conn.commit();
         except mysql.Error as err:
             gurgle.write_log(gurgle,"MySQL Error %s"%err,
                              gurgle.GURGLE_LOG_MODE_ERROR)
             raise grgl_mysql_controllor_error(err)
+        if disconnect:
+            self.disconnect_from_database()
+        return True
+    def get_user_id(self,username,disconnect=True):
+        if username == None:
+            return 0
+        if not self.is_connected():
+            try:
+                self.connect_to_database(self.DATABASE_NAME)
+            except grgl_mysql_controllor_error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
+        try:
+            self.__mysql_fd.execute("SELECT id FROM %s WHERE username = '%s'"%(self.USER_INFO_TABLE_NAME,username))
+        except mysql.Error as err:
+            self.disconnect_from_database()
+            raise grgl_mysql_controllor_error(err)
+        data = self.__mysql_fd.fetchone()
+        if data == None:
+            if disconnect:
+                self.disconnect_from_database()
+            return 0
+        if disconnect:
+            self.disconnect_from_database()
+        return int(data[0])
+    def delete_offline_message(self,username = None,userid = 0,message_id=0,disconnect=True):
+        if username == None and userid == 0:
+            return False
+        if userid == 0:
+            try:
+                userid = self.get_user_id(username,disconnect=False)
+            except grgl_mysql_controllor_error as err:
+                raise grgl_mysql_controllor_error(err)
+        if userid == 0:
+            return False
+        if not self.is_connected():
+            try:
+                self.connect_to_database(self.DATABASE_NAME)
+            except grgl_mysql_controllor_error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
+        try:
+            if message_id > 0:
+                self.__mysql_fd.execute("DELETE FROM offline_message_%d WHERE message_id='%d'"%(userid,message_id))
+            else:
+                self.__mysql_fd.execute("DELETE FROM offline_message_%d"%(userid))
+        except mysql.Error as err:
+            self.disconnect_from_database()
+            raise grgl_mysql_controllor_error(err)
+        if disconnect:
+            self.disconnect_from_database()
+        return True
+    def get_offline_message(self,username = None,userid = 0,message_type='message',message_id=0,delete=True,limit=100,disconnect=True):
+        if username == None and userid == 0:
+            return None
+        if username != None and userid == 0:
+            userid = self.get_user_id(username,False)
+        if userid == 0:
+            return None
+        if limit == 0:
+            return None
+        if limit < 0 and limit != -1:
+            return None
+        if not self.is_connected():
+            try:
+                self.connect_to_database(self.DATABASE_NAME)
+            except grgl_mysql_controllor_error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
+        try:
+            if message_id == 0:
+                if message_type != None:
+                    self.__mysql_fd.execute("SELECT message_id,message FROM offline_message_list_%d WHERE type='%s LIMIT %d"
+                        %(userid,message_type,limit))
+                else:
+                    self.__mysql_fd.execute("SELECT message_id,message FROM offline_message_list_%d LIMIT %d"
+                        %(userid,limit))
+            else:
+                if message_type != None:
+                    self.__mysql_fd.execute("SELECT message_id,message FROM offline_message_list_%d WHERE type='%s' and message_id='%d' LIMIT %d"
+                        %(userid,message_type,message_id,limit))
+                else:
+                    self.__mysql_fd.execute("SELECT message_id,message FROM offline_message_list_%d WHERE message_id='%d' LIMIT %d"
+                        %(userid,message_id,limit))
+        except mysql.Error as err:
+            self.disconnect_from_database()
+            raise grgl_mysql_controllor_error(err)
+        ret_data = []
+        id_list = []
+        while True:
+            data = self.__mysql_fd.fetchone()
+            if data == None:
+                break
+            (msg_id,msg) = data
+            ret_data.append(json.loads(msg))
+            id_list.append(msg_id)
+        if delete:
+            for i in id_list:
+                self.__mysql_fd.execute("DELETE FROM offline_message_list_%d WHERE message_id='%d'"%(userid,i))
+            try:
+                self.__mysql_conn.commit()
+            except mysql.Error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
+        if disconnect:
+            self.disconnect_from_database()
+        return (id_list,ret_data)
+    def accept_subscribed_request(self,name_a,name_b,disconnect=True):  # from[who send request] to[who will accept request]
+        if name_a == None or name_b == None:
+            return False
+        try:
+            id_a = self.get_user_id(name_a,disconnect=False)
+            id_b = self.get_user_id(name_b,disconnect=False)
+        except grgl_mysql_controllor_error as err:
+            self.disconnect_from_database()
+            raise grgl_mysql_controllor_error(err)
+        if id_a == 0 or id_b ==0:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        try:
+            self.__mysql_fd.execute(    \
+                    "INSERT INTO subscribed_list_%d (friend_id)"
+                    "VALUES('%d')"%(id_a,id_b))
+            self.__mysql_fd.execute(    \
+                    "INSERT INTO subscribed_list_%d (friend_id)"
+                    "VALUES('%d')"%(id_b,id_a))
+            self.__mysql_conn.commit()
+        except mysql.Error as err:
+            self.disconnect_from_database()
+            raise grgl_mysql_controllor_error(err)
+        if disconnect:
+            self.disconnect_from_database()
         return True
 if __name__ == '__main__':
     try:
@@ -335,4 +499,4 @@ if __name__ == '__main__':
         password = input("Password: ")
         s.add_user(username,password)
         if input("Continue?(y/n)").lower() != 'y':
-            break
+           break

@@ -391,6 +391,34 @@ class gurgle:
         if terminal == None:
             return "grgl:%s@%s"%(username,domain)
         return "grgl:%s@%s/%s"%(username,domain,terminal)
+    def is_id_match(self,user_id_a,user_id_b,domain,ip):
+        if user_id_a == None or user_id_b == None:
+            return False
+        tmpVarA = self.analyse_full_id(user_id_a)
+        if tmpVarA == None:
+            return False
+        tmpVarB = self.analyse_full_id(user_id_b)
+        if tmpVarB == None:
+            return False
+        if domain == None and ip == None:
+            return False
+        if domain != None and ip != None:
+            if tmpVarA[1] != tmpVarB[1]:
+                return False
+            if tmpVarA[2] != tmpVarB[2]:
+                if tmpVarA[2] == domain:
+                    if tmpVarB[2] == ip:
+                        return True
+                    else:
+                        return False
+                if tmpVarA[2] == ip:
+                    if tmpVarB[2] == domain:
+                        return True
+                    else:
+                        return False
+            else:
+                return True
+        return False
     def is_remote_addr_set(self):
         if not self.__remoteHost:
             self.write_log('Remote addr is not set!'
@@ -425,7 +453,7 @@ class gurgle:
                         "etag"  : rosterETag
                     }
                 })
-    def update_roster(self):
+    def update_roster(self,user_id_1,user_id_2,domain,ip):
         pass
     def plain_password_auth(self,ID, password,protocol = 'grgl'):
         try:

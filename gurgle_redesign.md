@@ -323,7 +323,7 @@ Id为0表示不需要即时回复
 ### 某人/某群组回复为:
 ```
 "id"        : id_B,
-"cmd"       : "subscribe_reply",
+"cmd"       : "subscribed_reply",
 "params"      : {
   "status"    : "accepted/refused/ignored",
   "to"        : "gurgle id",
