@@ -339,3 +339,25 @@ Id为0表示不需要即时回复
   "addition"  : "something to say"/null
 }
 ```
+
+## 转发消息
+```
+"id"        : id,
+"cmd"       : "forward",
+"params"    : {
+  "target"    : "message"
+  "to"        : "B's gurgle id",
+  "message"   : "message"
+}
+```
+
+B收到的数据为
+```
+"id"        : "id",
+"cmd"       : "push",
+"params"      : {
+  "target"    : "message",
+  "from"      : "A's gurgle id",
+  "message"   : "message"
+}
+```

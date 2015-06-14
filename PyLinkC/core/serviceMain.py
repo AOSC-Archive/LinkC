@@ -430,38 +430,49 @@ class serviceThread(threading.Thread):
                     if self.is_authenticated   == "Unauthenticated":
                         self.core.reply_error(message_id, "PermissionDenied","Unauthenticated")
                         continue
-                    if 'to' not in data:
-                        self.core.reply_error(message_id,"SyntaxError","Forwarding without to field")
-                    tmpData = self.core.analyse_full_id(data['to'])
                     if 'params' not in data:
                         self.core.reply_error(message_id,"SyntaxError","Use 'params' field to tell us what you want to forward")
                         continue
+                    if 'to' not in data['params']:
+                        self.core.reply_error(message_id,"SyntaxError","Forwarding without to field")
+                    tmpData = self.core.analyse_full_id(data['params']['to'])
                     if str(tmpData) == "SyntaxError":
                         self.core.reply_error(message_id,"SyntaxError","Address cannnot be analysed")
                         continue
-                    if 'id' not in data['params']:
-                        self.core.reply_error(message_id,"SyntaxError","No id in forward message")
+                    if 'target' in data['params'] and data['params']['target'].lower() != 'message':
+                        pass    # something other to send
+                    if 'message' not in  data['params']:
+                        self.core.reply_error(message_id,"SyntaxError","Forward without message","Please use 'message' field to tell us what you want to forward",True)
                         continue
-                    if tmpData[0] == 'grgl':
-                        self.grgl_forward_message(tmpData[1],tmpData[2],tmpData[3])
-                    else:
-                        self.core.reply_error(message_id,"ProtocolUnSupported","Protocol[%s] is not supported yet"%tmpData[0])
                     try:
-                        senddata = json.dumps(str(data['params']))
+                        senddata = json.dumps({
+                            "id"    : message_id,
+                            "cmd"   : "push",
+                            "params": {
+                                "target": "message",
+                                "from"  : self.FullSignInID,
+                                "message":data['params']['message']
+                            }
+                        })
                     except (TypeError, ValueError) as err:
                         self.core.reply_error(message_id,"ValueError","Cannot forward such message")
                         continue
-                    try:
-                        status = self.grgl_forward_message(tmpData[1],encode(senddata),tmpData[2],tmpData[3])
-                    except gurgle_network_error as err:
-                        self.core.emergency_quit()
-                        _thread.exit()
-                    if status == False:
+                    if tmpData[0] == 'grgl':
                         try:
-                            self.grgl_mysql.insert_offline_message(senddata,int(data['params']['id']),username=tmpData[1])
-                        except grgl_mysql_controllor_error as err:
-                            self.core.reply_error(message_id,"DatabaseError","Cannot insert offline message")
+                            status = self.grgl_forward_message(tmpData[1],encode(senddata),tmpData[2],tmpData[3])
+                        except gurgle_network_error as err:
+                            self.core.reply_error(message_id,"NetworkError","Cannot forward message")
                             continue
+                        if status == False:
+                            try:
+                                self.grgl_mysql.insert_offline_message(senddata,message_id,username=tmpData[1])
+                            except grgl_mysql_controllor_error as err:
+                                self.core.reply_error(message_id,"DatabaseError","Failed to insert offline message[%s]"%err)
+                                self.core.write_log("DatabaseError[%s]"%err,gurgle.GURGLE_LOG_MODE_ERROR)
+                                continue
+                    else:
+                        self.core.reply_error(message_id,"ProtocolUnSupported","Protocol[%s] is not supported yet"%tmpData[0])
+                        continue
                     continue
                 elif cmd == 'subscribe':
                     if self.is_authenticated   == "Unauthenticated":
@@ -489,15 +500,19 @@ class serviceThread(threading.Thread):
                         addition = None
                     else:
                         addition = data['params']
-                    senddata = json.dumps({
-                        "id"    : message_id,
-                        "cmd"   : "push",
-                        "params": {
-                            "target"    : "subscribed_request",
-                            "from"      : self.core.make_up_full_id(self.username,global_domain),
-                            "addition"  : addition
-                        }
-                    })
+                    try:
+                        senddata = json.dumps({
+                            "id"    : message_id,
+                            "cmd"   : "push",
+                            "params": {
+                                "target"    : "subscribed_request",
+                                "from"      : self.core.make_up_full_id(self.username,global_domain),
+                                "addition"  : addition
+                            }
+                        })
+                    except (TypeError, ValueError) as err:
+                        self.core.reply_error(message_id,"ValueError","Cannot forward such message")
+                        continue
                     try:
                         status = self.grgl_mysql.insert_offline_message(senddata,message_id,'request',tmpVar[1])
                     except grgl_mysql_controllor_error as err:
@@ -541,7 +556,11 @@ class serviceThread(threading.Thread):
                         self.core.reply_error(message_id,"DatabaseError","There's no such Request")
                         continue
                     (tmpId,tmpData) = tmpVar
-                    tmpData = json.loads(tmpData[0])
+                    try:
+                        tmpData = json.loads(tmpData[0])
+                    except (TypeError, ValueError) as err:
+                        self.core.reply_error(message_id,"ValueError","Cannot forward such message")
+                        continue
                     tmpId   = tmpId[0]
                     if tmpData['cmd'] != 'push':
                         self.core.reply_error(message_id,"UnknowError","UnkonwError in subscribed_reply[1]")
@@ -559,25 +578,33 @@ class serviceThread(threading.Thread):
                         self.core.reply_error(message_id,"UnknowError","UnkonwError in subscribed_reply[5]")
                         continue
                     if data['params']['status'].lower() == 'accepted':
-                        senddata = json.dumps({
-                            "id"    : message_id,
-                            "cmd"   : "reply",
-                            "params":{
-                                "status"    : "accepted",
-                                "addition"  : addition
-                            }
-                        })
+                        try:
+                            senddata = json.dumps({
+                                "id"    : message_id,
+                                "cmd"   : "reply",
+                                "params":{
+                                    "status"    : "accepted",
+                                    "addition"  : addition
+                                }
+                            })
+                        except (TypeError, ValueError) as err:
+                            self.core.reply_error(message_id,"ValueError","Cannot forward such message")
+                            continue
                     elif data['params']['status'] == 'ignore':
                         continue
                     else:
-                        senddata = json.dumps({
-                            "id"    : message_id,
-                            "cmd"   : "reply",
-                            "params":{
-                                "status"    : "refused",
-                                "addition"  : addition
-                            }
-                        })
+                        try:
+                            senddata = json.dumps({
+                                "id"    : message_id,
+                                "cmd"   : "reply",
+                                "params":{
+                                    "status"    : "refused",
+                                    "addition"  : addition
+                                }
+                            })
+                        except (TypeError, ValueError) as err:
+                            self.core.reply_error(message_id,"ValueError","Cannot forward such message")
+                            continue
                     to_name = self.core.analyse_full_id(to_id)[1]
                     try:
                         status = self.grgl_forward_message(to_name,encode(senddata))
