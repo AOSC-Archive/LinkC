@@ -275,7 +275,7 @@ class grgl_mysql_controllor:
         data = self.__mysql_fd.fetchone()
         try:
             self.__mysql_fd.execute(    \
-                    "CREATE TABLE subscribed_list_%d (friend_id INT, nickname CHAR(32))"
+                    "CREATE TABLE subscribed_list_%d (id INT, nickname CHAR(32))"
                     %data[0])
             self.__mysql_conn.commit();
         except mysql.Error as err:
@@ -427,7 +427,7 @@ class grgl_mysql_controllor:
         try:
             if message_id == 0:
                 if message_type != None:
-                    self.__mysql_fd.execute("SELECT message_id,message FROM offline_message_list_%d WHERE type='%s LIMIT %d"
+                    self.__mysql_fd.execute("SELECT message_id,message FROM offline_message_list_%d WHERE type='%s' LIMIT %d"
                         %(userid,message_type,limit))
                 else:
                     self.__mysql_fd.execute("SELECT message_id,message FROM offline_message_list_%d LIMIT %d"
@@ -449,7 +449,7 @@ class grgl_mysql_controllor:
             if data == None:
                 break
             (msg_id,msg) = data
-            ret_data.append(json.loads(msg))
+            ret_data.append(msg)
             id_list.append(msg_id)
         if delete:
             for i in id_list:
@@ -462,6 +462,32 @@ class grgl_mysql_controllor:
         if disconnect:
             self.disconnect_from_database()
         return (id_list,ret_data)
+    def check_subscribed_list(self,name_a,name_b,disconnect=True):
+        if name_a == None or name_b == None:
+            return False
+        if not self.is_connected():
+            try:
+                self.connect_to_database(self.DATABASE_NAME)
+            except grgl_mysql_controllor_error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
+        try:
+            id_a = self.get_user_id(name_a,disconnect=False)
+            id_b = self.get_user_id(name_b,disconnect=False)
+        except grgl_mysql_controllor_error as err:
+            self.disconnect_from_database()
+            raise grgl_mysql_controllor_error(err)
+        try:
+            self.__mysql_fd.execute("SELECT id FROM subscribed_list_%d WHERE id='%d'" \
+                                    %(id_a,id_b))
+            tmpId = self.__mysql_fd.fetchone()
+        except mysql.Error as err:
+            self.disconnect_from_database()
+            raise grgl_mysql_controllor_error(err)
+        if tmpId == None:
+            return False
+        else:
+            return True
     def accept_subscribed_request(self,name_a,name_b,disconnect=True):  # from[who send request] to[who will accept request]
         if name_a == None or name_b == None:
             return False
@@ -477,10 +503,10 @@ class grgl_mysql_controllor:
             return False
         try:
             self.__mysql_fd.execute(    \
-                    "INSERT INTO subscribed_list_%d (friend_id)"
+                    "INSERT INTO subscribed_list_%d (id)"
                     "VALUES('%d')"%(id_a,id_b))
             self.__mysql_fd.execute(    \
-                    "INSERT INTO subscribed_list_%d (friend_id)"
+                    "INSERT INTO subscribed_list_%d (id)"
                     "VALUES('%d')"%(id_b,id_a))
             self.__mysql_conn.commit()
         except mysql.Error as err:

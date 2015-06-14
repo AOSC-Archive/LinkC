@@ -64,7 +64,7 @@ if __name__ == '__main__':
             core.send(encode(senddata))
             ask = input("Waiting for reply?(yes) ").lower()
             if ask == '' or ask == 'yes':
-                buf = core.recv()
+                buf = core.recv(message_id)
                 print ("%s"%buf)
             continue
         (command,params) = command.split(' ',1)
@@ -94,7 +94,7 @@ if __name__ == '__main__':
         core.send(encode(senddata))
         ask = input("Waiting for reply?(yes) ").lower()
         if ask == '' or ask == 'yes':
-            buf = core.recv(message_id = message_id)
+            buf = core.recv(message_id)
             print ("%s"%buf)
     core.publish_self_presence_update(last_name = "SternW",first_name="Zhang",status = "Avaliable")
             

@@ -340,8 +340,34 @@ class serviceThread(threading.Thread):
                             except gurgle_network_error as err:
                                 self.core.write_log(err,gurgle.GURGLE_LOG_MODE_ERROR)
                                 self.core.emergency_quit()
-                                del self.core
                                 _thread.exit()
+                            try:
+                                (id_list,data_list) = self.grgl_mysql.get_offline_message(self.username)
+                            except grgl_mysql_controllor_error as err:
+                                self.core.reply_error(message_id,"DatabaseError","Cannot fetch offline message[%s]"%err)
+                                continue
+                            i = 0
+                            while i < len(data_list):
+                                try:
+                                    self.core.send(encode(data_list[i]))
+                                except gurgle_network_error as err:
+                                    self.core.emergency_quit()
+                                    _thread.exit()
+                                i += 1
+                            try:
+                                (id_list,data_list) = self.grgl_mysql.get_offline_message(self.username,message_type='request',delete=False)
+                            except grgl_mysql_controllor_error as err:
+                                self.core.reply_error(message_id,"DatabaseError","Cannot fetch offline message[%s]"%err)
+                                continue
+                            i = 0
+                            while i < len(data_list):
+                                try:
+                                    self.core.send(encode(data_list[i]))
+                                except gurgle_network_error as err:
+                                    self.core.emergency_quit()
+                                    _thread.exit()
+                                i+=1
+                            continue
                         elif result == grgl_mysql_controllor.AUTH_INCORRECT:
                             self.is_authenticated = 'Unauthenticated'
                             self.core.reply_error(message_id,'AuthFailed','Username or password is incorrect')
@@ -407,12 +433,35 @@ class serviceThread(threading.Thread):
                     if 'to' not in data:
                         self.core.reply_error(message_id,"SyntaxError","Forwarding without to field")
                     tmpData = self.core.analyse_full_id(data['to'])
+                    if 'params' not in data:
+                        self.core.reply_error(message_id,"SyntaxError","Use 'params' field to tell us what you want to forward")
+                        continue
                     if str(tmpData) == "SyntaxError":
                         self.core.reply_error(message_id,"SyntaxError","Address cannnot be analysed")
+                        continue
+                    if 'id' not in data['params']:
+                        self.core.reply_error(message_id,"SyntaxError","No id in forward message")
+                        continue
                     if tmpData[0] == 'grgl':
                         self.grgl_forward_message(tmpData[1],tmpData[2],tmpData[3])
                     else:
                         self.core.reply_error(message_id,"ProtocolUnSupported","Protocol[%s] is not supported yet"%tmpData[0])
+                    try:
+                        senddata = json.dumps(str(data['params']))
+                    except (TypeError, ValueError) as err:
+                        self.core.reply_error(message_id,"ValueError","Cannot forward such message")
+                        continue
+                    try:
+                        status = self.grgl_forward_message(tmpData[1],encode(senddata),tmpData[2],tmpData[3])
+                    except gurgle_network_error as err:
+                        self.core.emergency_quit()
+                        _thread.exit()
+                    if status == False:
+                        try:
+                            self.grgl_mysql.insert_offline_message(senddata,int(data['params']['id']),username=tmpData[1])
+                        except grgl_mysql_controllor_error as err:
+                            self.core.reply_error(message_id,"DatabaseError","Cannot insert offline message")
+                            continue
                     continue
                 elif cmd == 'subscribe':
                     if self.is_authenticated   == "Unauthenticated":
@@ -427,6 +476,14 @@ class serviceThread(threading.Thread):
                     tmpVar = self.core.analyse_full_id(data['params']['to'])
                     if tmpVar == 'SyntaxError':
                         self.core.reply_error(message_id,"BadID","Bad Id syntax")
+                        continue
+                    try:
+                        status = self.grgl_mysql.check_subscribed_list(self.username,tmpVar[1])
+                    except grgl_mysql_controllor_error as err:
+                        self.core.reply_error(message_id,"DatabaseError",err)
+                        continue
+                    if status == True:
+                        self.core.reply_error(message_id,"DatabaseError","You have subscribed %s"%data['params']['to'])
                         continue
                     if 'addition' not in data['params']:
                         addition = None
@@ -481,10 +538,10 @@ class serviceThread(threading.Thread):
                         self.core.reply_error(message_id,"DatabaseError",err)
                         continue
                     if tmpVar == None:
-                        self.core.reply_error(message_id,"NoSuchUser","There's no such user")
+                        self.core.reply_error(message_id,"DatabaseError","There's no such Request")
                         continue
                     (tmpId,tmpData) = tmpVar
-                    tmpData = tmpData[0]
+                    tmpData = json.loads(tmpData[0])
                     tmpId   = tmpId[0]
                     if tmpData['cmd'] != 'push':
                         self.core.reply_error(message_id,"UnknowError","UnkonwError in subscribed_reply[1]")
