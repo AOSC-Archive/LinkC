@@ -215,6 +215,7 @@ class grgl_mysql_controllor:
             count += 1
             t_dict[tmpVar[0]] = tmpVar[1]
         for i in t_dict.keys():
+            tmp_list = []
             try:
                 tmpVar = self.get_user_presence(userid=i,disconnect=False)
             except mysql.Error as err:
