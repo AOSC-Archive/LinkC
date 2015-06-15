@@ -147,8 +147,8 @@ class grgl_mysql_controllor:
             self.disconnect_from_database()
         return grgl_mysql_controllor.AUTH_SUCCESS
     def get_user_presence(self,username = None,userid=0,disconnect=True):
-        if username is None:
-            return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
+        if username == None and userid == 0:
+            return None
         if not self.is_connected():
             try:
                 self.connect_to_database(self.DATABASE_NAME)
@@ -164,8 +164,6 @@ class grgl_mysql_controllor:
                 self.__mysql_fd.execute(    \
                     "SELECT last_name,first_name,status,mood FROM %s WHERE id = %d"
                     %(self.USER_INFO_TABLE_NAME,userid))
-            else:
-                return None
         except mysql.Error as err:
             gurgle.write_log(gurgle,"Database Error : %s"%err,
                     gurgle.GURGLE_LOG_MODE_ERROR,self.__log_level)
@@ -201,15 +199,15 @@ class grgl_mysql_controllor:
         user_id = int(data[0])
         try:
             if limit >= 1:
-                self.__mysql_fd.execute("SELECT * FROM subscribed_list_%d LIMIT %d"%(user_id,limit))
+                self.__mysql_fd.execute("SELECT id,nickname FROM subscribed_list_%d LIMIT %d"%(user_id,limit))
             else:
-                self.__mysql_fd.execute("SELECT * FROM subscribe_list_%d"%user_id)
+                self.__mysql_fd.execute("SELECT id,nickname FROM subscribe_list_%d"%user_id)
         except mysql.Error as err:
             raise grgl_mysql_controllor_error(err)
         count = 0
         t_dict = {}
         r_list = []
-        k = 0
+        tmp_list = []
         while True:
             tmpVar = self.__mysql_fd.fetchone()
             if tmpVar == None:
@@ -218,15 +216,17 @@ class grgl_mysql_controllor:
             t_dict[tmpVar[0]] = tmpVar[1]
         for i in t_dict.keys():
             try:
-                tmpVar = self.get_user_presence(None,i,False)
+                tmpVar = self.get_user_presence(userid=i,disconnect=False)
             except mysql.Error as err:
                 self.disconnect_from_database()
-                raise grgl_mysql_controllor_error("Cannot fetch user(id=%d)'s presence"%i)
+                raise grgl_mysql_controllor_error("Cannot fetch user(id=%d)'s presence[%s]"%(i,err))
             if tmpVar == None:
                 self.disconnect_from_database()
                 raise grgl_mysql_controllor_error("Cannot fetch user(id=%d)'s presence"%i)
-            r_list[k] = list(t_dict[i]) + list(tmpVar)
-            k+=1
+            tmp_list.append(t_dict[i])
+            for k in tmpVar:
+                tmp_list.append(k)
+            r_list.append(tmp_list)
         self.disconnect_from_database()
         if disconnect:
             self.disconnect_from_database()

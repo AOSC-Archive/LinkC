@@ -233,10 +233,11 @@ class serviceThread(threading.Thread):
                             if self.is_authenticated == False:
                                 self.core.reply_error(message_id,"PermissionDenied","Unauthenticated")
                                 continue
+                            limit = 100
                             if 'limit' in data['params']:
                                 limit = int(data['params']['limit'])
                             try:
-                                tmpVar = self.grgl_mysql.get_roster(self.username,limit)
+                                tmpVar = self.grgl_mysql.get_roster(self.username,limit = limit)
                             except grgl_mysql_controllor_error as err:
                                 self.core.reply_error(message_id,"DatabaseError",err)
                                 continue
