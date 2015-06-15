@@ -15,7 +15,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 现在协议只支持 "gurgle"   
 现在版本只存在 "unusable"   
 现在加密只支持 "disabled"   
-### 回应 (未修改进程序)
+### 回应  
 ```
 "id"        : "message's id",
 "cmd"       : "kill",    
@@ -248,55 +248,6 @@ limit字段指定最大返回好友item的个数，如果不指定这个参数�
   "error"     : "SyntaxError",
   "reason"    : details
   "help"      : "A string to tell you the right syntax"
-}
-```
-
-## 加入组/添加好友(Friend/group request)
-### 请求:
-```
-"id"        : request_id,
-"cmd"       : "request"
-"params"    : {
-  "cmd"       : "request",
-  "params"    : {
-    "addition"  : "....."
-  }
-}
-```
-Id为0表示不需要即时回复
-
-### 转发:
-```
-"id"        : new id,
-"from"      : "original address",
-"cmd"       : "request",
-"params"    : {
-  "addition"  : "....."
-}
-```
-
-### 回复:
-```
-"id"        : 0,
-"cmd"       : "forward",
-"to"        : "original address",
-"params"    : {
-  "reply"     : {
-    "status"  : "accepted/refused",
-    "reason"  : "reason",
-    "error"   : null
-  }
-}
-```
-
-### 转发:
-```
-"id"        : 0,
-"from"      : "A's address"
-"reply"     : {
-  "status"    : "accepted/refused",
-  "reason"    : "reason",
-  "error"     : null
 }
 ```
 

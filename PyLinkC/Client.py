@@ -16,7 +16,7 @@ if __name__ == '__main__':
     else:
         port = int(port)
     try:
-        core.connect_to_server(domain,40097)
+        core.connect_to_server(domain,40097,300)
     except gurgle_network_error:
         del core
         exit()

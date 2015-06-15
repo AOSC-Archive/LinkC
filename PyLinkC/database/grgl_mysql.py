@@ -176,7 +176,7 @@ class grgl_mysql_controllor:
             self.disconnect_from_database()
         if data is None:
             return None
-        (last_name,first_name_name,status,mood) = data
+        (last_name,first_name,status,mood) = data
         if disconnect:
             self.disconnect_from_database()
         return (last_name,first_name,status,mood)
