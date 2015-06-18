@@ -189,27 +189,32 @@ None则意味着你想将这个字段置空
 }
 ```
 
-## 请求自己状态(Get self presence)
+## 请求用户状态(Get user's presence)
 ### 请求:
 ```
 "id"        : "id",
 "cmd"       : "query",
 "params"    : {
-  "target"    : "presence"
+  "target"    : "presence",
+  "who"       : "gurgle id"/null
 }
 ```
+'who'字段滞空则为请求自己状态，不滞空则为目标用户状态
 ### 回应
 ```
 "id"        : "message's id",    
 "reply"     : {
-  "last_name"   : "last_name"/None,
-  "first_name"  : "first_name"/None,
+  "last_name"   : "last_name"/null,
+  "first_name"  : "first_name"/null,
   "status"      : "Avaliable/Away/Dnd/Invisible",
-  "mood"        : "Your mood"/None
+  "mood"        : "Your mood"/null
+  "nickname"    : "nickname"/null,
+  "group"       : "group"/null,
   "error"       : null,
   "reason"      : null
 }
 ``` 
+'nickname','group'字段仅在请求时'who'字段为自己好友时存在
 ## 请求好友列表(Query roster)
 ### 请求:
 ```
@@ -232,8 +237,8 @@ limit字段指定最大返回好友item的个数，如果不指定这个参数�
   "target"    : "roster",
   "count"     : 0,1,2,3.......
   "value"     : [
-    ["nickname","last_name","first_name","status","mood"],
-    ["nickname","last_name","first_name","status","mood"],
+    ["nickname","group","last_name","first_name","status","mood"],
+    ["nickname","group","last_name","first_name","status","mood"],
     ......
   ]
 }
@@ -281,13 +286,30 @@ limit字段指定最大返回好友item的个数，如果不指定这个参数�
   "addition"  : "something to say" [拒绝和允许都可以发送附加信息给别人]
 }
 ```
-### 请求者收到的回复为
+### 请求者收到的回复为:
 ```
 "id"        : id_A,
 "cmd"       : "reply",
 "params"    : {
   "status"    : "accepted/refused",
   "addition"  : "something to say"/null
+}
+```
+
+### 取消订阅:
+```
+"id"        : id,
+"cmd"       : "unsubscribe"
+"params"    : {
+  "to"      : "gurgle id"
+}
+```
+#### 回复:
+```
+"id"        : id,
+"cmd"       : "reply",
+"params"    : {
+  "error"     : "error"/null
 }
 ```
 
