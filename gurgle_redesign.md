@@ -6,6 +6,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"        : "id",    
 "cmd"       : "connect",
+"obj"       : "session",
 "params"    : {
   "protocol"  : "gurgle",
   "version"   : "unusable",
@@ -19,6 +20,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"        : "message's id",
 "cmd"       : "kill",    
+"obj"       : "session",
 "params"    : {
   "error"     : "short description of error"/null,
   "reason"    : "human-readable description of reason"/null,
@@ -42,11 +44,13 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"        : "id",    
 "cmd"       : "ping"    
+"obj"       : "session"
 ```
 ### 回应
 ```
 "id"        : "message's id",    
-"reply"     : "pong"
+"reply"     : "pong",
+"obj"       : "session"
 ```
 
 ## 获取认证方式(Get authentication method)
@@ -54,15 +58,15 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"        : "id",    
 "cmd"       : "query",   
+"obj"       : "auth_method",
 "params"    : {
-    "target"        : "auth_method",
     "opinion"       : "list_enabled(default)",
     "replay_style"  : "text(default)"
   }
 ```
-在params中的为可选参数，留空就意味着使用缺省配置    
-- target  
+- obj  
   - auth_method    本次请求的为认证方式，故target为auth_method
+在params中的为可选参数，留空就意味着使用缺省配置    
 - opinion     
   - list_enabled   返回服务端目前全部支持的认证方式   
 - replay_style      
@@ -83,8 +87,8 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"        : "id",
 "cmd"       : "query",
+"obj"       : "auth_status",
 "params"    : {
-  "target"    : "auth_status",
   "error"     : null
 }
 ```
@@ -102,6 +106,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"        : "request id or 0",
 "cmd"       : "kill",
+"obj"       : "session",
 "params"    : {
   "error"     : "error"/null,
   "reason"    : "reason/null"
@@ -115,9 +120,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"        : "id",
 "cmd"       : "query",
-"params"    : {
-  "target"    : "version"
-}
+"obj"       : "version"
 ```
 ### 回应
 ```
@@ -133,6 +136,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 ```
 "id"        : id,
 "cmd"       : "auth", 
+"obj"       " null
 "from"      : gurgle_id, 
 "params": {
   "method"    : "plain_password",
@@ -158,8 +162,8 @@ to字段严格指明你现在登陆的ID，严格遵守ID的格式。
 ```
 "id"          : id,
 "cmd"         : "push",
+"obj"         : "presence",
 "params"      : {
-  "target"      : "presence",
   "last_name"   : "new last_name"/None,
   "first_name"  : "new first_name"/None,
   "status"      : "Avaliable/Away/Dnd/Invisible"/None,
@@ -171,12 +175,12 @@ None则意味着你想将这个字段置空
 或者不提交这个字段也是可以的
 比如：  
 ```
-  "id"        : "id",
-  "cmd"       : "push",        
-  "params"     : {    
-    "target"      : "presence",        
-    "last_name"   : "last_name"/None,     
-  }    
+"id"        : "id",
+"cmd"       : "push",
+"obj"       : "presence",        
+"params"     : {        
+  "last_name"   : "last_name"/null,     
+}    
 ```
 注释：仅修改你的名
 
@@ -194,8 +198,8 @@ None则意味着你想将这个字段置空
 ```
 "id"        : "id",
 "cmd"       : "query",
+"obj"       : "presence",
 "params"    : {
-  "target"    : "presence",
   "who"       : "gurgle id"/null
 }
 ```
@@ -208,8 +212,6 @@ None则意味着你想将这个字段置空
   "first_name"  : "first_name"/null,
   "status"      : "Avaliable/Away/Dnd/Invisible",
   "mood"        : "Your mood"/null
-  "nickname"    : "nickname"/null,
-  "group"       : "group"/null,
   "error"       : null,
   "reason"      : null
 }
@@ -220,12 +222,12 @@ None则意味着你想将这个字段置空
 ```
 "id"        : id,
 "cmd"       : "query",
+"obj"       : "roster",
 "params"    : {
-  "target"    : "roster",
   "limit"     : 100
 }
 ```
-target是必选参数，limit是可选参数
+limit是可选参数
 limit字段指定最大返回好友item的个数，如果不指定这个参数，默认limit为0，也就是无上限
 
 ## 推送好友列表(Push roster)
@@ -233,9 +235,8 @@ limit字段指定最大返回好友item的个数，如果不指定这个参数�
 ```
 "id"        : 0,
 "cmd"       : "push",
+"obj"       : "roster",
 "params"    : {
-  "target"    : "roster",
-  "count"     : 0,1,2,3.......
   "value"     : [
     ["nickname","group","last_name","first_name","status","mood"],
     ["nickname","group","last_name","first_name","status","mood"],
@@ -243,6 +244,8 @@ limit字段指定最大返回好友item的个数，如果不指定这个参数�
   ]
 }
 ```
+在roster中，会返回包括用户信息和nickname之类的全部
+而单独get presence 就不会返回nickname
 
 ## 输出错误(Print errors)
 若客户端发来错误格式的报文，予以错误回复
@@ -261,6 +264,7 @@ limit字段指定最大返回好友item的个数，如果不指定这个参数�
 ```
 "id"        : id_A,
 "cmd"       : "subscribe",
+"obj"       : null,
 "params"    : {
   "to"        : "gurgle id",
   "addition"  : "something to say"
@@ -280,6 +284,7 @@ limit字段指定最大返回好友item的个数，如果不指定这个参数�
 ```
 "id"        : id_B,
 "cmd"       : "subscribed_reply",
+"obj"       : null
 "params"      : {
   "status"    : "accepted/refused/ignored",
   "to"        : "gurgle id",
@@ -300,6 +305,7 @@ limit字段指定最大返回好友item的个数，如果不指定这个参数�
 ```
 "id"        : id,
 "cmd"       : "unsubscribe"
+"obj"       : null,
 "params"    : {
   "to"      : "gurgle id"
 }
@@ -317,8 +323,8 @@ limit字段指定最大返回好友item的个数，如果不指定这个参数�
 ```
 "id"        : id,
 "cmd"       : "forward",
+"obj"       : "message",
 "params"    : {
-  "target"    : "message"
   "to"        : "B's gurgle id",
   "message"   : "message"
 }
@@ -328,8 +334,8 @@ B收到的数据为
 ```
 "id"        : "id",
 "cmd"       : "push",
+"obj"       : "message",
 "params"      : {
-  "target"    : "message",
   "from"      : "A's gurgle id",
   "message"   : "message"
 }
