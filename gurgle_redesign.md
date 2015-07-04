@@ -10,12 +10,14 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 "params"    : {
   "protocol"  : "gurgle",
   "version"   : "unusable",
-  "encrypt"   : "disabled"
+  "encrypt"   : "disabled",
+  "session"   : "specify a session"/null
 }
 ```
 现在协议只支持 "gurgle"   
 现在版本只存在 "unusable"   
 现在加密只支持 "disabled"   
+'session' 意义暂不明，留空最好 (意思大概是可以直接forward信息到某个session[高权限])
 ### 回应  
 ```
 "id"        : "message's id",
@@ -32,7 +34,7 @@ LinkC 协议基于JSON（ 没有更多的说明了）
   "help"      : "help text or null"
 },
 ```
-如果链接正常建立，则只存在"reply"字段中有 "status" : "connection established"
+如果链接正常建立，则只存在"reply"字段中有 "status" : "connection established","session" : "Your session ID"
 如果链接建立失败，则"reply":{"status":"connection failed","error":"","reason":""},"cmd":"kill"
 其中,"cmd" : "kill"和"reply"字段是分立的，即"kill"只告诉你要断开连接的事实，而reply仅是connect命令的返回
 也就是说"reply"是由于"connect"命令执行而带来的回执

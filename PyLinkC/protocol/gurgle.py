@@ -165,6 +165,7 @@ class gurgle:
         self.__recv_roster      = 0
         self.__recv_door_2.door_close()
         self.__gurgleId         = None
+        self.__session          = None
         if self.__runtime_mode == gurgle.GURGLE_CLIENT:
             self.write_log ('Gurgle version %s %s'
                     %(self.__gurgleVersion,'initlalized as Client'))
@@ -363,6 +364,8 @@ class gurgle:
         pass
     def set_log_level(self,level):
         self.__log_level = int(level)
+    def get_session(self):
+        return self.__session
     def get_log_level(self):
         return self.__log_level
     def get_self_gurgle_id(self):
@@ -370,20 +373,23 @@ class gurgle:
             return self.__gurgleId
         return None
     def analyse_full_id(self,FullSignInID):
-        (protocol,ID)   = FullSignInID.split(':',1)
+        if FullSignInID == None:
+            return None
+        try:
+            (protocol,ID)   = FullSignInID.split(':',1)
+        except ValueError as err:
+            return None
         if ID.find("@") == -1:
-            self.write_log("@ not found")
-            return 'SyntaxError'
+            return None
         (username,suffix) = ID.split("@",1)
         if (username == None) or (suffix == None):
-            self.write_log("Username or suffix is None [%s]"%ID)
-            return 'SyntaxError'
+            return None
         if suffix.find("/") == -1:
             return (protocol,username,suffix,None)
         else:
             (domain,terminal) = suffix.split("/",1)
             if domain == None:
-                return 'SyntaxError'
+                return None
             return (protocol,username,domain,terminal)
     def make_up_full_id(self,username,domain,terminal = None):
         if (username == None) or (domain == None):
@@ -572,9 +578,7 @@ class gurgle:
         data = json.dumps({
                 "id"    :message_id,
                 "cmd"   :"query",
-                "params":{
-                    "target" : "auth_method"
-                }
+                "obj"   : "auth_method"
             })
         if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
@@ -600,9 +604,7 @@ class gurgle:
         data = json.dumps({
                 "id"     : message_id,
                 "cmd"    : "query",
-                "params" : {
-                    "target"  : "version"
-                }
+                "obj"    : "version"
             })
         if self.send(encode(data)) != gurgle.GURGLE_SUCCESS:
             return gurgle.GURGLE_FAILED_TO_SEND
@@ -663,6 +665,7 @@ class gurgle:
         senddata = json.dumps({
             "id"    : message_id,
             "cmd"   : "connect",
+            "obj"   : "session",
             "params": {
                 "protocol"  : "gurgle",
                 "version"   : self.get_version(),
@@ -705,7 +708,7 @@ class gurgle:
         if first_name   != None:
             first_name  = str(first_name)
         if status       != None:
-            status      = str(status)
+            status      = str(status).lower()
             flag        = False
             for i in gurgle.GURGLE_STATUS_SUPPORTED:
                 if status == i:
@@ -720,8 +723,8 @@ class gurgle:
         senddata = json.dumps({
                 "id"        : push_id,
                 "cmd"       : "push",
+                "obj"       : "presence",
                 "params"    : {
-                    "target": "presence",
                     "last_name" : last_name,
                     "first_name": first_name,
                     "status"    : status,
@@ -861,6 +864,7 @@ class gurgle:
         del self.__socket
         self.__is_connected = False
         self.__is_authenticated = False
+        self.__session = None
         return gurgle.GURGLE_SUCCESS
 
 

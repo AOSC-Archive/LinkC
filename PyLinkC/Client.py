@@ -67,13 +67,16 @@ if __name__ == '__main__':
                 buf = core.recv(message_id)
                 print ("%s"%buf)
             continue
-        (command,params) = command.split(' ',1)
+        (command,obj,params) = command.split(' ',2)
         if command == None:
             continue
+        if obj == 'null':
+            obj = None
         params = params.split(' ')
         senddata = {
             'id'    : message_id,
             'cmd'   : command,
+            'obj'   : obj,
             'params'    : {}
         }
         for i in params:
