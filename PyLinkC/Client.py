@@ -9,7 +9,9 @@ import getpass
 
 if __name__ == '__main__':
     core = gurgle(gurgle.GURGLE_CLIENT)
-    domain = input("Where you want to connect?: ")
+    domain = input("Where you want to connect?(localhost as default): ")
+    if domain == '':
+        domain = 'localhost'
     port = input("Port(40097 as default): ")
     if port == '':
         port = 40097
@@ -55,7 +57,7 @@ if __name__ == '__main__':
                 command = input("> ")
                 if command == '':
                     continue
-        if not command.find(' '):
+        if command.find(' ') == -1:
             senddata = {
                 'id'    : message_id,
                 'cmd'   : command
@@ -67,19 +69,45 @@ if __name__ == '__main__':
                 buf = core.recv(message_id)
                 print ("%s"%buf)
             continue
-        (command,obj,params) = command.split(' ',2)
+        (command,nt) = command.split(' ',1)
         if command == None:
             continue
-        if obj == 'null':
-            obj = None
-        params = params.split(' ')
-        senddata = {
-            'id'    : message_id,
-            'cmd'   : command,
-            'obj'   : obj,
-            'params'    : {}
-        }
-        for i in params:
+        if nt.find(' ') == -1:
+            if nt == 'null':
+                obj = None
+            else:
+                obj = nt
+            senddata = {
+                'id'    : message_id,
+                'cmd'   : command,
+                'obj'   : obj,
+            }   
+            core.send(encode(json.dumps(senddata)))
+            ask = input("Waiting for reply?(yes) ").lower()
+            if ask == '' or ask == 'yes':
+                buf = core.recv(message_id)
+                print ("%s"%buf)
+            continue
+        else:
+            (obj,params) = nt.split(' ',1)
+        if params.find(' ') == -1:
+            (field,value) = params.split('=',1)
+            senddata = {
+                'id'    : message_id,
+                'cmd'   : command,
+                'obj'   : obj,
+                'params': {
+                }
+            }   
+            senddata['params'][field] = value
+            senddata = json.dumps(senddata)
+            core.send(encode(senddata))
+            ask = input("Waiting for reply?(yes) ").lower()
+            if ask == '' or ask == 'yes':
+                buf = core.recv(message_id)
+                print ("%s"%buf)
+            continue
+        for i in list(params):
             tVar=str(i).split("=",1)
             if tVar == None or tVar[0] == None:
                 print ("SyntaxError in %s"%i)

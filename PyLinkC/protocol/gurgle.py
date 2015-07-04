@@ -334,9 +334,7 @@ class gurgle:
                 return return_buf
     def send(self,buf):
         if self.is_connected() == False:
-            raise gurgle_network_error(
-                    'Connection has not been established'
-                )
+            raise gurgle_network_error('Connection has not been established')
         self.__send_mutex.acquire()
         try:
             self.__socket.send(buf)
@@ -620,10 +618,9 @@ class gurgle:
         pass
     def is_connected(self):
         return self.__is_connected
-    def connect_to_server(self,strDomain,nPort,timeout=5):
+    def connect_to_server(self,strDomain,nPort,session=None,timeout=5):
         if self.is_connected():                             #
-            self.write_log('You have already connected to remote'
-                    ,gurgle.GURGLE_LOG_MODE_ERROR)
+            self.write_log('You have already connected to remote',gurgle.GURGLE_LOG_MODE_ERROR)
             return gurgle.GURGLE_ALREADY_CONNECTED
         if strDomain is not None:
             self.set_remote_host(strDomain)
@@ -669,7 +666,8 @@ class gurgle:
             "params": {
                 "protocol"  : "gurgle",
                 "version"   : self.get_version(),
-                "encrypt"   : "disabled"
+                "encrypt"   : "disabled",
+                "session"   : session
             }
         })
         self.send(encode(senddata))
@@ -678,9 +676,11 @@ class gurgle:
             self.write_log("Failed to connect, waiting for details",
                     gurgle.GURGLE_LOG_MODE_ERROR)
             self.recv(1024)
-        else:
+        elif buf['reply']['status'] == 'connection established':
             self.write_log("Connection established",
                     gurgle.GURGLE_LOG_MODE_ERROR)
+        else:
+            self.write_log("Status %s"%buf['reply']['status'])
         if self.check_version() == gurgle.GURGLE_VERSION_DNOT_MATCH:
             self.write_log("Protocol's version do not match!",
                     gurgle.GURGLE_LOG_MODE_ERROR)

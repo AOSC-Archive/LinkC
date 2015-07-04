@@ -261,66 +261,6 @@ limit字段指定最大返回好友item的个数，如果不指定这个参数�
 }
 ```
 
-## 订阅相关
-### 请求订阅某人/某群组:
-```
-"id"        : id_A,
-"cmd"       : "subscribe",
-"obj"       : null,
-"params"    : {
-  "to"        : "gurgle id",
-  "addition"  : "something to say"
-}
-```
-### 某人/某群组收到的为:
-```
-"id"        : id_B,
-"cmd"       : "push",
-"params" : {
-  "target"    : "subscribed_request",
-  "from"      : "gurgle id",
-  "addition"  : "something to say"
-}
-```
-### 某人/某群组回复为:
-```
-"id"        : id_B,
-"cmd"       : "subscribed_reply",
-"obj"       : null
-"params"      : {
-  "status"    : "accepted/refused/ignored",
-  "to"        : "gurgle id",
-  "addition"  : "something to say" [拒绝和允许都可以发送附加信息给别人]
-}
-```
-### 请求者收到的回复为:
-```
-"id"        : id_A,
-"cmd"       : "reply",
-"params"    : {
-  "status"    : "accepted/refused",
-  "addition"  : "something to say"/null
-}
-```
-
-### 取消订阅:
-```
-"id"        : id,
-"cmd"       : "unsubscribe"
-"obj"       : null,
-"params"    : {
-  "to"      : "gurgle id"
-}
-```
-#### 回复:
-```
-"id"        : id,
-"cmd"       : "reply",
-"params"    : {
-  "error"     : "error"/null
-}
-```
-
 ## 转发消息
 ```
 "id"        : id,

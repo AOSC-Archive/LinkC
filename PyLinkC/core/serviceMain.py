@@ -232,14 +232,25 @@ class serviceThread(threading.Thread):
                             }
                     })
                 elif obj == 'presence':
-                    if self.is_authenticated == False:
-                        self.core.reply_error(message_id,"PermissionDenied","Unauthenticated")
-                        continue
-                    try:
-                        (last_name,first_name,status,mood) = self.grgl_mysql.get_user_presence(self.username)
-                    except grgl_mysql_controllor_error as err:
-                        self.core.reply_error(message_id,'DatabaseError',err)
-                        continue
+                    if 'who' not in params:
+                        if self.is_authenticated == False:
+                            self.core.reply_error(message_id,"SyntaxError","Whose presence you want to query?")
+                            continue
+                        try:
+                            (last_name,first_name,status,mood) = self.grgl_mysql.get_user_presence(self.username)
+                        except grgl_mysql_controllor_error as err:
+                            self.core.reply_error(message_id,'DatabaseError',err)
+                            continue
+                    else:
+                        tmpVar = self.core.analyse_full_id(params['who'])
+                        if tmpVar == None:
+                            self.core.reply_error(message_id,"SyntaxError","Bad gid in params:{'who':'%s'}"%params['who'])
+                            continue
+                        try:
+                            (last_name,first_name,status,mood) = self.grgl_mysql.get_user_presence(tmpVar[1])
+                        except grgl_mysql_controllor_error as err:
+                            self.core.reply_error(message_id,'DatabaseError',err)
+                            continue
                     senddata = json.dumps({
                         'id'    : message_id,
                         'reply' : {
