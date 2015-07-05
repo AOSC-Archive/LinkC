@@ -202,10 +202,10 @@ None则意味着你想将这个字段置空
 "cmd"       : "query",
 "obj"       : "presence",
 "params"    : {
-  "who"       : "gurgle id"/null
+  "gid"       : "gurgle id"/null
 }
 ```
-'who'字段滞空则为请求自己状态，不滞空则为目标用户状态
+'gid'字段滞空则为请求自己状态，不滞空则为目标用户状态
 ### 回应
 ```
 "id"        : "message's id",    
