@@ -144,6 +144,18 @@ class gurgle:
     GURGLE_CONNECTION_CLOSED            = 19
     GURGLE_VERSION_DNOT_MATCH           = 20
     GURGLE_STATUS_SUPPORTED             = ['avaliable','away','dnd','invisible']
+    passwordAllowed = [ 'a','b','c','d','e','f','g','h','i','j','k','l','m',
+                        'n','o','p','q','r','s','t','u','v','w','x','y','z',
+                        'A','B','C','D','E','F','G','H','I','J','K','L','M',
+                        'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+                        '!','@','#','$','%','^','&','*','-','_','=','<','>',
+                        '+','?','/','1','2','3','4','5','6','7','8','9','0']
+
+    usernameAllowed = [ 'a','b','c','d','e','f','g','h','i','j','k','l','m',
+                        'n','o','p','q','r','s','t','u','v','w','x','y','z',
+                        'A','B','C','D','E','F','G','H','I','J','K','L','M',
+                        'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+                        '+','-','_','1','2','3','4','5','6','7','8','9','0']
     def __init__(self,_mode):
         self.__gurgleVersion    = 'Unusable'
         self.__remoteHost       = None
@@ -370,6 +382,34 @@ class gurgle:
         if self.__is_authenticated:
             return self.__gurgleId
         return None
+    def is_username_acceptable(self,username):
+        if username == None:
+            return False
+        if type(username) != str:
+            return False
+        for ch in username:
+            isFound = False
+            for a in self.usernameAllowed:
+                if a == ch:
+                    isFound = True
+                    break
+            if isFound == False:
+                return False
+        return True
+    def is_password_acceptabel(self,password):
+        if password == None:
+            return False
+        if type(password) != str:
+            return False
+        for ch in password:
+            isFound = False
+            for a in self.usernameAllowed:
+                if a == ch:
+                    isFound = True
+                    break
+            if isFound == False:
+                return False
+        return True
     def analyse_full_id(self,FullSignInID):
         if FullSignInID == None:
             return None
@@ -457,8 +497,22 @@ class gurgle:
                         "etag"  : rosterETag
                     }
                 })
-    def update_roster(self,user_id_1,user_id_2,domain,ip):
+    def query_roster_update(self,user_id_1,user_id_2,domain,ip):
         pass
+    def push_roster_update(self,params):
+        senddata = {
+            "id"    : self.create_id(),
+            "cmd"   : "update",
+            "obj"   : "roster",
+            "params": params
+        }
+        try:
+            self.send(encode(json.dumps(senddata)))
+        except ValueError as err:
+            raise ValueError(err)
+        except gurgle_network_error as err:
+            raise gurgle_auth_error(err)
+        return
     def plain_password_auth(self,ID, password,protocol = 'grgl'):
         try:
             status = self.is_authenticated()
@@ -772,6 +826,18 @@ class gurgle:
         except gurgle_network_error as e:
             raise gurgle_network_error(e)
         return gurgle.GURGLE_SUCCESS
+    def new_friend(self,gid,message = None):
+        if type(gid) != str:
+            return False
+        if self.analyse_full_id(gid) == None:
+            self.write_log("Bad gid")
+            return False
+        params = {
+            "gid"           : gid,
+            "subscribtion"  :{"to": True}
+        }
+        if message != None:
+            params['subscribtion_message'] = str(message)
     def emergency_quit(self,error="UnknownError",reason="Unkonwn reason",message_id=0):
         cmd = "kill"
         if self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
