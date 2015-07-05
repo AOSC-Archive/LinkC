@@ -21,13 +21,13 @@ class grgl_mysql_controllor:
     AUTH_FAILED         = 0
     AUTH_SUCCESS        = 1
     AUTH_INCORRECT      = 2
-    global_ip           = '127.0.0.1'
-    global_domain       = 'localhost'
     def __init__(self):
         self.__is_connected     = False
         self.__mysql_fd         = None
         self.__mysql_conn       = None
         self.__log_level        = 3
+        self.global_domain      = None
+        self.global_ip          = None
         try:
             self.__mysql_conn   = mysql.connect(    \
                     host = self.DATABASE_HOST,      \
@@ -83,6 +83,9 @@ class grgl_mysql_controllor:
             raise grgl_mysql_controllor_error(err)
     def is_connected(self):
         return self.__is_connected
+    def set_global_definition(self,domain,ip):
+        self.global_domain  = domain
+        self.global_ip      = ip
     def connect_to_database(self,db = None):
         try:
             if db != None:
@@ -148,8 +151,17 @@ class grgl_mysql_controllor:
         if disconnect:
             self.disconnect_from_database()
         return grgl_mysql_controllor.AUTH_SUCCESS
-    def get_user_presence(self,username = None,userid=0,disconnect=True):
-        if username == None and userid == 0:
+    def get_user_presence(self,user,disconnect=True):
+        if user == None:
+            return None
+        try:
+            userid = self.get_user_id(user,False)
+        except grgl_mysql_controllor_error as err:
+            self.disconnect_from_database()
+            raise grgl_mysql_controllor_error(err)
+        if userid == 0:
+            if disconnect:
+                self.disconnect_from_database()
             return None
         if not self.is_connected():
             try:
@@ -158,14 +170,9 @@ class grgl_mysql_controllor:
                 self.disconnect_from_database()
                 raise grgl_mysql_controllor_error(err)
         try:
-            if username != None:
-                self.__mysql_fd.execute(    \
-                    "SELECT last_name,first_name,status,mood FROM %s WHERE username = '%s'"
-                    %(self.USER_INFO_TABLE_NAME,username))
-            elif userid != 0:
-                self.__mysql_fd.execute(    \
-                    "SELECT last_name,first_name,status,mood FROM %s WHERE id = %d"
-                    %(self.USER_INFO_TABLE_NAME,userid))
+            self.__mysql_fd.execute(    \
+                "SELECT last_name,first_name,status,mood FROM %s WHERE id = '%d'"
+                %(self.USER_INFO_TABLE_NAME,userid))
         except mysql.Error as err:
             gurgle.write_log(gurgle,"Database Error : %s"%err,
                     gurgle.GURGLE_LOG_MODE_ERROR,self.__log_level)
@@ -177,8 +184,6 @@ class grgl_mysql_controllor:
         if data is None:
             return None
         (last_name,first_name,status,mood) = data
-        if disconnect:
-            self.disconnect_from_database()
         return (last_name,first_name,status,mood)
     def get_roster(self,username = None,limit=-1,disconnect=True):
         if username is None:
@@ -234,6 +239,15 @@ class grgl_mysql_controllor:
         if disconnect:
             self.disconnect_from_database()
         return r_list
+    def search_roster(self,userA,userB):    # search a's roster for b
+        if userA == None or userB == None:
+            return None
+        userA_id = self.get_user_id(userA,False)
+        if userA_id == 0:
+            return None
+        if type(userB) == int:
+            pass
+        return None
     def add_user(self,username = None, password = None,disconnect=True):
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
@@ -364,9 +378,60 @@ class grgl_mysql_controllor:
         if disconnect:
             self.disconnect_from_database()
         return True
-    def get_user_id(self,username,disconnect=True):
-        if username == None:
+    def get_user_name(self,user,disconnect=True):
+        if user == None:
+            return None
+        if type(user) == str:
+            tmpVar = gurgle.analyse_full_id(gurgle,user)
+            if tmpVar == None:
+                username = user
+            else:
+                username = tmpVar[1]
+            if gurgle.is_username_acceptable(gurgle,username) == False:
+                return None
+            return username
+        elif type(user) == int:
+            if not self.is_connected():
+                try:
+                    self.connect_to_database(self.DATABASE_NAME)
+                except grgl_mysql_controllor_error as err:
+                    self.disconnect_from_database()
+                    raise grgl_mysql_controllor_error(err)
+            try:
+                self.__mysql_fd.execute("SELECT id FROM %s WHERE id = '%d'"%(self.USER_INFO_TABLE_NAME,user))
+            except mysql.Error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
+            data = self.__mysql_fd.fetchone()
+            if data == None:
+                if disconnect:
+                    self.disconnect_from_database()
+                return 0
+            if disconnect:
+                self.disconnect_from_database()
+            return str(data[0])
+    def get_user_id(self,user,disconnect=True):
+        if user == None:
             return 0
+        if type(user) == int:
+            return user
+        if type(user) != str:
+            return 0
+        tmpVar = gurgle.analyse_full_id(gurgle,user)
+        if tmpVar == None:
+            for ch in user:
+                isFound = False
+                for a in gurgle.usernameAllowed:
+                    if a == ch:
+                        isFound = True
+                        break
+                if isFound == False:
+                    return None
+            username = user
+        else:
+            if tmpVar[2] != self.global_domain and tmpVar[2] != self.global_ip:
+                return 0
+            username = tmpVar[1]
         if not self.is_connected():
             try:
                 self.connect_to_database(self.DATABASE_NAME)
