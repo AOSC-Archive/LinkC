@@ -8,18 +8,7 @@ from protocol.gurgle import *
 from database.grgl_mysql import *
 from codecs import decode, encode
 
-passwordAllowed = [ 'a','b','c','d','e','f','g','h','i','j','k','l','m',
-                    'n','o','p','q','r','s','t','u','v','w','x','y','z',
-                    'A','B','C','D','E','F','G','H','I','J','K','L','M',
-                    'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
-                    '!','@','#','$','%','^','&','*','-','_','=','<','>',
-                    '+','?','/','1','2','3','4','5','6','7','8','9','0']
 
-usernameAllowed = [ 'a','b','c','d','e','f','g','h','i','j','k','l','m',
-                    'n','o','p','q','r','s','t','u','v','w','x','y','z',
-                    'A','B','C','D','E','F','G','H','I','J','K','L','M',
-                    'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
-                    '+','-','_','1','2','3','4','5','6','7','8','9','0']
 
 protocolSupported=[ 'grgl'  ]
 class serviceThread(threading.Thread):
@@ -38,6 +27,9 @@ class serviceThread(threading.Thread):
         self.session  = None
         self.FullSignInID = None
         self.userid = 0
+        self.global_domain  = 'localhost'
+        self.global_ip      = '127.0.0.1'
+        self.grgl_mysql.set_global_definition(self.global_domain,self.global_ip)
     def __del__(self):
         del self.core
         del self.grgl_mysql
@@ -45,9 +37,9 @@ class serviceThread(threading.Thread):
         pass
     def grgl_forward_message(self,name,data,domain=None,terminal = None):
         if domain == None:
-            domain = grgl_mysql_controllor.global_domain
+            domain = global_domain
         found = False
-        if domain == grgl_mysql_controllor.global_domain or domain == grgl_mysql_controllor.global_ip:
+        if domain == global_domain or domain == global_ip:
             if terminal == None:
                 for i in threading.enumerate():
                     tName = i.getName()
@@ -311,15 +303,9 @@ class serviceThread(threading.Thread):
                     (protocol,self.username,domain,self.terminal) = tmp_data
                     if self.terminal == None:
                         self.terminal = self.core.create_terminal_id()
-                    for ch in self.username:
-                        isFound = False
-                        for a in usernameAllowed:
-                            if a == ch:
-                                isFound = True
-                                break
-                        if isFound == False:
-                            self.core.reply_error(message_id,'SyntaxError','Unallowed character founded')
-                            continue
+                    if self.core.is_username_acceptable(self.username) == False:
+                        self.core.reply_error(message_id,'SyntaxError','Unallowed character was founded')
+                        continue
                     if params == None:
                         self.core.reply_error(message_id,'SyntaxError','Auth without the params field')
                         continue
@@ -328,19 +314,16 @@ class serviceThread(threading.Thread):
                     if 'password' not in params:
                         self.core.reply_error(message_id,'SyntaxError','No password')
                         continue
+                    if type(params['password']) != str:
+                        self.core.reply_error(message_id,'SyntaxError','Bad password')
+                        continue
                     password = params['password']
-                    if password == None:
+                    if password == '':
                         self.core.reply_error(message_id,'SyntaxError','No password')
                         continue
-                    for ch in password:
-                        isFound = False
-                        for a in passwordAllowed:
-                            if a == ch:
-                                isFound = True
-                                break
-                        if isFound == False:
-                            self.core.reply_error(message_id,'SyntaxError','Username or password is incorrect')
-                            continue
+                    if self.core.is_password_acceptabel(password) == False:
+                        self.core.reply_error(message_id,'SyntaxError','Username or password incorrect')
+                        continue
                     result = self.grgl_mysql.plain_password_authenticate(self.username,password)
                     self.FullSignInID = self.core.make_up_full_id(self.username,domain,self.terminal)
                     if result == grgl_mysql_controllor.AUTH_SUCCESS:
@@ -445,6 +428,20 @@ class serviceThread(threading.Thread):
                         continue
                     self.core.reply_ok(message_id)
                     continue
+            elif cmd == 'update':
+                if obj == None:
+                    self.core.reply_error(message_id,"SyntaxError","Tell what you want to update use 'obj' field")
+                    continue
+                if params == None:
+                    self.core.reply_error(message_id,"SyntaxError","Describe waht you want to update use 'params' field")
+                    continue
+                if type(params) != dict:
+                    self.core.reply_error(message_id,"SyntaxError","Bad params")
+                    continue
+                if obj == 'roster':
+                    if 'gid' not in params:
+                        self.core.reply_error(message_id,"SyntaxError","Bad params[No gid specified]")
+                        continue
             elif cmd == 'forward':  # forward messages
                 if self.is_authenticated   == "Unauthenticated":
                     self.core.reply_error(message_id, "PermissionDenied","Unauthenticated")
@@ -525,7 +522,7 @@ class serviceThread(threading.Thread):
                         "cmd"   : "push",
                         "obj"    : "subscribed_request",
                         "params": {
-                            "from"      : self.core.make_up_full_id(self.username,grgl_mysql_controllor.global_domain),
+                            "from"      : self.core.make_up_full_id(self.username,global_domain),
                             "addition"  : addition
                         }
                     })
@@ -593,7 +590,7 @@ class serviceThread(threading.Thread):
                 if  tmpData['params']['from'] == None:
                     self.core.reply_error(message_id,"UnknowError","UnkonwError in subscribed_reply[4]")
                     continue
-                if self.core.is_id_match(tmpData['params']['from'],to_id,grgl_mysql_controllor.global_domain,grgl_mysql_controllor.global_ip) == False:
+                if self.core.is_id_match(tmpData['params']['from'],to_id,global_domain,global_ip) == False:
                     self.core.reply_error(message_id,"UnknowError","UnkonwError in subscribed_reply[5]")
                     continue
                 if params['status'].lower() == 'accepted':
