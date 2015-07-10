@@ -188,6 +188,9 @@ class grgl_mysql_controllor:
     def get_roster(self,username = None,limit=-1,disconnect=True):
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
+        user_id = self.get_user_order(username,False)
+        if user_id == 0:
+            return None
         if not self.is_connected():
             try:
                 self.connect_to_database(self.DATABASE_NAME)
@@ -195,20 +198,10 @@ class grgl_mysql_controllor:
                 self.disconnect_from_database()
                 raise grgl_mysql_controllor_error(err)
         try:
-            self.__mysql_fd.execute("SELECT id FROM %s WHERE username = '%s'"%(self.USER_INFO_TABLE_NAME,username))
-        except mysql.Error as err:
-            raise grgl_mysql_controllor_error(err)
-        data = self.__mysql_fd.fetchone()
-        if data == None:
-            if disconnect:
-                self.disconnect_from_database()
-            return None
-        user_id = int(data[0])
-        try:
             if limit >= 1:
-                self.__mysql_fd.execute("SELECT id,nickname FROM subscribed_list_%d LIMIT %d"%(user_id,limit))
+                self.__mysql_fd.execute("SELECT id,nickname,groups,sub_from,sub_to FROM subscribed_list_%d LIMIT %d"%(user_id,limit))
             else:
-                self.__mysql_fd.execute("SELECT id,nickname FROM subscribe_list_%d"%user_id)
+                self.__mysql_fd.execute("SELECT id,nickname,groups,sub_from,sub_to FROM subscribe_list_%d"%user_id)
         except mysql.Error as err:
             raise grgl_mysql_controllor_error(err)
         count = 0
@@ -242,8 +235,16 @@ class grgl_mysql_controllor:
     def add_user(self,username = None, password = None,disconnect=True):
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
-        data = self.get_user_presence(username)
-        if data != None:
+        flag = False
+        try:
+            data  = self.get_user_order(username)
+        except grgl_mysql_controllor_error as err:
+            if str(err) != 'NoSuchUser':
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
+            else:
+                flag = True
+        if flag == False:
             gurgle.write_log(gurgle,"Sign up Error [User already exists]",
                     gurgle.GURGLE_LOG_MODE_ERROR,self.__log_level)
             raise grgl_mysql_controllor_error(
@@ -283,12 +284,13 @@ class grgl_mysql_controllor:
         data = self.__mysql_fd.fetchone()
         try:
             self.__mysql_fd.execute(    \
-                    "CREATE TABLE subscribed_list_%d(       \
-                        id CHAR(32) PRIMARY KEY NOT NULL,   \
-                        nickname CHAR(32),                  \
-                        sub_to BOOL NOT NULL,               \
-                        sub_from BOOL NOT NULL              \
-                    )"
+                    "CREATE TABLE subscribed_list_%d("
+                        "id CHAR(32) PRIMARY KEY NOT NULL,"
+                        "nickname CHAR(32),"
+                        "groups CHAR(32),"
+                        "sub_to BOOL NOT NULL,"
+                        "sub_from BOOL NOT NULL"
+                    ")"
                     %data[0])
             self.__mysql_conn.commit();
         except mysql.Error as err:
@@ -297,7 +299,7 @@ class grgl_mysql_controllor:
             raise grgl_mysql_controllor_error(err)
         try:
             self.__mysql_fd.execute(    \
-                    "CREATE TABLE offline_message_list_%d (message_id INT,type char(16),time DATETIME, message TEXT)"
+                    "CREATE TABLE offline_message_list_%d (message_id BIGINT,type char(32),time DATETIME, message TEXT)"
                     %data[0])
             self.__mysql_conn.commit();
         except mysql.Error as err:
@@ -396,16 +398,8 @@ class grgl_mysql_controllor:
             return False
         if userid == None:
             return False
-        tmpVar = gurgle.analyse_full_id(gurgle,userid)
-        if tmpVar == None:
-            return False
-        (protocol,username,domain,terminal) = tmpVar
-        if domain != self.global_domain and domain != self.global_ip:
-            if disconnect:
-                self.disconnect_from_database()
-            return False
         try:
-            id = self.get_user_order(username,False)   # this id is an int to indentify user in local database
+            id = self.get_user_order(userid,False)   # this id is an int to indentify user in local database
         except grgl_mysql_controllor_error as err:
             self.disconnect_from_database()
             raise grgl_mysql_controllor_error(err)
@@ -501,7 +495,7 @@ class grgl_mysql_controllor:
         if data == None:
             if disconnect:
                 self.disconnect_from_database()
-            return 0
+            raise grgl_mysql_controllor_error("NoSuchUser")
         if disconnect:
             self.disconnect_from_database()
         return int(data[0])
@@ -539,13 +533,15 @@ class grgl_mysql_controllor:
                 self.disconnect_from_database()
                 raise grgl_mysql_controllor_error(err)
         try:
-            self.__mysql_fd.execute("SELECT sub_to FROM subscribed_list_%d WHERE username = '%s'"%(host_user,target_user))
+            self.__mysql_fd.execute("SELECT sub_to FROM subscribed_list_%d WHERE id = '%s'"%(host_user,target_user))
         except mysql.Error as err:
             self.disconnect_from_database()
             raise grgl_mysql_controllor_error(err)
         tmpVar = self.__mysql_fd.fetchone()
         if disconnect:
             self.disconnect_from_database()
+        if tmpVar == None:
+            return False
         return bool(tmpVar[0])
     def delete_offline_message(self,userid=None,message_id=0,disconnect=True):
         if userid == None:

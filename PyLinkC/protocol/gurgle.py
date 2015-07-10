@@ -430,6 +430,8 @@ class gurgle:
                 return None
             return (protocol,username,domain,terminal)
     def make_up_full_id(self,username,domain,terminal = None):
+        if self.is_username_acceptable(username) == False:
+            return None
         if (username == None) or (domain == None):
             return 'SyntaxError'
         if terminal == None:
@@ -813,31 +815,28 @@ class gurgle:
         except gurgle_network_error as e:
             raise gurgle_network_error(e)
         return gurgle.GURGLE_SUCCESS
-    def add_friend_request(self,to,addition = None):
-        if to == None:
-            return gurgle.GURGLE_FAILED
-        params = None
-        if additions != None:
-            params = {"cmd":"request","params":{"addition":addition}}
-        else:
-            params = {"cmd":"request"}
-        try:
-            self.forward_message(to,params)
-        except gurgle_network_error as e:
-            raise gurgle_network_error(e)
-        return gurgle.GURGLE_SUCCESS
     def new_friend(self,gid,message = None):
         if type(gid) != str:
             return False
         if self.analyse_full_id(gid) == None:
             self.write_log("Bad gid")
             return False
-        params = {
-            "gid"           : gid,
-            "subscribtion"  :{"to": True}
+        message_id = self.create_id()
+        senddata = {
+            "id"    : message_id,
+            "cmd"   : "update",
+            "obj"   : "roster",
+            "params":{
+                "gid"           : gid,
+                "subscription"  :{"to": True}
+            }
         }
         if message != None:
-            params['subscribtion_message'] = str(message)
+            senddata['params']['subscribted_message'] = str(message)
+        senddata = json.dumps(senddata)
+        self.send(encode(senddata))
+        recvdata = self.recv(message_id)
+        print ("%s"%recvdata)
     def emergency_quit(self,error="UnknownError",reason="Unkonwn reason",message_id=0):
         cmd = "kill"
         if self.get_runtime_mode() == gurgle.GURGLE_CLIENT:
@@ -961,6 +960,7 @@ if __name__ == '__main__':
         exit()
     core.write_log("Auth succeed")
     core.publish_self_presence_update(last_name = "SternW",first_name="Zhang",status = "Avaliable")
+    core.new_friend("grgl:test@localhost","I want to make friend with you")
             
 
 
