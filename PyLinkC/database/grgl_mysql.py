@@ -155,7 +155,7 @@ class grgl_mysql_controllor:
         if user == None:
             return None
         try:
-            userid = self.get_user_id(user,False)
+            userid = self.get_user_order(user,False)
         except grgl_mysql_controllor_error as err:
             self.disconnect_from_database()
             raise grgl_mysql_controllor_error(err)
@@ -239,15 +239,6 @@ class grgl_mysql_controllor:
         if disconnect:
             self.disconnect_from_database()
         return r_list
-    def search_roster(self,userA,userB):    # search a's roster for b
-        if userA == None or userB == None:
-            return None
-        userA_id = self.get_user_id(userA,False)
-        if userA_id == 0:
-            return None
-        if type(userB) == int:
-            pass
-        return None
     def add_user(self,username = None, password = None,disconnect=True):
         if username is None:
             return grgl_mysql_controllor.ERROR_EMPTY_ARGUMENT
@@ -292,7 +283,12 @@ class grgl_mysql_controllor:
         data = self.__mysql_fd.fetchone()
         try:
             self.__mysql_fd.execute(    \
-                    "CREATE TABLE subscribed_list_%d (id CHAR(32), nickname CHAR(32))"
+                    "CREATE TABLE subscribed_list_%d(       \
+                        id CHAR(32) PRIMARY KEY NOT NULL,   \
+                        nickname CHAR(32),                  \
+                        sub_to BOOL NOT NULL,               \
+                        sub_from BOOL NOT NULL              \
+                    )"
                     %data[0])
             self.__mysql_conn.commit();
         except mysql.Error as err:
@@ -337,6 +333,64 @@ class grgl_mysql_controllor:
             gurgle.write_log(gurgle,"Mysql Error %s"%err,
                     gurgle.GURGLE_LOG_MODE_ERROR,self.__log_level)
             raise grgl_mysql_controllor_error(err)
+        if disconnect:
+            self.disconnect_from_database()
+        return True
+    def update_roster_info(self,host_user,target_user,update_dict,disconnect=True):
+        if host_user == None or target_user == None:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if type(host_user) == str:
+            host_user = self.get_user_order(host_user,False)
+        if type(host_user) != int:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if host_user == 0:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if type(target_user) == str:
+            target_user = self.get_user_name(target_user,False)
+        if type(target_user) != str:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if gurgle.analyse_full_id(gurgle,target_user) == None:
+            target_user = gurgle.make_up_full_id(gurgle,target_user,self.global_domain,None)
+        if target_user == None:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        update_dict = dict(update_dict)
+        if update_dict == {}:
+            return False
+        update_string = ""
+        for i in  update_dict.keys():
+            update_string += i
+            update_string += "="
+            update_string += '"%s"'%str(update_dict[i])
+            update_string += ","
+        update_string = str(update_string)[:-1]
+        if not self.is_connected():
+            try:
+                self.connect_to_database(self.DATABASE_NAME)
+            except grgl_mysql_controllor_error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
+        try:
+            self.__mysql_fd.execute(    \
+                    "UPDATE subscribed_list_%d SET %s WHERE id = '%s'"
+                    %(host_user,update_string,target_user))
+            self.__mysql_conn.commit();
+        except mysql.Error as err:
+            gurgle.write_log(gurgle,"Mysql Error %s"%err,
+                    gurgle.GURGLE_LOG_MODE_ERROR,self.__log_level)
+            raise grgl_mysql_controllor_error(err)
+        if disconnect:
+            self.disconnect_from_database()
+        return True
     def insert_offline_message(self,data,message_id=0,type='message',userid=None,disconnect=True):  # this userid is a str to indentity user on net
         if data == None:
             return False
@@ -351,7 +405,7 @@ class grgl_mysql_controllor:
                 self.disconnect_from_database()
             return False
         try:
-            id = self.get_user_id(username,False)   # this id is an int to indentify user in local database
+            id = self.get_user_order(username,False)   # this id is an int to indentify user in local database
         except grgl_mysql_controllor_error as err:
             self.disconnect_from_database()
             raise grgl_mysql_controllor_error(err)
@@ -410,7 +464,7 @@ class grgl_mysql_controllor:
             if disconnect:
                 self.disconnect_from_database()
             return str(data[0])
-    def get_user_id(self,user,disconnect=True):
+    def get_user_order(self,user,disconnect=True):
         if user == None:
             return 0
         if type(user) == int:
@@ -451,6 +505,48 @@ class grgl_mysql_controllor:
         if disconnect:
             self.disconnect_from_database()
         return int(data[0])
+    def is_user_subscribed(self,host_user,target_user,disconnect=True):
+        if host_user == None or target_user == None:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if type(host_user) == str:
+            host_user = self.get_user_order(host_user,False)
+        if type(host_user) != int:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if host_user == 0:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if type(target_user) == int:
+            target_user = self.get_user_name(target_user,False)
+        if type(target_user) != str:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if gurgle.analyse_full_id(gurgle,target_user) == None:
+            target_user = gurgle.make_up_full_id(gurgle,target_user,self.global_domain,None)
+        if target_user == None:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if not self.is_connected():
+            try:
+                self.connect_to_database(self.DATABASE_NAME)
+            except grgl_mysql_controllor_error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
+        try:
+            self.__mysql_fd.execute("SELECT sub_to FROM subscribed_list_%d WHERE username = '%s'"%(host_user,target_user))
+        except mysql.Error as err:
+            self.disconnect_from_database()
+            raise grgl_mysql_controllor_error(err)
+        tmpVar = self.__mysql_fd.fetchone()
+        if disconnect:
+            self.disconnect_from_database()
+        return bool(tmpVar[0])
     def delete_offline_message(self,userid=None,message_id=0,disconnect=True):
         if userid == None:
             return False
@@ -459,7 +555,7 @@ class grgl_mysql_controllor:
             if tmpVar == None:
                 return False
             try:
-                userid = self.get_user_id(tmpVar[1],False)
+                userid = self.get_user_order(tmpVar[1],False)
             except grgl_mysql_controllor_error as err:
                 self.disconnect_from_database()
                 raise grgl_mysql_controllor_error(err)
@@ -496,7 +592,7 @@ class grgl_mysql_controllor:
             if tmpVar[2] != self.global_domain and tmpVar[2] != self.global_ip:
                 return None
             try:
-                userid = self.get_user_id(tmpVar[1],False)
+                userid = self.get_user_order(tmpVar[1],False)
             except grgl_mysql_controllor_error as err:
                 self.disconnect_from_database()
                 raise grgl_mysql_controllor_error(err)
@@ -550,12 +646,32 @@ class grgl_mysql_controllor:
         if disconnect:
             self.disconnect_from_database()
         return (id_list,ret_data)
-    def check_subscribed_list(self,id_a,id_b,disconnect=True):
-        if id_a == None or id_b == None:
+    def subscribe(self,host_user,target_user,disconnect=True):  # from[who send request] to[who will accept request]
+        if host_user == None or target_user == None:
+            if disconnect:
+                self.disconnect_from_database()
             return False
-        id_a = gurgle.analyse_full_id(gurgle,id_a)
-        id_b = gurgle.analyse_full_id(gurgle,id_b)
-        if id_a == None or id_b == None:
+        if type(host_user) == str:
+            host_user = self.get_user_order(host_user,False)
+        if type(host_user) != int:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if host_user == 0:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if type(target_user) == int:
+            target_user = self.get_user_name(target_user,False)
+        if type(target_user) != str:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if gurgle.analyse_full_id(gurgle,target_user) == None:
+            target_user = gurgle.make_up_full_id(gurgle,target_user,self.global_domain,None)
+        if target_user == None:
+            if disconnect:
+                self.disconnect_from_database()
             return False
         if not self.is_connected():
             try:
@@ -563,74 +679,56 @@ class grgl_mysql_controllor:
             except grgl_mysql_controllor_error as err:
                 self.disconnect_from_database()
                 raise grgl_mysql_controllor_error(err)
-        if id_a[2] == self.global_domain or id_a[2] == self.global_ip:
-            try:
-                self.__mysql_fd.execute("SELECT id FROM subscribed_list_%d WHERE id='%d'" \
-                    %(self.get_user_id(id_a[1],False),gurgle.make_up_full_id(gurgle,id_b[1],id_b[2],None)))
-            except grgl_mysql_controllor_error as err:
-                self.disconnect_from_database()
-                raise grgl_mysql_controllor_error(err)
-            tmVar = self.__mysql_fd.fetchone()
-            if disconnect:
-                self.disconnect_from_database()
-            if tmpVar != None:
-                return True
-            else:
-                return False
-        elif id_b[2] == self.global_domain or id_b[2] == self.global_ip:
-            try:
-                self.__mysql_fd.execute("SELECT id FROM subscribed_list_%d WHERE id='%d'" \
-                    %(self.get_user_id(id_a[1],False),gurgle.make_up_full_id(gurgle,id_b[1],id_b[2],None)))
-            except grgl_mysql_controllor_error as err:
-                self.disconnect_from_database()
-                raise grgl_mysql_controllor_error(err)
-            tmVar = self.__mysql_fd.fetchone()
-            if disconnect:
-                self.disconnect_from_database()
-            if tmpVar != None:
-                return True
-            else:
-                return False
-        else:
-            return False
-    def accept_subscribed_request(self,id_a,id_b,disconnect=True):  # from[who send request] to[who will accept request]
-        if name_a == None or name_b == None:
-            return False
+
         try:
-            tmpVar = gurgle.analyse_full_id(gurgle,id_a)
-            if tmpVar == None:
-                return False
-            id_a = self.get_user_id(tmpVar[1],disconnect=False)
-        except grgl_mysql_controllor_error as err:
-            self.disconnect_from_database()
-            raise grgl_mysql_controllor_error(err)
-        if id_a == 0 or id_b ==0:
-            if disconnect:
-                self.disconnect_from_database()
-            return False
-        try:
-            self.__mysql_fd.execute(    \
-                    "INSERT INTO subscribed_list_%d (id)"
-                    "VALUES('%d')"%(id_a,id_b))
-            self.__mysql_fd.execute(    \
-                    "INSERT INTO subscribed_list_%d (id)"
-                    "VALUES('%d')"%(id_b,id_a))
-            self.__mysql_conn.commit()
+            self.__mysql_fd.execute("SELECT sub_to FROM subscribed_list_%d WHERE id = '%s'"%(host_user,target_user))
         except mysql.Error as err:
             self.disconnect_from_database()
             raise grgl_mysql_controllor_error(err)
+        tmpVar = self.__mysql_fd.fetchone()
+        if tmpVar == None:
+            try:
+                self.__mysql_fd.execute("INSERT INTO subscribed_list_%d (id,sub_to,sub_from) VALUE ('%s',true,false)"%(host_user,target_user))
+                self.__mysql_conn.commit()
+            except mysql.Error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
+        elif bool(tmpVar[0]) == False:
+            try:
+                self.__mysql_fd.execute("UPDATE subscribed_list_%d SET sub_to =true WHERE id = '%s'"%(host_user,target_user))
+                self.__mysql_conn.commit()
+            except mysql.Error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
         if disconnect:
             self.disconnect_from_database()
         return True
-    def unsubscribe(self,who,to,disconnect=False):
-        if to==None:
+    def unsubscribe(self,host_user,target_user,disconnect=False):
+        if host_user == None or target_user == None:
+            if disconnect:
+                self.disconnect_from_database()
             return False
-        try:
-            status = self.check_subscribed_list(who,to,False)
-        except grgl_mysql_controllor_error as err:
-            self.disconnect_from_database()
-            raise grgl_mysql_controllor_error(err)
-        if status == False:
+        if type(host_user) == str:
+            host_user = self.get_user_order(host_user,False)
+        if type(host_user) != int:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if host_user == 0:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if type(target_user) == int:
+            target_user = self.get_user_name(target_user,False)
+        if type(target_user) != str:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
+        if gurgle.analyse_full_id(gurgle,target_user) == None:
+            target_user = gurgle.make_up_full_id(gurgle,target_user,self.global_domain,None)
+        if target_user == None:
+            if disconnect:
+                self.disconnect_from_database()
             return False
         if not self.is_connected():
             try:
@@ -639,16 +737,27 @@ class grgl_mysql_controllor:
                 self.disconnect_from_database()
                 raise grgl_mysql_controllor_error(err)
         try:
-            a_id = self.get_user_id(who,False)
-            b_id = self.get_user_id(to,False)
-        except grgl_mysql_controllor_error as err:
-            self.disconnect_from_database()
-            raise grgl_mysql_controllor_error(err)
-        try:
-            self.__mysql_fd.execute("DELETE FROM subscribed_list_%d WHERE id='%d'"%(a_id,b_id))
+            self.__mysql_fd.execute("SELECT sub_from FROM subscribed_list_%d WHERE id = '%s'"%(host_user,target_user))
         except mysql.Error as err:
             self.disconnect_from_database()
             raise grgl_mysql_controllor_error(err)
+        tmpVar = self.__mysql_fd.fetchone()
+        if tmpVar == None:
+            return True
+        if bool(tmpVar) == False:
+            try:
+                self.__mysql_fd.execute("DELETE FROM subscribed_list_%d WHERE id='%s'"%(host_user,target_user))
+                self.__mysql_conn.commit()
+            except mysql.Error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
+        else:
+            try:
+                self.__mysql_fd.execute("UPDATE subscribed_list_%d SET sub_to = false WHERE id='%s'"%(host_user,target_user))
+                self.__mysql_conn.commit()
+            except mysql.Error as err:
+                self.disconnect_from_database()
+                raise grgl_mysql_controllor_error(err)
         if disconnect:
             self.disconnect_from_database()
         return True

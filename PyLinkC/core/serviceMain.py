@@ -328,7 +328,7 @@ class serviceThread(threading.Thread):
                     self.FullSignInID = self.core.make_up_full_id(self.username,domain,self.terminal)
                     if result == grgl_mysql_controllor.AUTH_SUCCESS:
                         try:
-                            self.userid = self.grgl_mysql.get_user_id(self.username)
+                            self.userid = self.grgl_mysql.get_user_order(self.username)
                         except grgl_mysql_controllor_error as err:
                             self.core.reply_error(message_id,"DatabaseError","Cannot get your ID")
                             continue
@@ -442,6 +442,41 @@ class serviceThread(threading.Thread):
                     if 'gid' not in params:
                         self.core.reply_error(message_id,"SyntaxError","Bad params[No gid specified]")
                         continue
+                    if 'nickname' in params:
+                        update_dict['nickname'] =str(params['nickname'])
+                    if 'subscription' in params:
+                        if 'to' in params['subscription']:
+                            try:
+                                subscribed_status = self.grgl_mysql.is_user_subscribed(self.userid,params['gid'])
+                            except grgl_mysql_controllor_error as err:
+                                self.core.reply_error("DatabaseError",err)
+                                continue
+                            if bool(params['subscription']['to']) == True:
+                                if subscribed_status == False:
+                                    try:
+                                        self.grgl_mysql.subscribe(self.userid,params['gid'])
+                                    except grgl_mysql_controllor_error as err:
+                                        self.core.reply_error("DatabaseError",err)
+                                        continue
+                            elif bool(params['subscription']['to']) == False:
+                                try:
+                                    self.grgl_mysql.unsubscribe(self.userid,params['gid'])
+                                except grgl_mysql_controllor_error as err:
+                                    self.core.reply_error("DatabaseError",err)
+                                    continue
+                        else:
+                            self.core.reply_error(message_id,"SyntaxError","Bad subscription")
+                            continue
+                    if update_dict == {}:
+                        self.core.reply_error(message_id,"SyntaxError","Please specify what you want to modify")
+                        continue;
+                    try:
+                        self.grgl_mysql.update_roster_info(self.get_user_id(),params['gid'],update_dict)
+                    except grgl_mysql_controllor_error as err:
+                        self.core.reply_error(message_id,"UnknownError",err)
+                        continue
+                    self.core.reply_ok(message_id)
+                    continue
             elif cmd == 'forward':  # forward messages
                 if self.is_authenticated   == "Unauthenticated":
                     self.core.reply_error(message_id, "PermissionDenied","Unauthenticated")
@@ -505,7 +540,7 @@ class serviceThread(threading.Thread):
                     self.core.reply_error(message_id,"BadID","Bad Id syntax")
                     continue
                 try:
-                    status = self.grgl_mysql.check_subscribed_list(self.username,tmpVar[1])
+                    status = self.grgl_mysql.is_user_subscribed(self.username,tmpVar[1])
                 except grgl_mysql_controllor_error as err:
                     self.core.reply_error(message_id,"DatabaseError",err)
                     continue
@@ -638,7 +673,7 @@ class serviceThread(threading.Thread):
                         continue
                 if params['status'].lower() == 'accepted':
                     try:
-                        self.grgl_mysql.accept_subscribed_request(self.username,to_name)
+                        self.grgl_mysql.subscribe(self.username,to_name)
                     except grgl_mysql_controllor_error as err:
                         self.core.reply_error(message_id,'DatabaseError','Cannot insert offline meesage')
                         continue
