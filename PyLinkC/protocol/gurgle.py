@@ -252,6 +252,7 @@ class gurgle:
             self.__recv_roaster -= 1
             self.__recv_door_2.door_step_out()
             if data is not None:
+                self.__package_list.remove(message_id)
                 return data
             ## status :: door_1 closed, door_2 opened, recv_mutex locked
         if not self.is_connected():
@@ -543,7 +544,7 @@ class gurgle:
             except gurgle_network_error as e:
                 raise gurgle_network_error(e)
             if 'reply' not in recvdata:
-                self.write_log("I just want to sign in but do not reply me ?")
+                self.write_log("NO REPLY")
                 self.__is_authenticated = False
                 return gurgle.GURGLE_FAILED
             if 'error' in recvdata['reply']:
@@ -583,9 +584,7 @@ class gurgle:
             senddata = json.dumps({
                     "id"    : message_id,
                     "cmd"   : "query",
-                    "params": {
-                        "query" : "auth_status"
-                    }
+                    "obj"   : "auth_status"
                 })
             try:
                 self.send(encode(senddata))

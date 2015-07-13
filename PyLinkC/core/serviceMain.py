@@ -225,7 +225,7 @@ class serviceThread(threading.Thread):
                     })
                 elif obj == 'presence':
                     if 'who' not in params:
-                        if self.is_authenticated == False:
+                        if self.is_authenticated != "Authenticated":
                             self.core.reply_error(message_id,"SyntaxError","Whose presence you want to query?")
                             continue
                         try:
@@ -244,13 +244,13 @@ class serviceThread(threading.Thread):
                             self.core.reply_error(message_id,'DatabaseError',err)
                             continue
                     senddata = json.dumps({
-                        'id'    : message_id,
-                        'reply' : {
-                            'last_name' : last_name,
-                            'first_name': first_name,
-                            'status'    : status,
-                            'mood'      : mood,
-                            'error'     : None
+                        "id"    : message_id,
+                        "reply" : {
+                            "last_name" : last_name,
+                            "first_name": first_name,
+                            "status"    : status,
+                            "mood"      : mood,
+                            "error"     : None
                         }    
                     })
                 elif obj == 'roster':
@@ -267,9 +267,9 @@ class serviceThread(threading.Thread):
                         self.core.reply_error(message_id,"DatabaseError",err)
                         continue
                     senddata = json.dumps({
-                        'id'    : message_id,
-                        'reply' : {
-                            'value' : tmpVar
+                        "id"    : message_id,
+                        "reply" : {
+                            "value" : tmpVar
                         }
                         })
                 else:   #end if of [query]
@@ -360,7 +360,7 @@ class serviceThread(threading.Thread):
                                 _thread.exit()
                             i += 1
                         try:
-                            (id_list,data_list) = self.grgl_mysql.get_offline_message(self.FullSignInID,,delete=True)
+                            (id_list,data_list) = self.grgl_mysql.get_offline_message(self.FullSignInID,delete=True)
                         except grgl_mysql_controllor_error as err:
                             self.core.reply_error(message_id,"DatabaseError","Cannot fetch offline message[%s]"%err)
                             continue
@@ -604,7 +604,7 @@ class serviceThread(threading.Thread):
                 else:
                     self.core.write_log('Client quited without reason',
                             gurgle.GURGLE_LOG_MODE_DEBUG)
-                senddata = json.dumps({"id":"%d"%message_id,"reply":"bye"})
+                senddata = json.dumps({"id":message_id,"reply":"bye"})
                 self.core.send(encode(senddata))
                 self.core.disconnect_from_remote()
                 _thread.exit()
