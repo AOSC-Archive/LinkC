@@ -236,12 +236,10 @@ limit字段指定最大返回好友item的个数，如果不指定这个参数�
 ### 推送
 ```
 "id"        : 0,
-"cmd"       : "push",
-"obj"       : "roster",
-"params"    : {
+"reply"     : {
   "value"     : [
-    ["nickname","group","last_name","first_name","status","mood"],
-    ["nickname","group","last_name","first_name","status","mood"],
+    ["id","nickname","group","sub_from","sub_to","last_name","first_name","status","mood"],
+    ["id","nickname","group","sub_from","sub_to","last_name","first_name","status","mood"],
     ......
   ]
 }

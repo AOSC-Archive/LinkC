@@ -213,18 +213,20 @@ class grgl_mysql_controllor:
             if tmpVar == None:
                 break
             count += 1
-            t_dict[tmpVar[0]] = tmpVar[1]
+            t_dict[tmpVar[0]] = (tmpVar[1],tmpVar[2],tmpVar[3],tmpVar[4])
         for i in t_dict.keys():
             tmp_list = []
             try:
-                tmpVar = self.get_user_presence(userid=i,disconnect=False)
+                tmpVar = self.get_user_presence(i,disconnect=False)
             except mysql.Error as err:
                 self.disconnect_from_database()
                 raise grgl_mysql_controllor_error("Cannot fetch user(id=%d)'s presence[%s]"%(i,err))
             if tmpVar == None:
                 self.disconnect_from_database()
                 raise grgl_mysql_controllor_error("Cannot fetch user(id=%d)'s presence"%i)
-            tmp_list.append(t_dict[i])
+            tmp_list.append(i);         # id
+            for t in t_dict[i]:
+                tmp_list.append(t);
             for k in tmpVar:
                 tmp_list.append(k)
             r_list.append(tmp_list)

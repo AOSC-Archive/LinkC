@@ -360,7 +360,7 @@ class serviceThread(threading.Thread):
                                 _thread.exit()
                             i += 1
                         try:
-                            (id_list,data_list) = self.grgl_mysql.get_offline_message(self.FullSignInID,delete=True)
+                            (id_list,data_list) = self.grgl_mysql.get_offline_message(self.FullSignInID,message_type=None,delete=True)
                         except grgl_mysql_controllor_error as err:
                             self.core.reply_error(message_id,"DatabaseError","Cannot fetch offline message[%s]"%err)
                             continue
@@ -447,95 +447,95 @@ class serviceThread(threading.Thread):
                     if target_user == None:
                         self.core.reply_error("SyntaxError","Bad GID in params")
                         continue
+                    update_dict = {};
                     if 'nickname' in params:
                         update_dict['nickname'] = str(params['nickname'])
                     if 'groups'  in params:
                         update_dict['groups']   = str(params['groups'])
                     flag = False
-                    if 'subscription' in params:
+                    if 'sub_to' in params:
                         flag = True
-                        if 'to' in params['subscription']:
-                            try:
-                                subscribed_status = self.grgl_mysql.is_user_subscribed(self.userid,target_user)
-                            except grgl_mysql_controllor_error as err:
-                                self.core.reply_error(message_id,"DatabaseError",err)
-                                continue
-                            if bool(params['subscription']['to']) == True:
-                                if subscribed_status == False:
-                                    try:
-                                        status = self.grgl_mysql.subscribe(self.userid,target_user)
-                                    except grgl_mysql_controllor_error as err:
-                                        self.core.reply_error("DatabaseError",err)
-                                        continue
-                                    if status == False:
-                                        self.core.reply_error("UnknownError","Cannot subscribe him/her")
-                                        continue
-                                    senddata = {
-                                        "id"    : self.core.create_id(),
-                                        "cmd"   : "push",
-                                        "obj"   : "subscribed_message",
-                                        "params": {
-                                            "message"           : "%s just subscribed you"%self.FullSignInID,
-                                            "subscribed_status" : True
-                                        }
-                                    }
-                                    if 'subscribed_message' in params:
-                                        senddata['params']['message'] = params['subscribed_message']
-                                    tmpVar = self.core.analyse_full_id(target_user)
-                                    if tmpVar == None:
-                                        self.core.reply_error(message_id,"UnknownError",None)
-                                        continue
-                                    senddata = json.dumps(senddata)
-                                    try:
-                                        status = self.grgl_forward_message(tmpVar[1],encode(senddata),tmpVar[2],tmpVar[3])
-                                    except gurgle_network_error as err:
-                                        self.core.reply_error(message_id,"NetworkError",err)
-                                        continue
-                                    if status == False:
-                                        try:
-                                            self.grgl_mysql.insert_offline_message(senddata,0,'subscribed_message',target_user)
-                                        except grgl_mysql_controllor_error as err:
-                                            self.core.reply_error(message_id,"DatabaseError",err)
-                                            continue
-                                else:
-                                    self.core.reply_error(message_id,"DatabaseError","You have subscribed him/her")
-                                    continue
-                            else:
+                        try:
+                            subscribed_status = self.grgl_mysql.is_user_subscribed(self.userid,target_user)
+                        except grgl_mysql_controllor_error as err:
+                            self.core.reply_error(message_id,"DatabaseError",err)
+                            continue
+                        if bool(params['sub_to']) == True:
+                            if subscribed_status == False:
                                 try:
-                                    self.grgl_mysql.unsubscribe(self.userid,target_user)
+                                    status = self.grgl_mysql.subscribe(self.userid,target_user)
                                 except grgl_mysql_controllor_error as err:
                                     self.core.reply_error("DatabaseError",err)
                                     continue
-                                    senddata = {
-                                        "id"    : self.core.create_id(),
-                                        "cmd"   : "push",
-                                        "obj"   : "subscribed_message",
-                                        "params": {
-                                            "message"           : "%s just unsubscribed you"%self.FullSignInID,
-                                            "subscribed_status" : False
-                                        }
+                                if status == False:
+                                    self.core.reply_error("UnknownError","Cannot subscribe him/her")
+                                    continue
+                                senddata = {
+                                    "id"    : self.core.create_id(),
+                                    "cmd"   : "push",
+                                    "obj"   : "subscribed_message",
+                                    "params": {
+                                        "message"           : "%s just subscribed you"%self.FullSignInID,
+                                        "subscribed_status" : True
                                     }
-                                    if 'subscribed_message' in params:
-                                        senddata['params']['message'] = params['subscribed_message']
-                                    tmpVar = self.core.analyse_full_id(target_user)
-                                    if tmpVar == None:
-                                        self.core.reply_error(message_id,"UnknownError",None)
-                                        continue
-                                    senddata = json.dumps(senddata)
+                                }
+                                if 'subscribed_message' in params:
+                                    senddata['params']['message'] = params['subscribed_message']
+                                tmpVar = self.core.analyse_full_id(target_user)
+                                if tmpVar == None:
+                                    self.core.reply_error(message_id,"UnknownError",None)
+                                    continue
+                                senddata = json.dumps(senddata)
+                                try:
+                                    status = self.grgl_forward_message(tmpVar[1],encode(senddata),tmpVar[2],tmpVar[3])
+                                except gurgle_network_error as err:
+                                    self.core.reply_error(message_id,"NetworkError",err)
+                                    continue
+                                if status == False:
                                     try:
-                                        status = self.grgl_forward_message(tmpVar[1],encode(senddata),tmpVar[2],tmpVar[3])
-                                    except gurgle_network_error as err:
-                                        self.core.reply_error(message_id,"NetworkError",err)
+                                        self.grgl_mysql.insert_offline_message(senddata,0,'subscribed_message',target_user)
+                                    except grgl_mysql_controllor_error as err:
+                                        self.core.reply_error(message_id,"DatabaseError",err)
                                         continue
-                                    if status == False:
-                                        try:
-                                            self.grgl_mysql.insert_offline_message(senddata,0,'subscribed_message',target_user)
-                                        except grgl_mysql_controllor_error as err:
-                                            self.core.reply_error(message_id,"DatabaseError",err)
-                                            continue
+                            else:
+                                self.core.reply_error(message_id,"DatabaseError","You have subscribed him/her")
+                                continue
+                        else:
+                            try:
+                                self.grgl_mysql.unsubscribe(self.userid,target_user)
+                            except grgl_mysql_controllor_error as err:
+                                self.core.reply_error("DatabaseError",err)
+                                continue
+                                senddata = {
+                                    "id"    : self.core.create_id(),
+                                    "cmd"   : "push",
+                                    "obj"   : "subscribed_message",
+                                    "params": {
+                                        "message"           : "%s just unsubscribed you"%self.FullSignInID,
+                                        "subscribed_status" : False
+                                    }
+                                }
+                                if 'subscribed_message' in params:
+                                    senddata['params']['message'] = params['subscribed_message']
+                                tmpVar = self.core.analyse_full_id(target_user)
+                                if tmpVar == None:
+                                    self.core.reply_error(message_id,"UnknownError",None)
+                                    continue
+                                senddata = json.dumps(senddata)
+                                try:
+                                    status = self.grgl_forward_message(tmpVar[1],encode(senddata),tmpVar[2],tmpVar[3])
+                                except gurgle_network_error as err:
+                                    self.core.reply_error(message_id,"NetworkError",err)
+                                    continue
+                                if status == False:
+                                    try:
+                                        self.grgl_mysql.insert_offline_message(senddata,0,'subscribed_message',target_user)
+                                    except grgl_mysql_controllor_error as err:
+                                        self.core.reply_error(message_id,"DatabaseError",err)
+                                        continue
                     if update_dict == {}:
                         if flag:
-                            self.core.reply_ok()
+                            self.core.reply_ok(message_id);
                             continue
                         self.core.reply_error(message_id,"SyntaxError","Please specify what you want to modify")
                         continue;

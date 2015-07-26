@@ -107,6 +107,21 @@ if __name__ == '__main__':
                 buf = core.recv(message_id)
                 print ("%s"%buf)
             continue
+        senddata = {
+            'id'    : message_id,
+            'cmd'   : command,
+            'obj'   : obj,
+            'params': {
+            }
+        }
+        nt = str(params);
+        params = [];
+        i = 0;
+        while (nt.find(' ') != -1):
+            (varA,varB) = nt.split(' ',1)
+            params.append(varA)
+            nt = varB;
+        params.append(nt)
         for i in list(params):
             tVar=str(i).split("=",1)
             if tVar == None or tVar[0] == None:
