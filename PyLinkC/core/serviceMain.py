@@ -416,7 +416,7 @@ class serviceThread(threading.Thread):
                             if flag == True:        # if found
                                 update_dict['status'] = i
                     if 'mood' in params:
-                        update_dict['mood'] = str(params['mood']).lower()
+                        update_dict['mood'] = str(params['mood'])
                     if update_dict == {}:
                         self.core.reply_error(message_id,"SyntaxError","Please specify what you want to modify")
                         continue;
