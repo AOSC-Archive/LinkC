@@ -497,9 +497,6 @@ class serviceThread(threading.Thread):
                                     except grgl_mysql_controllor_error as err:
                                         self.core.reply_error(message_id,"DatabaseError",err)
                                         continue
-                            else:
-                                self.core.reply_error(message_id,"DatabaseError","You have subscribed him/her")
-                                continue
                         else:
                             try:
                                 self.grgl_mysql.unsubscribe(self.userid,target_user)
@@ -585,16 +582,19 @@ class serviceThread(threading.Thread):
                         continue
                     if status == False:
                         try:
-                            self.grgl_mysql.insert_offline_message(senddata,message_id,username=tmpData[1])
+                            status = self.grgl_mysql.insert_offline_message(senddata,message_id,userid=tmpData[1])
                         except grgl_mysql_controllor_error as err:
                             self.core.reply_error(message_id,"DatabaseError","Failed to insert offline message[%s]"%err)
                             self.core.write_log("DatabaseError[%s]"%err,gurgle.GURGLE_LOG_MODE_ERROR)
                             continue
+                    if status == False:
+                        self.core.reply_error(message_id,"Failed to forward message(Is user unreachable?)")
+                        continue
                 else:
                     self.core.reply_error(message_id,"ProtocolUnSupported","Protocol[%s] is not supported yet"%tmpData[0])
                     continue
+                self.core.reply_ok(message_id);
                 continue
-            
             elif cmd == 'quit':
                 if 'params' in data:
                     if 'reason' in params:
@@ -624,8 +624,8 @@ class serviceThread(threading.Thread):
 
 
 if __name__ == '__main__':
-    SERVICE_PORT = 40097
-    ADDR = ('',SERVICE_PORT)
+    SERVICE_PORT = 1097
+    ADDR = (socket.gethostname(),SERVICE_PORT)
     sevSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     sevSocket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
     sevSocket.bind(ADDR)

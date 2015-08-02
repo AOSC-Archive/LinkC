@@ -15,6 +15,7 @@ import datetime
 class packageNode:
     nextNode    = None
     data        = None
+    ext         = None;
     packageID   = 0
     def __init__(self,nodeData):
         self.data = nodeData
@@ -37,9 +38,10 @@ class packageList:
             curNode = curNode.nextNode
             tempNode = None
         curNode = None
-    def insert(self,newData,packageID):
+    def insert(self,newData,packageID,packageExt):
         newNode = packageNode(newData)
         newNode.packageID = packageID
+        newNode.ext       = packageExt
         if self.root is None:
             self.root = newNode
             self.size += 1
@@ -49,36 +51,69 @@ class packageList:
             tempNode = tempNode.nextNode
         tempNode.nextNode = newNode
         self.size += 1
-    def get_data(self,packageID):
+    def get_data(self,packageID,packageExt = None,domain = None,ip = None):
         if self.size == 0:
             return None
         else:
             tempNode = self.root
             for i in range(0,self.size):
                 if tempNode.packageID == packageID:
-                    return tempNode.data
-                else:
-                    tempNode = tempNode.nextNode
+                    if packageID == 0:
+                        if gurgle.is_id_match(gurgle,packageExt,tempNode.ext,domain,ip):
+                            return tempNode.data
+                    else:
+                        return tempNode.data
+                tempNode = tempNode.nextNode
             return None
-    def remove(self,packageID):
+    def remove(self,packageID,packageExt=None):
         if self.root is None:
             return False
         if self.root.packageID == packageID:
-            tempNode = self.root.nextNode
-            self.root = None
-            self.size -= 1
-            self.root = tempNode
-            return True
+            if packageID != 0:
+                tempNode = self.root.nextNode
+                self.root = None
+                self.size -= 1
+                self.root = tempNode
+                return True
+            else:
+                if packageExt != None:
+                    if self.root.ext == packageExt:
+                        tempNode = self.root.nextNode
+                        self.root = None
+                        self.size -= 1
+                        self.root = tempNode
+                        return True
+                    else:
+                        pass
+                else:
+                    tempNode = self.root.nextNode
+                    self.root = None
+                    self.size -= 1
+                    self.root = tempNode
+                    return True
         curNode = self.root
         while curNode.nextNode is not None:
             if curNode.nextNode.packageID == packageID:
                 tempNode = curNode.nextNode
                 curNode.nextNode = curNode.nextNode.nextNode
-                tempNode = None  #remove the node,but curNode stays still
+                tempNode = None 
                 self.size -= 1
                 return True
-            else:
-                curNode = curNode.nextNode
+            elif packageID == 0:
+                if packageExt != None:
+                    if curNode.nextNode.ext == packageExt:
+                        tempNode = curNode.nextNode
+                        curNode.nextNode = curNode.nextNode.nextNode
+                        tempNode = None
+                        self.size -= 1
+                        return True
+                else:
+                    tempNode = curNode.nextNode
+                    curNode.nextNode = curNode.nextNode.nextNode
+                    tempNode = None 
+                    self.size -= 1
+                    return True
+            curNode = curNode.nextNode
         return False
     def get_root(self):
         return self.root
@@ -237,7 +272,7 @@ class gurgle:
             self.__recv_door_2.door_step_into()
         self.__recv_door_2.door_close()
         self.__recv_door_1.door_open()
-    def recv(self,buf_size = 512, message_id = 0, timeout = 5, max_try = 2):
+    def recv(self,buf_size = 512, message_id = 0,message_obj = None, timeout = 5, max_try = 2):
         if self.is_connected() == False:
             return None
         buf = None
@@ -252,19 +287,25 @@ class gurgle:
             self.__recv_roaster -= 1
             self.__recv_door_2.door_step_out()
             if data is not None:
-                self.__package_list.remove(message_id)
+                self.__package_list.remove(message_id,message_obj)
                 return data
+            if timeout == 0:
+                return None
             ## status :: door_1 closed, door_2 opened, recv_mutex locked
         if not self.is_connected():
             self.__recv_lock_release()
             raise gurgle_network_error("Connection has not been established!")
         self.__socket.settimeout(timeout)
         return_data = None
+        obj = None;
         while True:
             data = self.__package_list.get_data(message_id)
             if data is not None:
                 self.__recv_lock_release()
                 return data
+            if timeout == 0:
+                self.__recv_lock_release()
+                return None
             buf = None
             try:
                 buf = self.__socket.recv(buf_size)
@@ -329,6 +370,8 @@ class gurgle:
                         raise gurgle_network_error(
                                 'Connection was closed by peer'
                             )
+                if 'obj' in buf:
+                    obj = buf['obj']
                 if message_id == 0:
                     if return_buf != None:
                         self.__package_list.insert(buf,id)
