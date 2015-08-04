@@ -10,7 +10,7 @@ class grgl_mysql_controllor_error(Exception):
 
 class grgl_mysql_controllor:
     DATABASE_HOST       = 'localhost'
-    DATABASE_USER       = 'root'
+    DATABASE_USER       = 'tricks'
     DATABASE_PASS       = '123321123'
     DATABASE_NAME       = 'linkc_users'
     USER_INFO_TABLE_NAME= 'user_info'

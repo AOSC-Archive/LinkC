@@ -119,7 +119,7 @@ class serviceThread(threading.Thread):
                         })
                 else:
                     senddata = json.dumps({
-                            "id"    : message_id, 
+                            "id"    : message_id,
                             "cmd"   : "pong"
                         })
             elif cmd == 'connect':
@@ -251,7 +251,7 @@ class serviceThread(threading.Thread):
                             "status"    : status,
                             "mood"      : mood,
                             "error"     : None
-                        }    
+                        }
                     })
                 elif obj == 'roster':
                     if self.is_authenticated == False:
@@ -347,10 +347,13 @@ class serviceThread(threading.Thread):
                             self.core.emergency_quit()
                             _thread.exit()
                         try:
-                            (id_list,data_list) = self.grgl_mysql.get_offline_message(self.FullSignInID)
+                            tmpVar = self.grgl_mysql.get_offline_message(self.FullSignInID)
                         except grgl_mysql_controllor_error as err:
                             self.core.reply_error(message_id,"DatabaseError","Cannot fetch offline message[%s]"%err)
                             continue
+                        if tmpVar == None:
+                            continue;
+                        (id_list,data_list) = tmpVar;
                         i = 0
                         while i < len(data_list):
                             try:

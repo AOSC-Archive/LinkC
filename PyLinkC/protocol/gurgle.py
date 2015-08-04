@@ -96,7 +96,7 @@ class packageList:
             if curNode.nextNode.packageID == packageID:
                 tempNode = curNode.nextNode
                 curNode.nextNode = curNode.nextNode.nextNode
-                tempNode = None 
+                tempNode = None
                 self.size -= 1
                 return True
             elif packageID == 0:
@@ -110,7 +110,7 @@ class packageList:
                 else:
                     tempNode = curNode.nextNode
                     curNode.nextNode = curNode.nextNode.nextNode
-                    tempNode = None 
+                    tempNode = None
                     self.size -= 1
                     return True
             curNode = curNode.nextNode
@@ -870,7 +870,7 @@ class gurgle:
             "obj"   : "roster",
             "params":{
                 "gid"           : gid,
-                "subscription"  :{"to": True}
+                "sub_to"        : True
             }
         }
         if message != None:
@@ -921,7 +921,7 @@ class gurgle:
                 "reply" : {
                     "error" : error,
                     "reason": reason,
-                    "help"  : help   
+                    "help"  : help
                 }
             })
         if self.send(encode(senddata)) != gurgle.GURGLE_SUCCESS:
@@ -1003,6 +1003,6 @@ if __name__ == '__main__':
     core.write_log("Auth succeed")
     core.publish_self_presence_update(last_name = "SternW",first_name="Zhang",status = "Avaliable")
     core.new_friend("grgl:test@localhost","I want to make friend with you")
-            
+
 
 
