@@ -624,8 +624,8 @@ class serviceThread(threading.Thread):
 
 
 if __name__ == '__main__':
-    SERVICE_PORT = 1097
-    ADDR = (socket.gethostname(),SERVICE_PORT)
+    SERVICE_PORT = 40097
+    ADDR = ('',SERVICE_PORT)
     sevSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     sevSocket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
     sevSocket.bind(ADDR)
