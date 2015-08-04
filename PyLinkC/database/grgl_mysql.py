@@ -10,7 +10,7 @@ class grgl_mysql_controllor_error(Exception):
 
 class grgl_mysql_controllor:
     DATABASE_HOST       = 'localhost'
-    DATABASE_USER       = 'root'
+    DATABASE_USER       = 'tricks'
     DATABASE_PASS       = '123321123'
     DATABASE_NAME       = 'linkc_users'
     USER_INFO_TABLE_NAME= 'user_info'
@@ -202,9 +202,9 @@ class grgl_mysql_controllor:
                 raise grgl_mysql_controllor_error(err)
         try:
             if limit >= 1:
-                self.__mysql_fd.execute("SELECT id,nickname,groups,sub_from,sub_to FROM subscribed_list_%d LIMIT %d"%(user_id,limit))
+                self.__mysql_fd.execute("SELECT id,nickname,groups,sub_from,sub_to FROM sub_to = 1 and subscribed_list_%d LIMIT %d"%(user_id,limit))
             else:
-                self.__mysql_fd.execute("SELECT id,nickname,groups,sub_from,sub_to FROM subscribe_list_%d"%user_id)
+                self.__mysql_fd.execute("SELECT id,nickname,groups,sub_from,sub_to FROM sub_to = 1 and subscribe_list_%d"%user_id)
         except mysql.Error as err:
             raise grgl_mysql_controllor_error(err)
         count = 0
@@ -561,6 +561,7 @@ class grgl_mysql_controllor:
             if tmpVarA[1] == tmpVarB[1]:
                 for i in target_alias:
                     if tmpVarB[2] == i:
+                        self.__mysql_fd.fetchmany()
                         if disconnect:
                             self.disconnect_from_database()
                         return True
