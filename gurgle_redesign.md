@@ -103,6 +103,29 @@ LinkC 协议基于JSON（ 没有更多的说明了）
 }
 ``` 
 
+## 请求服务器别名
+### 请求
+```
+"id"        : "id",
+"cmd"       : "query",
+"obj"       : "server_alias"
+```
+### 回应
+```
+"id"        : "message's id",
+"reply"     : {
+    "count"     : n,
+    "value"     : [
+        'www.linkc.org',
+        'linkc.org',
+        '117.1.1.1',
+        '192.168.1.100'
+        ...........
+    ]
+}
+
+```
+
 ## 强制关闭连接(Force client disconnect)
 ### 命令:
 ```

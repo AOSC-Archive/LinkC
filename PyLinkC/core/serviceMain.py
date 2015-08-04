@@ -27,9 +27,9 @@ class serviceThread(threading.Thread):
         self.session  = None
         self.FullSignInID = None
         self.userid = 0
-        self.global_domain  = 'localhost'
-        self.global_ip      = '127.0.0.1'
-        self.grgl_mysql.set_global_definition(self.global_domain,self.global_ip)
+        self.alias = ['127.0.0.1','localhost','192.168.1.1','117.59.15.96'];
+        self.global_domain = 'localhost'
+        self.grgl_mysql.set_server_alias(self.alias,self.global_domain)
     def __del__(self):
         del self.core
         del self.grgl_mysql
@@ -39,7 +39,11 @@ class serviceThread(threading.Thread):
         if domain == None:
             domain = global_domain
         found = False
-        if domain == self.global_domain or domain == self.global_ip:
+        flag = False
+        for i in self.alias:
+            if i == domain:
+                flag = True
+        if flag == True:
             if terminal == None:
                 for i in threading.enumerate():
                     tName = i.getName()
@@ -205,22 +209,30 @@ class serviceThread(threading.Thread):
                 if obj == 'auth_method':
                     senddata = json.dumps({
                             "id"    : message_id,
-                            "params":{
+                            "reply":{
                                 "auth_method":self.core.get_auth_method()
                             }
                         })
                 elif obj == 'auth_status':
                     senddata = json.dumps({
                             "id"    : message_id,
-                            "params": {
+                            "reply": {
                                 "auth_status" : self.is_authenticated
                             }
                         })
                 elif obj == 'version':
                     senddata = json.dumps({
                             "id"    : message_id,
-                            "params": {
+                            "reply": {
                                 "version" : self.core.get_version()
+                            }
+                    })
+                elif obj == 'server_alias':
+                    senddata = json.dumps({
+                            "id"    : message_id,
+                            "reply": {
+                                "count" : len(self.alias),
+                                "value" : self.alias
                             }
                     })
                 elif obj == 'presence':
@@ -459,14 +471,14 @@ class serviceThread(threading.Thread):
                     if 'sub_to' in params:
                         flag = True
                         try:
-                            subscribed_status = self.grgl_mysql.is_user_subscribed(self.userid,target_user)
+                            subscribed_status = self.grgl_mysql.is_user_subscribed(self.userid,target_user,self.alias)
                         except grgl_mysql_controllor_error as err:
                             self.core.reply_error(message_id,"DatabaseError",err)
                             continue
                         if bool(params['sub_to']) == True:
                             if subscribed_status == False:
                                 try:
-                                    status = self.grgl_mysql.subscribe(self.userid,target_user)
+                                    status = self.grgl_mysql.subscribe(self.userid,target_user,self.alias)
                                 except grgl_mysql_controllor_error as err:
                                     self.core.reply_error("DatabaseError",err)
                                     continue

@@ -51,7 +51,7 @@ class packageList:
             tempNode = tempNode.nextNode
         tempNode.nextNode = newNode
         self.size += 1
-    def get_data(self,packageID,packageExt = None,domain = None,ip = None):
+    def get_data(self,packageID,packageExt = None,server_alias = []):
         if self.size == 0:
             return None
         else:
@@ -59,7 +59,7 @@ class packageList:
             for i in range(0,self.size):
                 if tempNode.packageID == packageID:
                     if packageID == 0:
-                        if gurgle.is_id_match(gurgle,packageExt,tempNode.ext,domain,ip):
+                        if gurgle.is_id_match(gurgle,packageExt,tempNode.ext,alias):
                             return tempNode.data
                     else:
                         return tempNode.data
@@ -481,7 +481,7 @@ class gurgle:
         if terminal == None:
             return "grgl:%s@%s"%(username,domain)
         return "grgl:%s@%s/%s"%(username,domain,terminal)
-    def is_id_match(self,user_id_a,user_id_b,domain,ip):
+    def is_id_match(self,user_id_a,user_id_b,server_alias):
         if user_id_a == None or user_id_b == None:
             return False
         tmpVarA = self.analyse_full_id(user_id_a)
@@ -490,24 +490,17 @@ class gurgle:
         tmpVarB = self.analyse_full_id(user_id_b)
         if tmpVarB == None:
             return False
-        if domain == None and ip == None:
+        if tmpVarA[1] != tmpVarB[1]:
             return False
-        if domain != None and ip != None:
-            if tmpVarA[1] != tmpVarB[1]:
-                return False
-            if tmpVarA[2] != tmpVarB[2]:
-                if tmpVarA[2] == domain:
-                    if tmpVarB[2] == ip:
-                        return True
-                    else:
-                        return False
-                if tmpVarA[2] == ip:
-                    if tmpVarB[2] == domain:
-                        return True
-                    else:
-                        return False
-            else:
-                return True
+        flagA = False
+        flagB = False
+        for i in server_alias:
+            if i == tmpVarB[2]:
+                flagA = True
+            if i == tmpVarA[2]:
+                flagB = True
+        if flagA and flagB:
+            return True
         return False
     def is_remote_addr_set(self):
         if not self.__remoteHost:
@@ -545,6 +538,10 @@ class gurgle:
                 })
     def query_roster_update(self,user_id_1,user_id_2,domain,ip):
         pass
+    def query_server_alias(self):
+        if self.is_connected() == False:
+            return None
+        return None
     def push_roster_update(self,params):
         senddata = {
             "id"    : self.create_id(),
@@ -637,13 +634,13 @@ class gurgle:
                 recvdata = self.recv(1024,message_id)
             except gurgle_network_error as e:
                 raise gurgle_network_error(e)
-            if 'params' not in recvdata:
+            if 'reply' not in recvdata:
                 self.set_authenticated(False)
                 return False
-            if 'auth_status' not in recvdata['params']:
+            if 'auth_status' not in recvdata['reply']:
                 self.set_authenticated(False)
                 return False
-            if recvdata['params']['auth_status'] == 'Authenticated':
+            if recvdata['reply']['auth_status'] == 'Authenticated':
                 self.set_authenticated(True)
                 return True
             else:
@@ -682,10 +679,10 @@ class gurgle:
         if recvdata is None:
             return gurgle.GURGLE_FAILED_TO_RECV
         TempList = None
-        if 'params' in recvdata:
-            if 'auth_method' in recvdata['params']:
-                if list(recvdata['params']['auth_method'])[0] != None:
-                    TempList=list(recvdata['params']['auth_method'])
+        if 'reply' in recvdata:
+            if 'auth_method' in recvdata['reply']:
+                if list(recvdata['reply']['auth_method'])[0] != None:
+                    TempList=list(recvdata['reply']['auth_method'])
         if TempList == None:
             return False
         self.auth_method_supported  = TempList
@@ -707,9 +704,9 @@ class gurgle:
         recvdata = self.recv(1024,message_id)
         if recvdata is None:
             return gurgle.GURGLE_FAILED_TO_RECV
-        if 'params' not in recvdata:
+        if 'reply' not in recvdata:
             return gurgle.GURGLE_FAILED
-        if str(recvdata['params']['version']) != self.get_version():
+        if str(recvdata['reply']['version']) != self.get_version():
             return gurgle.GURGLE_VERSION_DONOT_MATCH
         return gurgle.GURGLE_SUCCESS
     def get_self_information(self):
