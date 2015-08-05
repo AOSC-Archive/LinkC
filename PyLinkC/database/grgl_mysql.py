@@ -10,7 +10,7 @@ class grgl_mysql_controllor_error(Exception):
 
 class grgl_mysql_controllor:
     DATABASE_HOST       = 'localhost'
-    DATABASE_USER       = 'tricks'
+    DATABASE_USER       = 'root'
     DATABASE_PASS       = '123321123'
     DATABASE_NAME       = 'linkc_users'
     USER_INFO_TABLE_NAME= 'user_info'
@@ -163,8 +163,6 @@ class grgl_mysql_controllor:
             self.disconnect_from_database()
             raise grgl_mysql_controllor_error(err)
         if userid == 0:
-            if disconnect:
-                self.disconnect_from_database()
             return None
         if not self.is_connected():
             try:
@@ -202,9 +200,9 @@ class grgl_mysql_controllor:
                 raise grgl_mysql_controllor_error(err)
         try:
             if limit >= 1:
-                self.__mysql_fd.execute("SELECT id,nickname,groups,sub_from,sub_to FROM sub_to = 1 and subscribed_list_%d LIMIT %d"%(user_id,limit))
+                self.__mysql_fd.execute("SELECT id,nickname,groups,sub_from,sub_to FROM subscribed_list_%d WHERE sub_to = 1 LIMIT %d"%(user_id,limit))
             else:
-                self.__mysql_fd.execute("SELECT id,nickname,groups,sub_from,sub_to FROM sub_to = 1 and subscribe_list_%d"%user_id)
+                self.__mysql_fd.execute("SELECT id,nickname,groups,sub_from,sub_to FROM subscribed_list_%d WHERE sub_to = 1"%user_id)
         except mysql.Error as err:
             raise grgl_mysql_controllor_error(err)
         count = 0
@@ -225,8 +223,10 @@ class grgl_mysql_controllor:
                 self.disconnect_from_database()
                 raise grgl_mysql_controllor_error("Cannot fetch user(id=%s)'s presence[%s]"%(i,err))
             if tmpVar == None:
-                self.disconnect_from_database()
-                raise grgl_mysql_controllor_error("Cannot fetch user(id=%s)'s presence"%i)
+                tmp_list.append(i)
+                tmp_list.append("CannotFetchPresence")
+                r_list.append(tmp_list)
+                continue
             tmp_list.append(i);         # id
             for t in t_dict[i]:
                 tmp_list.append(t);
@@ -510,9 +510,7 @@ class grgl_mysql_controllor:
             raise grgl_mysql_controllor_error(err)
         data = self.__mysql_fd.fetchone()
         if data == None:
-            if disconnect:
-                self.disconnect_from_database()
-            raise grgl_mysql_controllor_error("NoSuchUser")
+            return 0
         if disconnect:
             self.disconnect_from_database()
         return int(data[0])
@@ -578,7 +576,7 @@ class grgl_mysql_controllor:
                             return 0
         if disconnect:
             self.disconnect_from_database()
-        return False
+        return -1
     def delete_offline_message(self,userid=None,message_id=0,disconnect=True):
         if userid == None:
             return False
@@ -800,6 +798,11 @@ class grgl_mysql_controllor:
             except mysql.Error as err:
                 self.disconnect_from_database()
                 raise grgl_mysql_controllor_error(err)
+        try:
+            self.drop_redundancy_subscribed_info(host_user,False)
+        except grgl_mysql_controllor_error as err:
+            self.disconnect_from_database()
+            raise grgl_mysql_controllor_error(err)
         if disconnect:
             self.disconnect_from_database()
         return True
@@ -812,6 +815,10 @@ class grgl_mysql_controllor:
             if disconnect:
                 self.disconnect_from_database()
             return False
+        if target_user == 0:
+            if disconnect:
+                self.disconnect_from_database()
+            return False
         if not self.is_connected():
             try:
                 self.connect_to_database(self.DATABASE_NAME)
@@ -819,8 +826,8 @@ class grgl_mysql_controllor:
                 self.disconnect_from_database()
                 raise grgl_mysql_controllor_error(err)
         try:
-            self.__mysql_fd.execute("SELECT sub_from FROM subscribed_list_%d WHERE sub_from = 0 and sub_to = 0"%target_user)
-            self.__mysql_fd.commit();
+            self.__mysql_fd.execute("DELETE FROM subscribed_list_%d WHERE sub_from = 0 and sub_to = 0"%target_user)
+            self.__mysql_conn.commit();
         except mysql.Error as err:
             self.disconnect_from_database()
             raise grgl_mysql_controllor_error(err)

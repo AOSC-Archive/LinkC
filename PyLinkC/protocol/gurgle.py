@@ -473,14 +473,12 @@ class gurgle:
             if domain == None:
                 return None
             return (protocol,username,domain,terminal)
-    def make_up_full_id(self,username,domain,terminal = None):
-        if self.is_username_acceptable(username) == False:
-            return None
-        if (username == None) or (domain == None):
+    def make_up_full_id(self,user_name,domain,terminal = None):
+        if (user_name == None) or (domain == None):
             return 'SyntaxError'
         if terminal == None:
-            return "grgl:%s@%s"%(username,domain)
-        return "grgl:%s@%s/%s"%(username,domain,terminal)
+            return "grgl:%s@%s"%(user_name,domain)
+        return "grgl:%s@%s/%s"%(user_name,domain,terminal)
     def is_id_match(self,user_id_a,user_id_b,server_alias):
         if user_id_a == None or user_id_b == None:
             return False
