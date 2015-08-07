@@ -324,6 +324,7 @@ class gurgle:
                         'Connection was unexpectedly closed by peer'
                     )
             buf     = buf.decode()
+            self.write_log(buf)
             start   = 0
             location= 0
             count   = 0
