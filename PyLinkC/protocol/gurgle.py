@@ -296,10 +296,6 @@ class gurgle:
         self.__recv_door_1.door_open()
 
     def recv(self, buf_size=512, message_id=0, message_obj=None, timeout=5, max_try=2):
-        """
-
-        :type max_try: object
-        """
         if self.is_connected() is False:
             return None
         id_ = 0
@@ -329,7 +325,7 @@ class gurgle:
         buf = None
         n_try = 0
         while n_try < max_try:
-            data = self.__package_list.get_data(message_id)
+            data = self.__package_list.get_data(0)
             if data is not None:
                 self.__recv_lock_release()
                 return data
@@ -341,8 +337,10 @@ class gurgle:
                 buf = self.__socket.recv(buf_size)
             except socket.timeout:
                 n_try += 1
+                self.write_log("Timeout")
                 continue
             except socket.error as e:
+                self.write_log("Error %s"%e)
                 self.write_log(e, gurgle.GURGLE_LOG_MODE_ERROR)
                 self.__recv_lock_release()
                 raise gurgle_network_error(e)
@@ -355,7 +353,6 @@ class gurgle:
                     'Connection was unexpectedly closed by peer'
                 )
             buf = buf.decode()
-            self.write_log(buf)
             start = 0
             location = 0
             count = 0
@@ -379,6 +376,7 @@ class gurgle:
                     self.write_log("Error package = [%s]" % buf)
                     n_try += 1
                     continue
+                self.write_log("RECVED [%s]"%buf)
                 if 'id' not in buf:
                     if message_id == 0:
                         return_buf = buf
@@ -412,7 +410,6 @@ class gurgle:
                         n_try += 1
                         continue
                     return_buf = buf
-                    self.write_log("Got it")
                     n_try += 1
                     continue
                 if id_ == message_id:
@@ -427,6 +424,8 @@ class gurgle:
                 self.__recv_lock_release()
                 return return_buf
             n_try += 1
+        self.__recv_lock_release()
+        return None
 
     def send(self, buf):
         if self.is_connected() is False:
@@ -438,7 +437,7 @@ class gurgle:
             self.write_log(e, gurgle.GURGLE_LOG_MODE_ERROR)
             self.__send_mutex.release()
             raise gurgle_network_error(e)
-        self.write_log(buf)
+        self.write_log("SENT   [%s]"%decode(buf))
         self.__send_mutex.release()
         return gurgle.GURGLE_SUCCESS
 

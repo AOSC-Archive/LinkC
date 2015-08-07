@@ -91,7 +91,8 @@ class ServiceThread(threading.Thread):
                 data = self.core.recv(1024)
             except gurgle_network_error:
                 _thread.exit()
-            self.core.write_log(data)
+            if data == None:
+                continue
             if 'id' not in data:
                 self.core.write_log("Data without ID", gurgle.GURGLE_LOG_MODE_ERROR)
                 self.core.emergency_quit('SyntaxError', 'This package has no ID!')
@@ -335,6 +336,13 @@ class ServiceThread(threading.Thread):
                         self.core.reply_error(message_id, 'SyntaxError', 'ID cannot be analysed')
                         continue
                     (protocol, self.username, domain, self.terminal) = tmp_data
+                    flag = False
+                    for i in self.alias:
+                        if i == domain:
+                            flag = True
+                    if flag is False:
+                        self.core.reply_error(message_id, "Unsupported", "Unsupported")
+                        continue
                     if self.terminal is None:
                         self.terminal = self.core.create_terminal_id()
                     if self.core.is_username_acceptable(self.username) is False:
@@ -357,7 +365,7 @@ class ServiceThread(threading.Thread):
                         self.core.reply_error(message_id, 'SyntaxError', 'Username or password incorrect')
                         continue
                     result = self.grgl_mysql.plain_password_authenticate(self.username, pass_word)
-                    self.FullSignInID = self.core.make_up_full_id(self.username, domain, self.terminal)
+                    self.FullSignInID = self.core.make_up_full_id(self.username, self.alias[0], self.terminal)
                     if result == grgl_mysql_controllor.AUTH_SUCCESS:
                         try:
                             self.userid = self.grgl_mysql.get_user_order(self.username)
