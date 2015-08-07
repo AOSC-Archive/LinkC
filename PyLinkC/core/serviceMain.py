@@ -14,16 +14,16 @@ protocolSupported = ['grgl']
 
 
 class ServiceThread(threading.Thread):
-    core = None
-    grgl_mysql = None
-    addr = None
+    core            = None
+    grgl_mysql      = None
+    addr            = None
     is_authenticated = "Unauthenticated"
-    senddata = "something to send"
-    username = None
-    terminal = None
-    session = None
-    FullSignInID = None
-    userid = 0
+    senddata        = "something to send"
+    username        = None
+    terminal        = None
+    session         = None
+    FullSignInID    = None
+    userid          = 0
     alias = ['127.0.0.1', 'localhost', '192.168.1.1', '117.59.15.96']
     global_domain = 'localhost'
 
@@ -36,6 +36,7 @@ class ServiceThread(threading.Thread):
         self.core.set_remote_port(self.addr[1])
         self.setName("TemporaryConnection")
         self.grgl_mysql.set_server_alias(self.alias, self.global_domain)
+        self.grgl_mysql.set_core(self.core)
 
     def __del__(self):
         del self.core
@@ -90,6 +91,7 @@ class ServiceThread(threading.Thread):
                 data = self.core.recv(1024)
             except gurgle_network_error:
                 _thread.exit()
+            self.core.write_log(data)
             if 'id' not in data:
                 self.core.write_log("Data without ID", gurgle.GURGLE_LOG_MODE_ERROR)
                 self.core.emergency_quit('SyntaxError', 'This package has no ID!')
@@ -351,7 +353,7 @@ class ServiceThread(threading.Thread):
                     if pass_word == '':
                         self.core.reply_error(message_id, 'SyntaxError', 'No password')
                         continue
-                    if self.core.is_password_acceptabel(pass_word) is False:
+                    if self.core.is_password_acceptable(pass_word) is False:
                         self.core.reply_error(message_id, 'SyntaxError', 'Username or password incorrect')
                         continue
                     result = self.grgl_mysql.plain_password_authenticate(self.username, pass_word)

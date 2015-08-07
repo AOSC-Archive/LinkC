@@ -18,7 +18,7 @@ if __name__ == '__main__':
     sevSocket.listen(5)
     while True:
         clientSocket,addr = sevSocket.accept()
-        newThread = serviceThread()
+        newThread = ServiceThread()
         newThread.setup(clientSocket,addr)
         newThread.start()
 
