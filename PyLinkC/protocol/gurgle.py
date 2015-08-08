@@ -376,7 +376,6 @@ class gurgle:
                     self.write_log("Error package = [%s]" % buf)
                     n_try += 1
                     continue
-                self.write_log("RECVED [%s]"%buf)
                 if 'id' not in buf:
                     if message_id == 0:
                         return_buf = buf
@@ -437,7 +436,6 @@ class gurgle:
             self.write_log(e, gurgle.GURGLE_LOG_MODE_ERROR)
             self.__send_mutex.release()
             raise gurgle_network_error(e)
-        self.write_log("SENT   [%s]"%decode(buf))
         self.__send_mutex.release()
         return gurgle.GURGLE_SUCCESS
 
